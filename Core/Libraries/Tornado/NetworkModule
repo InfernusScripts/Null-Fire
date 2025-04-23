@@ -59,10 +59,12 @@ local main = setmetatable({
 		self.Active = state
 		
 		settings().Physics.AllowSleep = not state
+		plr.ReplicationFocus = state and workspace or nil
+		
 		if not state then
 			for _, v in game:GetService("Players"):GetPlayers() do
 				if v then
-					pcall(set, v, "MaximumSimulationRadius", 20) -- i actually don't know real values, these are just random numbers
+					pcall(set, v, "MaximumSimulationRadius", 20) -- these numbers are random, i have no clue which ones are really default
 					if sethiddenproperty then 
 						sethiddenproperty(v, 'MaxSimulationRadius', 20, 100)
 						sethiddenproperty(v, 'SimulationRadius', 40)
