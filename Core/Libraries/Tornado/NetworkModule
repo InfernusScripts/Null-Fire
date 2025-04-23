@@ -1,1 +1,81 @@
-local v0=string.char;local v1=string.byte;local v2=string.sub;local v3=bit32 or bit ;local v4=v3.bxor;local v5=table.concat;local v6=table.insert;local function v7(v16,v17) local v18={};for v26=1, #v16 do v6(v18,v0(v4(v1(v2(v16,v26,v26 + 1 )),v1(v2(v17,1 + (v26% #v17) ,1 + (v26% #v17) + 1 )))%256 ));end return v5(v18);end local function v8() return ((typeof(getfenv().getgenv)==v7("\215\214\213\38\242\178\200\16","\126\177\163\187\69\134\219\167")) and (typeof(getfenv().getgenv())==v7("\55\204\40\201\249","\156\67\173\74\165")) and getfenv().getgenv()) or _G ;end if v8()._NETACCESS then return v8()._NETACCESS;end local v9=false;local function v10(v19,v20,v21) v19[v20]=v21;end local v11=getfenv().sethiddenproperty or getfenv().sethiddenprop ;local v12=getfenv().setsimulationradius;local v13=game:GetService(v7("\4\187\72\15\185\52\85","\38\84\215\41\118\220\70")).LocalPlayer;game:GetService(v7("\98\3\44\33\251\66\0\43\17\251","\158\48\118\66\114")).RenderStepped:Connect(function() local v23=0 -0 ;while true do if ((0 + 0)==v23) then if  not v9 then return;end for v28,v29 in game:GetService(v7("\155\40\17\47\118\183\232","\155\203\68\112\86\19\197")):GetPlayers() do if (v29 and (v29~=v13)) then local v32=0;while true do if (v32==0) then pcall(v10,v29,v7("\107\220\46\245\77\109\232\203\79\208\35\240\65\108\236\247\72\239\55\248\73\109\246","\152\38\189\86\156\32\24\133"),0);if v11 then local v34=772 -(201 + 571) ;while true do if (v34==(1138 -(116 + 1022))) then v11(v29,v7("\209\86\191\117\245\90\178\74\253\67\174\73\242\101\166\66\245\66\180","\38\156\55\199"),0 -0 );v11(v29,v7("\155\116\113\61\31\117\238\74\167\115\78\41\23\125\239\80","\35\200\29\28\72\115\20\154"),0);break;end end end break;end end end end v23=1 + 0 ;end if ((3 -2)==v23) then if v11 then local v30=0;while true do if (v30==(0 -0)) then v11(v13,v7("\52\190\201\236\132\33\33\21\190\197\214\130\34\6\24\187\216\202\158","\84\121\223\177\191\237\76"),math.huge);v11(v13,v7("\136\95\196\181\54\81\36\200\180\88\251\161\62\89\37\210","\161\219\54\169\192\90\48\80"),math.huge);break;end end end if v12 then v12(900000000,9000000347 -(814 + 45) );end v23=4 -2 ;end if (2==v23) then pcall(v10,v13,v7("\100\67\24\44\68\87\13\22\64\79\21\41\72\86\9\42\71\112\1\33\64\87\19","\69\41\34\96"),math.huge);break;end end end);local v14=function(v24) local v25=0 + 0 ;while true do if ((1 + 0)==v25) then if  not v24 then local v31=0;while true do if (v31==(886 -(261 + 624))) then if v12 then v12(0,30);end break;end if (v31==(0 -0)) then pcall(v10,v13,v7("\145\194\207\3\15\62\177\240\222\7\23\39\189\215\222\5\12\25\189\199\222\31\17","\75\220\163\183\106\98"),1100 -(1020 + 60) );if v11 then local v33=1423 -(630 + 793) ;while true do if (v33==0) then v11(v13,v7("\47\187\147\4\208\15\175\135\54\205\11\181\133\5\216\6\179\158\36","\185\98\218\235\87"),67 -47 ,473 -373 );v11(v13,v7("\248\53\42\243\210\171\223\53\40\232\236\171\207\53\50\245","\202\171\92\71\134\190"),16 + 24 );break;end end end v31=3 -2 ;end end end break;end if (v25==(1747 -(760 + 987))) then v9=v24;settings().Physics.AllowSleep= not v24;v25=1914 -(1789 + 124) ;end end end;v8()._NETACCESS=v14;return v14;
+-- fuck this all. here you go - free and open source
+
+local function getGlobalTable()
+	return typeof(getfenv().getgenv) == "function" and typeof(getfenv().getgenv()) == "table" and getfenv().getgenv() or _G
+end
+
+if getGlobalTable()._NETACCESS then
+	return getGlobalTable()._NETACCESS
+end
+
+local active = false
+
+local function set(self, i, v)
+	self[i] = v
+end
+
+local sethiddenproperty = getfenv().sethiddenproperty or getfenv().sethiddenprop
+local setsimulationradius = getfenv().setsimulationradius
+
+local plr = game:GetService("Players").LocalPlayer
+
+game:GetService("RunService").RenderStepped:Connect(function()
+	if not active then return end
+	for _, v in game:GetService("Players"):GetPlayers() do
+		if v and v ~= plr then
+			pcall(set, v, "MaximumSimulationRadius", 0)
+			if sethiddenproperty then 
+				sethiddenproperty(v, 'MaxSimulationRadius', 0)
+				sethiddenproperty(v, 'SimulationRadius', 0)
+			end
+		end
+	end
+	
+	if sethiddenproperty then
+		sethiddenproperty(plr, 'MaxSimulationRadius', math.huge)
+		sethiddenproperty(plr, 'SimulationRadius', math.huge)
+	end
+	if setsimulationradius then setsimulationradius(9e8, 9e9) end
+	
+	pcall(set, plr, "MaximumSimulationRadius", math.huge)
+end)
+
+local main = setmetatable({
+	Active = active,
+	SetActive = function(self, state)
+		return self(state)
+	end,
+	
+	IsNetworkOwner = function(self, part)
+		if getfenv().isnetworkowner then
+			return getfenv().isnetworkowner(part)
+		end
+		
+		return part.ReceiveAge == 0 or pcall(part.GetNetworkOwner, part) and part:GetNetworkOwner() == plr or false
+	end,
+}, {
+	__call = function(self, state)
+		active = state
+		self.Active = state
+		
+		settings().Physics.AllowSleep = not state
+		if not state then
+			for _, v in game:GetService("Players"):GetPlayers() do
+				if v then
+					pcall(set, v, "MaximumSimulationRadius", 20) -- i actually don't know real values, these are just random numbers
+					if sethiddenproperty then 
+						sethiddenproperty(v, 'MaxSimulationRadius', 20, 100)
+						sethiddenproperty(v, 'SimulationRadius', 40)
+					end
+				end
+			end
+			if setsimulationradius then setsimulationradius(0, 30) end
+		end
+	end
+})
+
+main.__index = main
+
+getGlobalTable()._NETACCESS = main
+
+return main
