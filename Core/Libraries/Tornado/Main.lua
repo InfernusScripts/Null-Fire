@@ -6,7 +6,7 @@ if getGlobalTable().TornadoFE then
 	return getGlobalTable().TornadoFE
 end
 
-local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Tornado/NetworkModule"))()
+local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Tornado/NetworkModule.lua"))()
 local plr = game:GetService("Players").LocalPlayer
 
 local holder = Instance.new("Part", workspace)
