@@ -1,0 +1,124 @@
+local function getGlobalTable()
+	return typeof(getfenv().getgenv) == "function" and typeof(getfenv().getgenv()) == "table" and getfenv().getgenv() or _G
+end
+
+if getGlobalTable().TornadoFE then
+	return getGlobalTable().TornadoFE
+end
+
+local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Tornado/NetworkModule"))()
+local plr = game:GetService("Players").LocalPlayer
+
+local holder = Instance.new("Part", workspace)
+holder.Name = "DONT_DELETE_" .. game:GetService("HttpService"):GenerateGUID(false)
+holder.Anchored = true
+holder.CanCollide = false
+holder.Transparency = 1
+
+local rotAttachment = Instance.new("Attachment", holder)
+
+local vec = vector and vector.create or Vector3.new
+local oldCanCollide = {}
+
+local tornado = {
+	Tornado = function(self, part)
+		if not self:_IsSafe(part) or table.find(self._PartList, part) then return end
+
+		table.insert(self._PartList, part)
+
+		while self:_IsSafe(part) and part:IsGrounded() do task.wait(2.5) end
+		if not part or not part.Parent then return end
+
+		oldCanCollide[part] = part.CanCollide
+		self:_ClearPart(part)
+	end,
+
+	Untornado = function(self, part)
+		if not part then return end
+
+		local found = table.find(self._PartList, part)
+		if found then
+			table.remove(self._PartList, found)
+		end
+
+		if part:FindFirstChild(self._TornadoGUID) then
+			for i,v in part[self._TornadoGUID]:GetChildren() do
+				if v and v:IsA("ObjectValue") and v.Name == self._TornadoGUID and v.Value and v.Value.Parent then
+					v.Value:Destroy()
+				end
+			end
+
+			part[self._TornadoGUID]:Destroy()
+		end
+	end,
+
+	UntornadoAll = function(self)
+		for i,v in self._PartList do
+			self:Untornado(v)
+		end
+
+		table.clear(self._PartList)
+	end,
+
+	Properties = {
+		Radius = 25,
+		Speed = 10,
+		Enabled = false,
+		Layers = 5,
+		ReverseLayers = false
+	},
+	
+	Network = network,
+
+	_IsSafe = function(self, part)
+		return
+			part and plr.Character and not part:IsDescendantOf(plr.Character) and
+			part.Parent and not part.Parent:FindFirstChild("Humanoid") and
+			part.Name:lower() ~= "handle" and part:IsA("BasePart") and not part.Anchored
+	end,
+
+	_ClearPart = function(self, part)
+		for i,v in part:GetDescendants() do
+			if
+				v:IsA("BodyAngularVelocity") or v:IsA("BodyForce") or v:IsA("BodyGyro") or
+				v:IsA("BodyPosition") or v:IsA("BodyThrust") or v:IsA("BodyVelocity") or
+				v:IsA("RocketPropulsion") or v:IsA("Attachment") or v:IsA("AlignPosition") or
+				v:IsA("Torque") then
+
+				v:Destroy()
+			end
+		end
+	end,
+	_PartList = {}
+}
+
+game:GetService("RunService").RenderStepped:Connect(function()
+	if plr.Character then
+		local center = plr.Character:GetPivot()
+		for i,v in tornado._PartList do
+			if v and v.Parent and not v:IsGrounded() then
+				v.CanCollide = not tornado.Properties.Enabled and oldCanCollide[v] or false
+				if tornado.Properties.Enabled then -- i have no clue if my tornado works
+					local layer = math.min(math.floor((v.Size.Magnitude / 15) * tornado.Properties.Layers), tornado.Properties.Layers) - 1
+					if tornado.Properties.ReverseLayers then
+						layer = tornado.Properties.Layers - layer + 1
+					end
+					
+					local pos = v.Position
+					local distance = (vec(pos.X, center.Y, pos.Z) - center).Magnitude
+					local newAngle = math.atan2(pos.Z - center.Z, pos.X - center.X) + math.rad(tornado.Properties.Speed)
+
+					v.AssemblyLinearVelocity = (vec(
+						center.X + math.cos(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * 2.5, 1)),
+						center.Y + (1 * (math.abs(math.sin((pos.Y - center.Y) / 1)))),
+						center.Z + math.sin(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * 2.5, 1))
+						) - v.Position).Unit * ((tornado.Properties.Speed * tornado.Properties.Radius) * (tornado.Properties.Radius * 2) * math.max(layer * 2.5, 1))
+				end
+			end
+		end
+	end
+end)
+
+getGlobalTable().TornadoFE = tornado
+
+return tornado
