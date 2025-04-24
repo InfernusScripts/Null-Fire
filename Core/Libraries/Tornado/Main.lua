@@ -96,9 +96,9 @@ game:GetService("RunService").RenderStepped:Connect(function()
 	if plr.Character then
 		local center = plr.Character:GetPivot()
 		for i,v in tornado._PartList do
-			if v and v.Parent and not v:IsGrounded() then
+			if v and v.Parent then
 				v.CanCollide = not tornado.Properties.Enabled and oldCanCollide[v] or false
-				if tornado.Properties.Enabled then -- i have no clue if my tornado works
+				if tornado.Properties.Enabled and not v:IsGrounded() and network:IsNetworkOwner(v) then -- i have no clue if my tornado works
 					local layer = math.min(math.floor((v.Size.Magnitude / 15) * tornado.Properties.Layers), tornado.Properties.Layers) - 1
 					if tornado.Properties.ReverseLayers then
 						layer = tornado.Properties.Layers - layer + 1
@@ -114,6 +114,8 @@ game:GetService("RunService").RenderStepped:Connect(function()
 						center.Z + math.sin(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * 2.5, 1))
 						) - v.Position).Unit * ((tornado.Properties.Speed * tornado.Properties.Radius) * (tornado.Properties.Radius * 2) * math.max(layer * 2.5, 1))
 				end
+			else
+				pcall(table.remove, tornado._PartList, table.find(tornado._PartList, v))
 			end
 		end
 	end
