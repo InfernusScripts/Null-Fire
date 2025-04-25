@@ -53,7 +53,7 @@ local main = setmetatable({
 			return getfenv().isnetworkowner(part)
 		end
 		
-		return part.ReceiveAge == 0 or pcall(part.GetNetworkOwner, part) and part:GetNetworkOwner() == plr or false
+		return part.ReceiveAge == 0
 	end,
 }, {
 	__call = function(self, state)
