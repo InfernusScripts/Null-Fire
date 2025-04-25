@@ -95,10 +95,10 @@ game:GetService("RunService").RenderStepped:Connect(function()
 			if v and v.Parent then
 				if tornado.Properties.Enabled and not v:IsGrounded() and network:IsNetworkOwner(v) and oldCanCollide[v] ~= nil then -- i have no clue if my tornado works
 					rotationPowers[v] = rotationPowers[v] or Vector3.new()
-					rotationPowers[v] = rotationPowers[v] + (Vector3(math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100)) / 2)
-					
+					rotationPowers[v] = (rotationPowers[v] / 2) + Vector3(math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100))
+
 					v.CanCollide = false
-					
+
 					local layer = math.min(math.floor((v.Size.Magnitude / 15) * tornado.Properties.Layers), tornado.Properties.Layers) - 1
 					if tornado.Properties.ReverseLayers then
 						layer = tornado.Properties.Layers - layer + 1
@@ -113,6 +113,8 @@ game:GetService("RunService").RenderStepped:Connect(function()
 						center.Y + math.abs(math.sin(pos.Y - center.Y + (layer * tornado.Properties.HeightLayerModifier))),
 						center.Z + math.sin(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * tornado.Properties.LayerModifier, 1))
 						) - v.Position).Unit * ((tornado.Properties.Speed * tornado.Properties.Radius) * (math.max(layer, 2) / 2))
+					
+					v.AssemblyAngularVelocity += rotationPowers[v]
 				else
 					v.CanCollide = oldCanCollide[v]
 				end
