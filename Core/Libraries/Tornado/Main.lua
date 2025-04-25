@@ -94,8 +94,8 @@ game:GetService("RunService").RenderStepped:Connect(function()
 		for i,v in tornado._PartList do
 			if v and v.Parent then
 				if tornado.Properties.Enabled and not v:IsGrounded() and network:IsNetworkOwner(v) and oldCanCollide[v] ~= nil then -- i have no clue if my tornado works
-					rotationPowers[v] = rotationPowers[v] or Vector3.new()
-					rotationPowers[v] = (rotationPowers[v] / 2) + Vector3(math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100))
+					rotationPowers[v] = rotationPowers[v] or vec(0, 0, 0)
+					rotationPowers[v] = (rotationPowers[v] / 2) + vec(math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100))
 
 					v.CanCollide = false
 
