@@ -1,5 +1,3 @@
--- fuck this all. here you go - free and open source
-
 local function getGlobalTable()
 	return typeof(getfenv().getgenv) == "function" and typeof(getfenv().getgenv()) == "table" and getfenv().getgenv() or _G
 end
@@ -25,17 +23,17 @@ game:GetService("RunService").RenderStepped:Connect(function()
 		if v and v ~= plr then
 			pcall(set, v, "MaximumSimulationRadius", 0)
 			if sethiddenproperty then 
-				sethiddenproperty(v, 'MaxSimulationRadius', 0)
-				sethiddenproperty(v, 'SimulationRadius', 0)
+				pcall(sethiddenproperty, v, 'MaxSimulationRadius', 0)
+				pcall(sethiddenproperty, v, 'SimulationRadius', 0)
 			end
 		end
 	end
 	
 	if sethiddenproperty then
-		sethiddenproperty(plr, 'MaxSimulationRadius', math.huge)
-		sethiddenproperty(plr, 'SimulationRadius', math.huge)
+		pcall(sethiddenproperty, plr, 'MaxSimulationRadius', math.huge)
+		pcall(sethiddenproperty, plr, 'SimulationRadius', math.huge)
 	end
-	if setsimulationradius then setsimulationradius(9e8, 9e9) end
+	if setsimulationradius then pcall(setsimulationradius, 9e8, 9e9) end
 	
 	pcall(set, plr, "MaximumSimulationRadius", math.huge)
 end)
@@ -66,12 +64,12 @@ local main = setmetatable({
 				if v then
 					pcall(set, v, "MaximumSimulationRadius", 20) -- these numbers are random, i have no clue which ones are really default
 					if sethiddenproperty then 
-						sethiddenproperty(v, 'MaxSimulationRadius', 20, 100)
-						sethiddenproperty(v, 'SimulationRadius', 40)
+						pcall(sethiddenproperty, v, 'MaxSimulationRadius', 20, 100)
+						pcall(sethiddenproperty, v, 'SimulationRadius', 40)
 					end
 				end
 			end
-			if setsimulationradius then setsimulationradius(0, 30) end
+			if setsimulationradius then pcall(setsimulationradius, 0, 30) end
 		end
 	end
 })
