@@ -67,7 +67,7 @@ local tornado = {
 		Layers = 5,
 		ReverseLayers = false
 	},
-	
+
 	Network = network,
 
 	_IsSafe = function(self, part)
@@ -98,12 +98,12 @@ game:GetService("RunService").RenderStepped:Connect(function()
 		for i,v in tornado._PartList do
 			if v and v.Parent then
 				v.CanCollide = not tornado.Properties.Enabled and oldCanCollide[v] or false
-				if tornado.Properties.Enabled and not v:IsGrounded() and network:IsNetworkOwner(v) then -- i have no clue if my tornado works
+				if tornado.Properties.Enabled and not v:IsGrounded() and network:IsNetworkOwner(v) and oldCanCollide[v] ~= nil then -- i have no clue if my tornado works
 					local layer = math.min(math.floor((v.Size.Magnitude / 15) * tornado.Properties.Layers), tornado.Properties.Layers) - 1
 					if tornado.Properties.ReverseLayers then
 						layer = tornado.Properties.Layers - layer + 1
 					end
-					
+
 					local pos = v.Position
 					local distance = (vec(pos.X, center.Y, pos.Z) - center).Magnitude
 					local newAngle = math.atan2(pos.Z - center.Z, pos.X - center.X) + math.rad(tornado.Properties.Speed)
