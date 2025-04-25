@@ -9,16 +9,9 @@ end
 local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Tornado/NetworkModule.lua"))()
 local plr = game:GetService("Players").LocalPlayer
 
-local holder = Instance.new("Part", workspace)
-holder.Name = "DONT_DELETE_" .. game:GetService("HttpService"):GenerateGUID(false)
-holder.Anchored = true
-holder.CanCollide = false
-holder.Transparency = 1
-
-local rotAttachment = Instance.new("Attachment", holder)
-
 local vec = vector and vector.create or Vector3.new
 local oldCanCollide = {}
+local rotationPowers = {}
 
 local tornado = {
 	Tornado = function(self, part)
@@ -65,7 +58,10 @@ local tornado = {
 		Speed = 10,
 		Enabled = false,
 		Layers = 5,
-		ReverseLayers = false
+		RandomRotationPower = 10,
+		ReverseLayers = false,
+		LayerModifier = 1.05,
+		HeightLayerModifier = 2
 	},
 
 	Network = network,
@@ -98,6 +94,9 @@ game:GetService("RunService").RenderStepped:Connect(function()
 		for i,v in tornado._PartList do
 			if v and v.Parent then
 				if tornado.Properties.Enabled and not v:IsGrounded() and network:IsNetworkOwner(v) and oldCanCollide[v] ~= nil then -- i have no clue if my tornado works
+					rotationPowers[v] = rotationPowers[v] or Vector3.new()
+					rotationPowers[v] = rotationPowers[v] + (Vector3(math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100)) / 2)
+					
 					v.CanCollide = false
 					
 					local layer = math.min(math.floor((v.Size.Magnitude / 15) * tornado.Properties.Layers), tornado.Properties.Layers) - 1
@@ -110,9 +109,9 @@ game:GetService("RunService").RenderStepped:Connect(function()
 					local newAngle = math.atan2(pos.Z - center.Z, pos.X - center.X) + math.rad(tornado.Properties.Speed)
 
 					v.AssemblyLinearVelocity = (vec(
-						center.X + math.cos(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * 2.5, 1)),
-						center.Y + (1 * (math.abs(math.sin((pos.Y - center.Y) / 1)))),
-						center.Z + math.sin(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * 2.5, 1))
+						center.X + math.cos(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * tornado.Properties.LayerModifier, 1)),
+						center.Y + math.abs(math.sin(pos.Y - center.Y + (layer * tornado.Properties.HeightLayerModifier))),
+						center.Z + math.sin(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * tornado.Properties.LayerModifier, 1))
 						) - v.Position).Unit * ((tornado.Properties.Speed * tornado.Properties.Radius) * (math.max(layer, 2) / 2))
 				else
 					v.CanCollide = oldCanCollide[v]
