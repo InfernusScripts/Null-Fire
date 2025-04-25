@@ -11,7 +11,6 @@ local plr = game:GetService("Players").LocalPlayer
 
 local vec = vector and vector.create or Vector3.new
 local oldCanCollide = {}
-local rotationPowers = {}
 
 local tornado = {
 	Tornado = function(self, part)
@@ -58,7 +57,6 @@ local tornado = {
 		Speed = 10,
 		Enabled = false,
 		Layers = 5,
-		RandomRotationPower = 10,
 		ReverseLayers = false,
 		LayerModifier = 1.05,
 		HeightLayerModifier = 2
@@ -94,9 +92,6 @@ game:GetService("RunService").RenderStepped:Connect(function()
 		for i,v in tornado._PartList do
 			if v and v.Parent then
 				if tornado.Properties.Enabled and not v:IsGrounded() and network:IsNetworkOwner(v) and oldCanCollide[v] ~= nil then -- i have no clue if my tornado works
-					rotationPowers[v] = rotationPowers[v] or vec(0, 0, 0)
-					rotationPowers[v] = (rotationPowers[v] / 2) + vec(math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100))
-
 					v.CanCollide = false
 
 					local layer = math.min(math.floor((v.Size.Magnitude / 15) * tornado.Properties.Layers), tornado.Properties.Layers) - 1
@@ -114,7 +109,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
 						center.Z + math.sin(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * tornado.Properties.LayerModifier, 1))
 						) - v.Position).Unit * ((tornado.Properties.Speed * tornado.Properties.Radius) * (math.max(layer, 2) / 2))
 					
-					v.AssemblyAngularVelocity += rotationPowers[v] / 10
+					v.AssemblyAngularVelocity = vec(12, 23, 34)
 				else
 					v.CanCollide = oldCanCollide[v]
 				end
