@@ -114,7 +114,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
 						center.Z + math.sin(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * tornado.Properties.LayerModifier, 1))
 						) - v.Position).Unit * ((tornado.Properties.Speed * tornado.Properties.Radius) * (math.max(layer, 2) / 2))
 					
-					v.AssemblyAngularVelocity += rotationPowers[v]
+					v.AssemblyAngularVelocity += rotationPowers[v] / 10
 				else
 					v.CanCollide = oldCanCollide[v]
 				end
