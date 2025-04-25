@@ -19,6 +19,7 @@ local plr = game:GetService("Players").LocalPlayer
 
 game:GetService("RunService").RenderStepped:Connect(function()
 	if not active then return end
+	
 	for _, v in game:GetService("Players"):GetPlayers() do
 		if v and v ~= plr then
 			pcall(set, v, "MaximumSimulationRadius", 0)
@@ -34,6 +35,9 @@ game:GetService("RunService").RenderStepped:Connect(function()
 		pcall(sethiddenproperty, plr, 'SimulationRadius', math.huge)
 	end
 	if setsimulationradius then pcall(setsimulationradius, 9e8, 9e9) end
+
+	settings().Physics.AllowSleep = not state
+	plr.ReplicationFocus = state and workspace or nil
 	
 	pcall(set, plr, "MaximumSimulationRadius", math.huge)
 end)
@@ -55,9 +59,6 @@ local main = setmetatable({
 	__call = function(self, state)
 		active = state
 		self.Active = state
-		
-		settings().Physics.AllowSleep = not state
-		plr.ReplicationFocus = state and workspace or nil
 		
 		if not state then
 			for _, v in game:GetService("Players"):GetPlayers() do
