@@ -19,7 +19,6 @@ local plr = game:GetService("Players").LocalPlayer
 
 game:GetService("RunService").RenderStepped:Connect(function()
 	if not active then return end
-	
 	for _, v in game:GetService("Players"):GetPlayers() do
 		if v and v ~= plr then
 			pcall(set, v, "MaximumSimulationRadius", 0)
@@ -29,15 +28,15 @@ game:GetService("RunService").RenderStepped:Connect(function()
 			end
 		end
 	end
+
+	settings().Physics.AllowSleep = false
+	plr.ReplicationFocus = workspace
 	
 	if sethiddenproperty then
 		pcall(sethiddenproperty, plr, 'MaxSimulationRadius', math.huge)
 		pcall(sethiddenproperty, plr, 'SimulationRadius', math.huge)
 	end
 	if setsimulationradius then pcall(setsimulationradius, 9e8, 9e9) end
-
-	settings().Physics.AllowSleep = not state
-	plr.ReplicationFocus = state and workspace or nil
 	
 	pcall(set, plr, "MaximumSimulationRadius", math.huge)
 end)
@@ -53,12 +52,15 @@ local main = setmetatable({
 			return getfenv().isnetworkowner(part)
 		end
 		
-		return part.ReceiveAge == 0
+		return part.ReceiveAge == 0 or pcall(part.GetNetworkOwner, part) and part:GetNetworkOwner() == plr or false
 	end,
 }, {
 	__call = function(self, state)
 		active = state
 		self.Active = state
+		
+		settings().Physics.AllowSleep = not state
+		plr.ReplicationFocus = state and workspace or nil
 		
 		if not state then
 			for _, v in game:GetService("Players"):GetPlayers() do
