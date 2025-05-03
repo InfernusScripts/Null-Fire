@@ -34,6 +34,9 @@ local defaults = {
 	FastKillaura = false,
 	AutoComplete = false,
 	
+	ShowTimeLeft = false,
+	ShowPlayingTimer = false,
+	
 	SpeedBoost = 0,
 	JumpBoost = 7.2,
 
@@ -244,8 +247,8 @@ local function raycast(from, to, ignore)
 	return result and result.Instance
 end
 
-local s = game:GetService("ReplicatedStorage").Remotes.Weapon.Shoot
-local r = game:GetService("ReplicatedStorage").Remotes.Weapon.Reload
+local s = game:GetService("ReplicatedStorage"):FindFirstChild("Shoot", math.huge)
+local r = game:GetService("ReplicatedStorage"):FindFirstChild("Reload", math.huge)
 local function shoot(gun, target)
 	if not isDead(target) and (vals.Raycast and not raycast(workspace.CurrentCamera.CFrame.Position, target:GetPivot().Position, target:GetDescendants()) or not vals.Raycast) and (workspace.CurrentCamera.CFrame.Position - target:GetPivot().Position).Magnitude <= vals.KAR then
 		local head = target:FindFirstChild("Head") or target:GetPivot()
@@ -434,7 +437,7 @@ local function stopDrag()
 end
 
 local function getSelectedObject()
-	return game:GetService("ReplicatedStorage").Client.Handlers.DraggableItemHandlers.ClientDraggableObjectHandler.DragHighlight.Adornee
+	return game:GetService("ReplicatedStorage"):FindFirstChild("DragHighlight", math.huge).Adornee
 end
 
 local function throwObject(object)
@@ -968,6 +971,12 @@ local void = pcall(function()
 	workspace.FallenPartsDestroyHeight = workspace.FallenPartsDestroyHeight
 end)
 
+local function formatTime(timeInSeconds)
+	local totalMilliseconds = math.floor(timeInSeconds * 1000 + 0.5)
+
+	return string.format("%s:%02d.%02d", math.floor(totalMilliseconds / 60000), math.floor((totalMilliseconds % 60000) / 1000), math.floor((totalMilliseconds % 1000) / 10))
+end
+
 local items = workspace.RuntimeItems
 local oilCooldown = false
 cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
@@ -986,6 +995,19 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 			txtf("UpdateLine", "Left", "Fuel: " .. (math.round((workspace.Train.Fuel.Value / 240) * 1000) / 10) .. "%")
 		end
 	end
+	if vals.ShowTimeLeft then
+		if txtf("GetText", "Left") ~= "" then
+			txtf("UpdateLine", "Left", "")
+		end
+		txtf("UpdateLine", "Left", "Timer: " .. formatTime(math.max(600 - workspace.DistributedGameTime, 0)))
+	end
+	if vals.ShowPlayingTimer then
+		if txtf("GetText", "Left") == "" and not vals.ShowTimeLeft then
+			txtf("UpdateLine", "Left", "")
+		end
+		txtf("UpdateLine", "Left", "Playing: " .. formatTime(workspace.DistributedGameTime))
+	end
+	
 	if vals.FB then
 		game.Lighting.Ambient = Color3.new(1, 1, 1)
 		game.Lighting.Brightness = 1.5
@@ -1035,7 +1057,7 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 			for i,v in tools do
 				if v and v.Parent then
 					if v.Parent == items and not v:GetAttribute("BuyPrice") and (v:GetPivot().Position - plr.Character:GetPivot().Position).Magnitude <= 30 then
-						game:GetService("ReplicatedStorage").Remotes.Tool.PickUpTool:FireServer(v)
+						game:GetService("ReplicatedStorage"):FindFirstChild("PickUpTool", math.huge):FireServer(v)
 					end
 				else
 					remove(prompts, v)
@@ -1046,7 +1068,7 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 			for i,v in other do
 				if v and v.Parent then
 					if v.Parent == items and not v:GetAttribute("BuyPrice") and (v:GetPivot().Position - plr.Character:GetPivot().Position).Magnitude <= 30 then
-						game:GetService("ReplicatedStorage").Packages.RemotePromise.Remotes.C_ActivateObject:FireServer(v)
+						game:GetService("ReplicatedStorage"):FindFirstChild("C_ActivateObject", math.huge):FireServer(v)
 					end
 				else
 					remove(prompts, v)
@@ -1057,7 +1079,7 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 			for i,v in bonds do
 				if v and v.Parent then
 					if v.Parent == items and not v:GetAttribute("BuyPrice") and (v:GetPivot().Position - plr.Character:GetPivot().Position).Magnitude <= 30 then
-						game:GetService("ReplicatedStorage").Packages.RemotePromise.Remotes.C_ActivateObject:FireServer(v)
+						game:GetService("ReplicatedStorage"):FindFirstChild("C_ActivateObject", math.huge):FireServer(v)
 					end
 				else
 					remove(prompts, v)
@@ -1068,7 +1090,7 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 			for i,v in equippables do
 				if v and v.Parent then
 					if v.Parent == items and not v:GetAttribute("BuyPrice") and (v:GetPivot().Position - plr.Character:GetPivot().Position).Magnitude <= 30 then
-						game:GetService("ReplicatedStorage").Remotes.Object.EquipObject:FireServer(v)
+						game:GetService("ReplicatedStorage"):FindFirstChild("EquipObject", math.huge):FireServer(v)
 					end
 				else
 					remove(prompts, v)
@@ -1221,6 +1243,15 @@ page:AddToggle({Caption = "Show speed", Default = false, Callback = function(b)
 end})
 page:AddToggle({Caption = "Show fuel", Default = false, Callback = function(b)
 	vals.ShowFuel = b
+end})
+
+page:AddSeparator()
+
+page:AddToggle({Caption = "Show 10 minute timer", Default = false, Callback = function(b)
+	vals.ShowTimeLeft = b
+end})
+page:AddToggle({Caption = "Show playing timer", Default = false, Callback = function(b)
+	vals.ShowPlayingTimer = b
 end})
 
 page:AddSeparator()
