@@ -315,6 +315,9 @@ function teleport(position, y, z, posName)
 
 		if not chair:FindFirstChild("Seat") then continue end
 	until chair.Seat.Occupant == plr.Character.Humanoid
+	
+	teleporting = false
+	teleports.Teleporting = teleporting
 
 	if teleportToChair(chair, true, false) == false then
 		teleporting = false
