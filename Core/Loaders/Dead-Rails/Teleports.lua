@@ -146,6 +146,7 @@ end
 teleports.StartDrag = startDrag
 teleports.StopDrag = stopDrag
 
+local teleporting = false
 local function teleportToChair(cchair, dontChangeChair, inLoop)
 	chair = cchair
 	local function step()
@@ -232,7 +233,6 @@ end
 teleports.ClaimNetwork = claimNetwork
 
 local teleport
-local teleporting = false
 
 teleports.Teleporting = teleporting
 
@@ -260,6 +260,8 @@ function teleport(position, y, z, posName)
 	task.spawn(claimNetwork, chair)
 
 	local times = 0
+	local start = tick()
+	
 	repeat
 		times = (times + 1) % 10
 
@@ -290,15 +292,33 @@ function teleport(position, y, z, posName)
 
 		if not chair:FindFirstChild("Seat") then continue end
 
+		if tick() - start > 15 then
+			teleporting = false
+			teleports.Teleporting = teleporting
+
+			teleports.Event:Fire("Teleport timeout", "Retrying")
+			
+			return teleport(position, y, z, posName)
+		end
 		if teleportToChair(chair, true, false) == false then
-			return teleport(position)
+			teleporting = false
+			teleports.Teleporting = teleporting
+
+			teleports.Event:Fire("Teleport fail", "Retrying")
+
+			return teleport(position, y, z, posName)
 		end
 
 		if not chair:FindFirstChild("Seat") then continue end
 	until chair.Seat.Occupant == plr.Character.Humanoid
 
 	if teleportToChair(chair, true, false) == false then
-		return teleport(position)
+		teleporting = false
+		teleports.Teleporting = teleporting
+
+		teleports.Event:Fire("Teleport fail", "Retrying")
+
+		return teleport(position, y, z, posName)
 	end
 
 	plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
@@ -308,7 +328,12 @@ function teleport(position, y, z, posName)
 	plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 
 	if teleportToChair(chair, true, false) == false then
-		return teleport(position)
+		teleporting = false
+		teleports.Teleporting = teleporting
+
+		teleports.Event:Fire("Teleport fail", "Retrying")
+
+		return teleport(position, y, z, posName)
 	end
 	
 	for i,v in chair:GetDescendants() do
