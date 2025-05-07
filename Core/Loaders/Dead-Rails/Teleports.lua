@@ -9,21 +9,7 @@ end
 local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Network/Main.lua"))()
 local plr = game:GetService("Players").LocalPlayer
 
-local function FindLastChild(self, name)
-	if not self:FindFirstChild(name) then return end
-
-	local last
-	for i,v in self:GetChildren() do
-		if v.Name == name then
-			last = v
-		end
-	end
-
-	return last
-end
-
 local teleports = {
-	FindLastChild = FindLastChild,
 	Network = network,
 	Event = Instance.new("BindableEvent")
 }
@@ -45,13 +31,30 @@ local function getFirstRail()
 	end
 end
 
-teleports.GetFirstRail = getFirstRail
+local function findLastRail()
+	local rail
+	while true do
+		rail = workspace.RailSegments:FindFirstChild("RailSegment")
+		if rail and rail:FindFirstChild("NextTrack") then
+			if rail.NextTrack.Value then
+				rail = rail.NextTrack.Value
+			else
+				return rail
+			end
+		else
+			task.wait()
+		end
+	end
+end
 
-local firstRail = FindLastChild(workspace.RailSegments, "RailSegment")
+teleports.GetFirstRail = getFirstRail
+teleports.FindLastRail = findLastRail
+
+local firstRail = workspace.RailSegments:FindFirstChild("RailSegment")
 local chair
 
 while not firstRail and task.wait() do
-	firstRail = FindLastChild(workspace.RailSegments, "RailSegment")
+	firstRail = workspace.RailSegments:FindFirstChild("RailSegment")
 end
 
 teleports.FirstRailPivot = firstRail:GetPivot()
@@ -62,7 +65,7 @@ local function scanFor(func, ...)
 	
 	local rail
 	while task.wait() do
-		rail = rail and FindLastChild(workspace.RailSegments, "RailSegment") or getFirstRail()
+		rail = rail and findLastRail() or getFirstRail()
 		if rail then
 			plr.Character:PivotTo(rail:GetPivot())
 		end
@@ -328,6 +331,8 @@ function teleport(position, y, z, posName)
 	
 	teleporting = false
 	teleports.Teleporting = teleporting
+	
+	teleports.Event:Fire("Teleported!", "If you got teleported back, try again!")
 end
 
 teleports.Teleport = teleport
@@ -353,8 +358,11 @@ teleports.Teleports = table.freeze({
 	end,
 	Sterling = function(self)
 		teleports.Event:Fire("Scanning for sterling town...", "This might take a while, please wait!")
-		local sterling = scanFor(game.FindFirstChild, workspace, "Sterling")
-		teleport(sterling:GetPivot() + Vector3.new(0, 10), nil, nil, "Sterling town")
+		
+		local sterling = teleports.SterlingScan or scanFor(game.FindFirstChild, workspace, "Sterling"):GetPivot() + Vector3.new(0, 10)
+		teleports.SterlingScan = sterling
+		
+		teleport(sterling, nil, nil, "Sterling town")
 	end,
 	End = function(self)
 		teleport(-340, 30, -49045, "End")
