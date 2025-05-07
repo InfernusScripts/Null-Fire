@@ -36,9 +36,10 @@ print(network:IsNetworkOwner(part)) -- true / false
 - Proximity prompt
 ```lua
 local prompt = -- path of proximity prompt
-network.Other:ProximityPrompt(prompt)
+local dont_do_distance_check = true -- / false
+print(network.Other:ProximityPrompt(prompt, dont_do_distance_check)) -- true / false if proximity prompt been fired or not (distance check)
 -- or
-network.Other:FireProximityPrompt(prompt)
+print(network.Other:FireProximityPrompt(prompt, dont_do_distance_check))
 ```
 - Touch interest
 ```lua
