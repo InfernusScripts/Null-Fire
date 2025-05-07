@@ -33,8 +33,9 @@ end
 
 local function findLastRail()
 	local rail
+	local t = 0
 	while true do
-		rail = workspace.RailSegments:FindFirstChild("RailSegment")
+		rail = rail or workspace.RailSegments:FindFirstChild("RailSegment")
 		if rail and rail:FindFirstChild("NextTrack") then
 			if rail.NextTrack.Value then
 				rail = rail.NextTrack.Value
