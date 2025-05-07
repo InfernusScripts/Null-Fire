@@ -7,7 +7,7 @@
 local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Network/Main.lua"))()
 ```
 ---
-### Usage
+### -- Usage --
 ## Network ownership
 - Better network ownership
 ```lua
