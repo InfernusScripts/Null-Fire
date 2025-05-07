@@ -2,8 +2,8 @@ local function getGlobalTable()
 	return typeof(getfenv().getgenv) == "function" and typeof(getfenv().getgenv()) == "table" and getfenv().getgenv() or _G
 end
 
-if getGlobalTable()._NETACCESS then
-	return getGlobalTable()._NETACCESS
+if getGlobalTable()._NETWORK then
+	return getGlobalTable()._NETWORK
 end
 
 local active = false
@@ -55,7 +55,7 @@ local ftiv = false
 local fti = getfenv().firetouchinterest
 local plr = game:GetService("Players").LocalPlayer
 
-task.spawn(function()
+task.spawn(pcall, function()
 	if fti then
 		local part = Instance.new("Part", workspace)
 		part.Position = Vector3.new(0, 100, 0)
@@ -122,22 +122,20 @@ end
 local fppn = false
 local fpp = getfenv().fireproximityprompt
 if fpp then
-	pcall(function()
-		task.spawn(function()
-			local pp = Instance.new("ProximityPrompt", plr.Character)
-			local con; con = pp.Triggered:Connect(function()
-				con:Disconnect()
-				pp:Destroy()
-				fppn = true
-			end)
-			task.wait(0.1)
-			fpp(pp)
-			task.wait(1.5)
-			if pp and pp.Parent then
-				pp:Destroy()
-				con:Disconnect()
-			end
+	task.spawn(pcall, function()
+		local pp = Instance.new("ProximityPrompt", plr.Character)
+		local con; con = pp.Triggered:Connect(function()
+			con:Disconnect()
+			pp:Destroy()
+			fppn = true
 		end)
+		task.wait(0.1)
+		fpp(pp)
+		task.wait(1.5)
+		if pp and pp.Parent then
+			pp:Destroy()
+			con:Disconnect()
+		end	
 	end)
 end
 
@@ -185,12 +183,16 @@ local fireproximityprompt = function(pp, ddc)
 		ddc = true
 	end
 	
-	if typeof(pp) ~= "Instance" or not pp:IsA("ProximityPrompt") or not pcall(canGetPivot, pp) or cd[pp] or not workspace.CurrentCamera or ddc and ((plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character.HumanoidRootPart or workspace.CurrentCamera).CFrame.Position - pp.Parent:GetPivot().Position).Magnitude > pp.MaxActivationDistance or ddc then
+	if (typeof(pp) ~= "Instance" or not pp:IsA("ProximityPrompt")) or
+		(ddc and not pcall(canGetPivot, pp) or not workspace.CurrentCamera and ((plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character.HumanoidRootPart or workspace.CurrentCamera).CFrame.Position - pp.Parent:GetPivot().Position).Magnitude > pp.MaxActivationDistance) or
+		cd[pp] then
 		return false
 	end
+	
 	if fppn then
 		fpp(pp)
 	end
+	
 	task.spawn(fppFunc, pp)
 	
 	return true
@@ -294,6 +296,6 @@ local main = setmetatable({
 
 main.__index = main
 
-getGlobalTable()._NETACCESS = main
+getGlobalTable()._NETWORK = main
 
 return main
