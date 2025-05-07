@@ -8,6 +8,7 @@ local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/Infer
 ```
 ---
 ### Usage
+## Network ownership
 - Better network ownership
 ```lua
 network(true)
@@ -25,13 +26,13 @@ network:SetActive(false)
 ```lua
 print(network.Active) -- true / false
 ```
----
 - Is network owner
 ```lua
 local part = -- path of basepart
 print(network:IsNetworkOwner(part)) -- true / false
 ```
-- Fire
+---
+## Fire
 - Proximity prompt
 ```lua
 local prompt = -- path of proximity prompt
