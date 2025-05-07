@@ -254,6 +254,8 @@ function teleport(position, y, z, posName)
 	teleporting = true
 	chair = teleportToChair(getChair(), false, true)
 
+	teleports.Event:Fire("Teleporting")
+	
 	teleports.Teleporting = teleporting
 	
 	task.spawn(claimNetwork, chair)
