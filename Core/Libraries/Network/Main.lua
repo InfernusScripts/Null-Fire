@@ -207,7 +207,7 @@ local main = setmetatable({
 	
 	Other = table.freeze({
 		TouchInterest = function(self, ...)
-			return firetouchinterest(self, ...)
+			return firetouchinterest(...)
 		end,
 		TouchTransmitter = function(self, ...)
 			return self:TouchInterest(...)
