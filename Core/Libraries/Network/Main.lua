@@ -82,15 +82,22 @@ local firetouchinterest = function(a,b,touching)
 	end
 
 	if cd[a] or cd[b] then return end
+	if a:IsDescendantOf(plr.Character) and b:IsDescendantOf(plr.Character) then return end
+	if b:IsDescendantOf(plr.Character) then
+		local c = a
+		a = b
+		b = c
+	end
+
 	cd[a] = true
-	touching = touching == 1
+	cd[b] = true
+	touching = touching == 0
 
 	if not touching then
-		local c = b
-		local ct = c.CanTouch
-		c.CanTouch = false
+		local ct = b.CanTouch
+		b.CanTouch = false
 		task.wait(0.015)
-		c.CanTouch = ct
+		b.CanTouch = ct
 	else
 		local pp = b:GetPivot()
 		local t,c,an = b.Transparency,b.CanCollide,b.Anchored
@@ -105,8 +112,11 @@ local firetouchinterest = function(a,b,touching)
 		b.Anchored = an
 		b:PivotTo(pp)
 	end
+	
 	task.wait()
+
 	cd[a] = false
+	cd[b] = false
 end
 
 local fppn = false
