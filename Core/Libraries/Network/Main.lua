@@ -256,9 +256,11 @@ local main = setmetatable({
 
 			if hum then
 				if seatPart.Occupant then return end
-				seatPart:PivotTo(plr.Character.HumanoidRootPart:GetPivot())
+				local old = seatPart:GetPivot()
 				
-				self:Touch(seatPart, true)
+				seatPart:PivotTo(plr.Character.HumanoidRootPart:GetPivot())
+				self:Touch(seatPart, false)
+				seatPart:PivotTo(old)
 			end
 		end,
 	})
