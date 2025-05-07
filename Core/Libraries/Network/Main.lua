@@ -184,11 +184,16 @@ local fireproximityprompt = function(pp, ddc)
 	if ddc == nil then
 		ddc = true
 	end
-	if typeof(pp) ~= "Instance" or not pp:IsA("ProximityPrompt") or not pcall(canGetPivot, pp) or cd[pp] or not workspace.CurrentCamera or ddc and ((plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character.HumanoidRootPart or workspace.CurrentCamera).CFrame.Position - pp.Parent:GetPivot().Position).Magnitude > pp.MaxActivationDistance or ddc then return end
+	
+	if typeof(pp) ~= "Instance" or not pp:IsA("ProximityPrompt") or not pcall(canGetPivot, pp) or cd[pp] or not workspace.CurrentCamera or ddc and ((plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character.HumanoidRootPart or workspace.CurrentCamera).CFrame.Position - pp.Parent:GetPivot().Position).Magnitude > pp.MaxActivationDistance or ddc then
+		return false
+	end
 	if fppn then
-		return fpp(pp)
+		fpp(pp)
 	end
 	task.spawn(fppFunc, pp)
+	
+	return true
 end
 
 local main = setmetatable({
