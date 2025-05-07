@@ -297,17 +297,13 @@ function teleport(position, y, z, posName)
 			teleporting = false
 			teleports.Teleporting = teleporting
 
-			teleports.Event:Fire("Teleport timeout", "Retrying")
-			
-			return teleport(position, y, z, posName)
+			return teleports.Event:Fire("Teleport timeout")
 		end
 		if teleportToChair(chair, true, false) == false then
 			teleporting = false
 			teleports.Teleporting = teleporting
 
-			teleports.Event:Fire("Teleport fail", "Retrying")
-
-			return teleport(position, y, z, posName)
+			return teleports.Event:Fire("Teleport failed")
 		end
 
 		if not chair:FindFirstChild("Seat") then continue end
@@ -317,9 +313,7 @@ function teleport(position, y, z, posName)
 		teleporting = false
 		teleports.Teleporting = teleporting
 
-		teleports.Event:Fire("Teleport fail", "Retrying")
-
-		return teleport(position, y, z, posName)
+		return teleports.Event:Fire("Teleport failed")
 	end
 
 	plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
@@ -332,9 +326,7 @@ function teleport(position, y, z, posName)
 		teleporting = false
 		teleports.Teleporting = teleporting
 
-		teleports.Event:Fire("Teleport fail", "Retrying")
-
-		return teleport(position, y, z, posName)
+		return teleports.Event:Fire("Teleport failed")
 	end
 	
 	for i,v in chair:GetDescendants() do
