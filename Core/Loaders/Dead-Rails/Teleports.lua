@@ -109,10 +109,25 @@ local function getChair()
 	return chair
 end
 
+local train
+workspace.ChildAdded:Connect(function(v)
+	if v:GetAttribute("Stopped") ~= nil then
+		train = v
+	end
+end)
+for i,v in workspace:GetChildren() do
+	if v:GetAttribute("Stopped") ~= nil then
+		train = v
+	end
+end
+
 task.spawn(function()
 	while task.wait(0.01) do
 		teleports.Chair = chair ~= nil and chair.Parent and chair
 		teleports.ChairPivot = chair and chair:GetPivot()
+
+		teleports.Train = train ~= nil and train.Parent and train
+		teleports.TrainPivot = train and train:GetPivot()
 	end
 end)
 
@@ -317,10 +332,10 @@ end
 
 teleports.Teleport = teleport
 teleports.Teleports = table.freeze({
-	Start = function()
+	Start = function(self)
 		teleport(-0, 3, 29910, "Start")
 	end,
-	TeslaLab = function()
+	TeslaLab = function(self)
 		local part
 		for i,v in workspace.TeslaLab:GetDescendants() do
 			if v and v:IsA("BasePart") then
@@ -333,15 +348,15 @@ teleports.Teleports = table.freeze({
 			teleport(part:GetPivot() + Vector3.new(0, 50), nil, nil, "Tesla's Laboratory")
 		end
 	end,
-	Castle = function()
+	Castle = function(self)
 		teleport(210, 3, -9030, "Castle")
 	end,
-	Sterling = function()
+	Sterling = function(self)
 		teleports.Event:Fire("Scanning for sterling town...", "This might take a while, please wait!")
 		local sterling = scanFor(game.FindFirstChild, workspace, "Sterling")
 		teleport(sterling:GetPivot() + Vector3.new(0, 10), nil, nil, "Sterling town")
 	end,
-	End = function()
+	End = function(self)
 		teleport(-340, 30, -49045, "End")
 		
 		repeat task.wait() until workspace.Baseplates:FindFirstChild("FinalBasePlate") and workspace.Baseplates.FinalBasePlate:FindFirstChild("OutlawBase")
@@ -358,7 +373,40 @@ teleports.Teleports = table.freeze({
 		end
 		
 		closest.CanCollide = false
-	end
+	end,
+	Train = function(self, retry)
+		if train and train.Parent and train:FindFirstChild("RequiredComponents") and train.RequiredComponents:FindFirstChild("Controls") and train.RequiredComponents.Controls.ConductorSeat:FindFirstChild("VehicleSeat") then
+			local oldPos = train.RequiredComponents.Controls.ConductorSeat.VehicleSeat:GetPivot()
+
+			repeat
+				network.Other:Sit(train.RequiredComponents.Controls.ConductorSeat.VehicleSeat)
+				task.wait(0.01)
+			until train.RequiredComponents.Controls.ConductorSeat.VehicleSeat:FindFirstChild("SeatWeld")
+
+			train.RequiredComponents.Controls.ConductorSeat.VehicleSeat:PivotTo(oldPos)
+		else
+			if retry then return end
+			
+			teleports.Event:Fire("No train found!", "Trying to search for it [1]")
+			
+			for i=1, 100 do
+				plr.Character:PivotTo(teleports.TrainPivot or CFrame.new(0, 100, 0))
+				task.wait(0.01)
+			end
+			
+			if train then
+				return self:Train(true)
+			end
+			
+			teleports.Event:Fire("No train found!", "Trying to search for it [2]")
+			
+			scanFor(function()
+				return train and train.Parent
+			end)
+
+			return self:Train(true)
+		end
+	end,
 })
 
 return teleports
