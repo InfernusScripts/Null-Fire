@@ -24,8 +24,11 @@ end
 
 local teleports = {
 	FindLastChild = FindLastChild,
-	Network = network
+	Network = network,
+	Event = Instance.new("BindableEvent")
 }
+
+teleports.Event.Name = "<INSTANCE> BindableEvent" -- idk why add this LMFAO
 
 getGlobalTable().DRTPs = teleports
 
@@ -71,6 +74,9 @@ end
 
 local function getChair()
 	if chair and chair.Parent and chair:FindFirstChild("Chair") and chair.Seat.Occupant and chair.Seat.Occupant ~= plr.Character.Humanoid then return end
+	
+	teleports.Event:Fire("Getting available chair...")
+	
 	chair = workspace.RuntimeItems:FindFirstChild("Chair")
 
 	if teleports.ChairPivot then
@@ -97,7 +103,6 @@ local function getChair()
 	
 	if not chair then
 		chair = scanFor(game.FindFirstChild, workspace.RuntimeItems, "Chair")
-		print(chair)
 		teleports.ChairPivot = chair and chair:GetPivot()
 	end
 	
@@ -106,9 +111,8 @@ end
 
 task.spawn(function()
 	while task.wait(0.01) do
-		if chair then
-			teleports.ChairPivot = chair:GetPivot()
-		end
+		teleports.Chair = chair ~= nil and chair.Parent and chair
+		teleports.ChairPivot = chair and chair:GetPivot()
 	end
 end)
 
@@ -214,7 +218,7 @@ local teleporting = false
 
 teleports.Teleporting = teleporting
 
-function teleport(position, y, z)
+function teleport(position, y, z, posName)
 	if teleporting then return end
 	if typeof(position) == "Vector3" then
 		position = CFrame.new(position)
@@ -225,6 +229,8 @@ function teleport(position, y, z)
 
 		position = CFrame.new(position, y, z)
 	end
+	
+	teleports.Event:Fire("Teleporting to " .. (posName or tostring(position.Position)))
 
 	teleporting = true
 	chair = teleportToChair(getChair(), false, true)
@@ -312,7 +318,7 @@ end
 teleports.Teleport = teleport
 teleports.Teleports = table.freeze({
 	Start = function()
-		teleport(-0, 3, 29910)
+		teleport(-0, 3, 29910, "Start")
 	end,
 	TeslaLab = function()
 		local part
@@ -324,18 +330,19 @@ teleports.Teleports = table.freeze({
 		end
 		
 		if part then
-			teleport(part:GetPivot() + Vector3.new(0, 50))
+			teleport(part:GetPivot() + Vector3.new(0, 50), nil, nil, "Tesla's Laboratory")
 		end
 	end,
 	Castle = function()
-		teleport(210, 3, -9030)
+		teleport(210, 3, -9030, "Castle")
 	end,
 	Sterling = function()
+		teleports.Event:Fire("Scanning for sterling town...", "This might take a while, please wait!")
 		local sterling = scanFor(game.FindFirstChild, workspace, "Sterling")
-		teleport(sterling:GetPivot() + Vector3.new(0, 10))
+		teleport(sterling:GetPivot() + Vector3.new(0, 10), nil, nil, "Sterling town")
 	end,
 	End = function()
-		teleport(-340, 30, -49045)
+		teleport(-340, 30, -49045, "End")
 		
 		repeat task.wait() until workspace.Baseplates:FindFirstChild("FinalBasePlate") and workspace.Baseplates.FinalBasePlate:FindFirstChild("OutlawBase")
 		
