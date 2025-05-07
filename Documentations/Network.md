@@ -32,14 +32,14 @@ local part = -- path of basepart
 print(network:IsNetworkOwner(part)) -- true / false
 ```
 - Fire
-### - Proximity prompt
+- Proximity prompt
 ```lua
 local prompt = -- path of proximity prompt
 network.Other:ProximityPrompt(prompt)
 -- or
 network.Other:FireProximityPrompt(prompt)
 ```
-### - Touch interest
+- Touch interest
 ```lua
 local part = --path of basepart
 network.Other:TouchInterest(part)
@@ -50,14 +50,15 @@ network.Other:FireTouchInterest(part)
 -- or
 network.Other:FireTouchTransmitter(part)
 ```
-### - Touch part (Fire touch interest but with 1 argument)
+---
+- Touch part (Fire touch interest but with 1 argument)
 ```lua
 local part = --path of basepart
 network.Other:Touch(part)
 -- or
 network.Other:TouchPart(part)
 ```
-### - Sit
+- Sit
 ```lua
 local seatPart = --path of basepart
 network.Other:Sit(seatPart)
