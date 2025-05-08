@@ -21,6 +21,30 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-
 # Thanks for using my script(s)!
 
 ---
+## History
+At first there was no such thing as NullFire - there was FireDoors.
+Yeah, it was a small Doors script before.
+After lolhax leaked infinite crucifix method it gave me a huge headstart.
+I worked very hard on it and made a script of size about 3000-4000 lines of code!
+Then I realised that I want FireDoors to support more than 1 game, so I renamed it to FireDoors.
+
+...
+
+After a while I got sick of Doors and rarely joined that game (btw, same happened with Pressure, but about that later).
+Doors script was discontinued.
+After a break that lasted about 2 years I started developing FireDoors again.
+I made a known script called "FireHub - Pressure".
+Then I made a funky friday one and natural disaster.
+After collabing with seikoso FireHub turned into a NullFire (btw, I like that name).
+I updated pressure script really lot, so there was no other scripts that could do better than me.
+And because of that I also got sick of Pressure (+ got banned).
+At this moment NullFire - Pressure is about to be discontinued, but I think I will still do some updates, just not that fast
+A bit later the game called "Dead Rails" became ultra popular.
+I decided to make a script for it.
+
+NullFire for Dead Rails became EVEN MORE POPULAR THAN PRESSURE (#2 popular dead rails script for Dead Rails on ScriptBlox; 8th may 2025)
+
+---
 ## DEVELOPERS ZONE
 
 NullFire is mostly open source project, so I even made documentations!
