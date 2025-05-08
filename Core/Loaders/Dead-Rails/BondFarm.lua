@@ -21,8 +21,9 @@ local bondFarm; bondFarm = {
 			for i,v in workspace.RuntimeItems:GetChildren() do
 				if v.Name == "Bond" then
 					if not found[v] then
-						found[v] = true
-						bondFarm.Collected += 1
+						found[v] = v.Destroying:Connect(function()
+							bondFarm.Collected += 1
+						end)
 					end
 					local m = (plr.Character:GetPivot().Position - v:GetPivot().Position).Magnitude
 					if m < d then
