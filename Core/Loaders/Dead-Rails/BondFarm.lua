@@ -79,8 +79,6 @@ local bondFarm; bondFarm = {
 	Missed = 0
 }
 
-bondFarm.Event.Name = "<INSTANCE> BindableEvent" -- idk why add this LMFAO
-
 getGlobalTable().DRBF = bondFarm
 
 tps = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/Teleports.lua", true))()
