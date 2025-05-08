@@ -13,8 +13,6 @@ local cons = {}
 local found = {}
 
 local bondFarm; bondFarm = {
-	Event = Instance.new("BindableEvent"),
-
 	GetClosestBond = function()
 		local bond = workspace.RuntimeItems:FindFirstChild("Bond")
 		if bond then
@@ -74,6 +72,8 @@ local bondFarm; bondFarm = {
 		end
 	end,
 
+	Finished = false,
+
 	Collected = 0,
 	Found = 0,
 	Missed = 0
@@ -96,7 +96,7 @@ task.spawn(function()
 			else
 				local bond = bondFarm.GetClosestBond()
 				if not bond then
-					bondFarm.Event:Fire("Finished")
+					bondFarm.Finished = true
 					break
 				else
 					bondFarm.BondStep(bond)
