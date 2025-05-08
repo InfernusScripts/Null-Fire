@@ -84,7 +84,7 @@ end
 teleports.ScanFor = scanFor
 
 local function getChair()
-	if chair and chair.Parent and chair:FindFirstChild("Chair") and (chair.Seat.Occupant and chair.Seat.Occupant == plr.Character.Humanoid or not chair.Seat.Occupant) then return chair end
+	if chair and chair.Parent and chair:FindFirstChild("Seat") and (chair.Seat.Occupant and chair.Seat.Occupant == plr.Character.Humanoid or not chair.Seat.Occupant) then return chair end
 	
 	teleports.Event:Fire("Getting available chair...")
 	
