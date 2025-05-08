@@ -31,9 +31,10 @@ local bondFarm; bondFarm = {
 		else
 			bondFarm.TeleportToSafeSpot()
 			bond = tps.ScanFor(game.FindFirstChild, workspace.RuntimeItems, "Bond")
+			plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 		end
 
-		return bond or workspace.RuntimeItems:FindFirstChild("Bond") or not bondFarm.TeleportToSafeSpot() and tps.ScanFor(game.FindFirstChild, workspace.RuntimeItems, "Bond")
+		return bond or workspace.RuntimeItems:FindFirstChild("Bond") or not bondFarm.TeleportToSafeSpot() and not plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping) and tps.ScanFor(game.FindFirstChild, workspace.RuntimeItems, "Bond")
 	end,
 	CheckY = function()
 		local pos = plr.Character:GetPivot().Position
@@ -42,7 +43,8 @@ local bondFarm; bondFarm = {
 		--plr.Character.HumanoidRootPart.CFrame = CFrame.lookAt(plr.Character.HumanoidRootPart.Position, plr.Character.HumanoidRootPart - Vector3.new(0, 1))
 	end,
 	TeleportToSafeSpot = function()
-		tps.Teleport.Train()
+		tps.Teleports.Train()
+		plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 	end,
 	BondStep = function(bond)
 		if bond then
