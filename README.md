@@ -24,8 +24,6 @@ Thanks for using my script(s)!
 ---
 ---
 ## DEVELOPERS ZONE
----
-
 NullFire is mostly open source project, so I even made documentations!
 You can use any of NullFire's library or copy it's code, I don't mind
 You can read about libraries [here](https://github.com/InfernusScripts/Null-Fire/blob/main/Documentations/README.md), I'm trying to update these right after releasing updates for them
