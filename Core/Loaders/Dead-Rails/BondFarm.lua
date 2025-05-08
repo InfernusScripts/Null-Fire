@@ -10,8 +10,6 @@ local plr = game:GetService("Players").LocalPlayer
 local tps
 
 local cons = {}
-local found = {}
-
 local bondFarm; bondFarm = {
 	GetClosestBond = function()
 		local bond = workspace.RuntimeItems:FindFirstChild("Bond")
@@ -20,11 +18,6 @@ local bondFarm; bondFarm = {
 
 			for i,v in workspace.RuntimeItems:GetChildren() do
 				if v.Name == "Bond" then
-					if not found[v] then
-						found[v] = v.Destroying:Connect(function()
-							bondFarm.Collected += 1
-						end)
-					end
 					local m = (plr.Character:GetPivot().Position - v:GetPivot().Position).Magnitude
 					if m < d then
 						d,c = m,v
@@ -58,7 +51,6 @@ local bondFarm; bondFarm = {
 			game:GetService("ReplicatedStorage"):FindFirstChild("C_ActivateObject", math.huge):FireServer(bond)
 
 			pcall(tps.Teleport, bond:GetPivot() - Vector3.new(0, 2.5), nil, nil, false)
-			plr.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame:Lerp(bond:GetPivot(), 0.05)
 		end
 	end,
 
@@ -66,6 +58,19 @@ local bondFarm; bondFarm = {
 
 	Collected = 0
 }
+
+local function onNewChild(v)
+	if v and v.Name == "Bond" and not cons[v] then
+		cons[v] = v.Destroying:Connect(function()
+			bondFarm.Collected += 1
+		end)
+	end
+end
+
+for i,v in workspace.RuntimeItems:GetChildren() do
+	onNewChild(v)
+end
+workspace.RuntimeItems.ChildAdded:Connect(onNewChild)
 
 getGlobalTable().DRBF = bondFarm
 
