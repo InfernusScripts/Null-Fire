@@ -45,7 +45,7 @@ After a break that lasted about `2 years` I started developing `FireHub` again.
 I made a known script called `FireHub - Pressure`.
 Then I made a `Funky Friday` one and `Natural Disaster Survival`.
 
-After collabing with `@seikoso`, `FireHub` turned into a `NullFire` (btw, I like that name).
+After collabing with `@seikoso`'s `NullHub`, `FireHub` turned into a `NullFire` (btw, I like that name).
 
 I updated `Pressure` script really lot, so there was no other scripts that could do better than me.
 And because of that I also got sick of `Pressure` (+ got __banned__).
