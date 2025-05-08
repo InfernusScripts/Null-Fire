@@ -261,12 +261,18 @@ function teleport(position, y, z, posName)
 		if teleports.Values then
 			teleports.Values.ForceNoclip = true
 		end
-		plr.Character.Humanoid:MoveTo(position.Position)
-		task.wait((dist / plr.Character.Humanoid.WalkSpeed) - 1)
+		for i=1, ((dist / plr.Character.Humanoid.WalkSpeed) - 1) * 100 do
+			plr.Character.Humanoid:MoveTo(position.Position)
+			task.wait(0.01)
+		end
 		if teleports.Values then
 			teleports.Values.ForceNoclip = false
 		end
 		return
+	end
+	
+	if plr.Character:GetPivot().Position.Y - position.Y > 5 then
+		plr.Character:PivotTo(plr.Character:GetPivot() - Vector3.new(0, 5))
 	end
 	
 	if posName ~= false then
@@ -284,8 +290,10 @@ function teleport(position, y, z, posName)
 		if teleports.Values then
 			teleports.Values.ForceNoclip = true
 		end
-		plr.Character.Humanoid:MoveTo(position.Position)
-		task.wait((dist / plr.Character.Humanoid.WalkSpeed) - 1)
+		for i=1, ((dist / plr.Character.Humanoid.WalkSpeed) - 1) * 100 do
+			plr.Character.Humanoid:MoveTo(chair:GetPivot().Position)
+			task.wait(0.01)
+		end
 		if teleports.Values then
 			teleports.Values.ForceNoclip = false
 		end
