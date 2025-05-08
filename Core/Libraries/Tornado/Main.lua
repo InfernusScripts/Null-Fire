@@ -6,7 +6,7 @@ if getGlobalTable().TornadoFE then
 	return getGlobalTable().TornadoFE
 end
 
-local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Tornado/NetworkModule.lua"))()
+local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Network/Main.lua"))()
 local plr = game:GetService("Players").LocalPlayer
 
 local vec = vector and vector.create or Vector3.new
