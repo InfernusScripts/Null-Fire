@@ -20,6 +20,10 @@ local bondFarm; bondFarm = {
 
 			for i,v in workspace.RuntimeItems:GetChildren() do
 				if v.Name == "Bond" then
+					if not found[v] then
+						found[v] = true
+						bondFarm.Collected += 1
+					end
 					local m = (plr.Character:GetPivot().Position - v:GetPivot().Position).Magnitude
 					if m < d then
 						d,c = m,v
@@ -50,10 +54,6 @@ local bondFarm; bondFarm = {
 		if bond then
 			bondFarm.CheckY()
 
-			if not found[bond] then
-				found[bond] = true
-				bondFarm.Collected += 1
-			end
 			game:GetService("ReplicatedStorage"):FindFirstChild("C_ActivateObject", math.huge):FireServer(bond)
 
 			pcall(tps.Teleport, bond:GetPivot() - Vector3.new(0, 2.5), nil, nil, false)
