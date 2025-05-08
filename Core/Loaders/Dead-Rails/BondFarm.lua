@@ -37,14 +37,17 @@ local bondFarm; bondFarm = {
 	CheckY = function()
 		local pos = plr.Character:GetPivot().Position
 
-		plr.Character.Humanoid.PlatformStand = true
 		plr.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 1)
-		plr.Character.HumanoidRootPart.CFrame = CFrame.lookAt(plr.Character.HumanoidRootPart.Position, plr.Character.HumanoidRootPart - Vector3.new(0, 1))
+		--plr.Character.HumanoidRootPart.CFrame = CFrame.lookAt(plr.Character.HumanoidRootPart.Position, plr.Character.HumanoidRootPart - Vector3.new(0, 1))
 	end,
 	BondStep = function(bond)
 		if bond then
 			bondFarm.CheckY()
 
+			if not found[bond] then
+				found[bond] = true
+				bondFarm.Collected += 1
+			end
 			game:GetService("ReplicatedStorage"):FindFirstChild("C_ActivateObject", math.huge):FireServer(bond)
 
 			pcall(tps.Teleport, bond:GetPivot() - Vector3.new(0, 2.5), nil, nil, false)
