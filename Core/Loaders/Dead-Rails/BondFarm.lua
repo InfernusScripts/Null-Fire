@@ -48,8 +48,8 @@ local bondFarm; bondFarm = {
 		if bond then
 			bondFarm.CheckY()
 			game:GetService("ReplicatedStorage"):FindFirstChild("C_ActivateObject", math.huge):FireServer(bond)
-
-			warn(pcall(tps.Teleport, bond:GetPivot().Position - Vector3.new(0, 2.5), nil, nil, false))
+			plr.Character.Humanoid:MoveTo(bond:GetPivot().Position)
+			tps.Teleport(bond:GetPivot().Position - Vector3.new(0, 2.5), nil, nil, false)
 		end
 	end,
 
@@ -82,14 +82,14 @@ task.spawn(function()
 	while task.wait(0.075) do
 		if bondFarm.Active then
 			if not workspace.Baseplates:FindFirstChild("FinalBasePlate") then
-				pcall(bondFarm.BondStep, bondFarm.GetClosestBond())
+				bondFarm.BondStep(bondFarm.GetClosestBond())
 			else
 				local bond = bondFarm.GetClosestBond()
 				if not bond then
 					bondFarm.Finished = true
 					break
 				else
-					pcall(bondFarm.BondStep, bond)
+					bondFarm.BondStep(bond)
 				end
 			end
 		end
