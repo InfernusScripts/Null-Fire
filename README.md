@@ -1,11 +1,14 @@
-# Null\~Fire
+# NullFire
 Welcome, welcome! Don't be afraid, im not gonna hurt you!...
-
-So, as you know, Null\~Fire is a roblox Script-Hub.
-This one has ~weak obfuscation (cuz good obfuscation breaks it), so pls, don't deobfuscate it,~
-good optimization, own signals lib (websocket without websocket for free and own UI library!
-
-## I hope you will enjoy using that!
+---
+It is a project I'm making for fun.
+It been created not to become popular or something, I made it for myself and just wanted to share it with you.
+I did not expect it to become THAT popular, thank you very much, guys!
+---
+The ONLY and REAL NullFire loadstring is
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Loader"))()
 ```
+---
+Thanks for using my script(s)!
+---
