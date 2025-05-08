@@ -66,7 +66,7 @@ local function scanFor(func, ...)
 	
 	local rail
 	while task.wait() do
-		rail = rail and not workspace.Baseplate:FindFirstChild("FinalBasePlate") and findLastRail() or getFirstRail()
+		rail = not workspace.Baseplates:FindFirstChild("FinalBasePlate") and rail and findLastRail() or getFirstRail()
 		if rail then
 			plr.Character:PivotTo(rail:GetPivot())
 		end
