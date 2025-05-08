@@ -269,7 +269,9 @@ function teleport(position, y, z, posName)
 		return
 	end
 	
-	teleports.Event:Fire("Teleporting to " .. (posName or tostring(position.Position)))
+	if posName ~= false then
+		teleports.Event:Fire("Teleporting to " .. (posName or tostring(position.Position)))
+	end
 
 	teleporting = true
 	
@@ -289,7 +291,9 @@ function teleport(position, y, z, posName)
 		end
 	end
 
-	teleports.Event:Fire("Teleporting")
+	if posName ~= false then
+		teleports.Event:Fire("Teleporting")
+	end
 	
 	teleports.Teleporting = teleporting
 	
@@ -334,13 +338,13 @@ function teleport(position, y, z, posName)
 			teleporting = false
 			teleports.Teleporting = teleporting
 
-			return teleports.Event:Fire("Teleport timeout")
+			return posName ~= false and teleports.Event:Fire("Teleport timeout")
 		end
 		if teleportToChair(chair, true, false) == false then
 			teleporting = false
 			teleports.Teleporting = teleporting
 
-			return teleports.Event:Fire("Teleport failed")
+			return posName ~= false and teleports.Event:Fire("Teleport failed")
 		end
 
 		if not chair:FindFirstChild("Seat") then continue end
@@ -353,7 +357,7 @@ function teleport(position, y, z, posName)
 		teleporting = false
 		teleports.Teleporting = teleporting
 
-		return teleports.Event:Fire("Teleport failed")
+		return posName ~= false and teleports.Event:Fire("Teleport failed")
 	end
 
 	plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
@@ -366,7 +370,7 @@ function teleport(position, y, z, posName)
 		teleporting = false
 		teleports.Teleporting = teleporting
 
-		return teleports.Event:Fire("Teleport failed")
+		return posName ~= false and teleports.Event:Fire("Teleport failed")
 	end
 	
 	for i,v in chair:GetDescendants() do
@@ -390,7 +394,9 @@ function teleport(position, y, z, posName)
 	teleporting = false
 	teleports.Teleporting = teleporting
 	
-	teleports.Event:Fire("Teleported!", "If you got teleported back, try again!")
+	if posName ~= false then
+		teleports.Event:Fire("Teleported!", "If you got teleported back, try again!")
+	end
 end
 
 teleports.Teleport = teleport
