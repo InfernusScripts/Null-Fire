@@ -1,3 +1,5 @@
+getfenv().getgenv().GameName = "Dead-Rails"
+
 local defaults = {
 	ESP = {
 		["Money BagESP"] = false,
@@ -32,10 +34,17 @@ local defaults = {
 	SaveBulltets = false,
 	AutoThrottle = false,
 	FastKillaura = false,
-	AutoComplete = false,
+	ATWC = false,
+	AutoPlayAgain = false,
+
+	AutoFuel = false,
+	GreedyMode = false,
 	
 	ShowTimeLeft = false,
 	ShowPlayingTimer = false,
+	TimeMode = false,
+	ShowMillis = false,
+	ShortMode = false,
 	
 	SpeedBoost = 0,
 	JumpBoost = 7.2,
@@ -48,9 +57,12 @@ local defaults = {
 	ThrowPower = 100,
 	
 	ForceNoclip = false,
-	Running = false
+	
+	ReplaceMoney = false,
+	ReplaceBond = false
 }
 
+local train
 local vals = table.clone(defaults)
 vals.ESP = table.clone(defaults.ESP)
 
@@ -61,15 +73,25 @@ end
 getGlobalTable().FireHubLoaded = true
 
 local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Fire-Lib/Main.lua", true))()
-local espLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/ESP/Main.lua", true))()
-local txtf = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Side-Text/Main.lua", true))()
-local tpToEnd = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/TeleportToEnd.lua", true))()
-
-local plr = game:GetService("Players").LocalPlayer
 
 if game.PlaceId == 116495829188952 then
 	return lib.Notifications:Notification({Title = "Hey!", Text = "Please, load the script ingame!"})
 end
+
+local espLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/ESP/Main.lua", true))()
+local txtf = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Side-Text/Main.lua", true))()
+local tps = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/Teleports.lua", true))()
+local network = tps.Network
+
+tps.Event = Instance.new("BindableEvent")
+tps.Event.Event:Connect(function(...)
+	for i, v in ({...}) do
+		lib.Notifications:Notification({Title = "Teleport", Text = v})
+		task.wait(2.5)
+	end
+end)
+
+local plr = game:GetService("Players").LocalPlayer
 
 espLib.Values = vals.ESP
 
@@ -102,10 +124,6 @@ local cons = {}
 local prompts = {}
 local oprompts = {}
 local hooks = {}
-
-local cd = {}
-local fppn = false
-local fpp = getfenv().fireproximityprompt
 
 local probablyDead = {}
 local deathAmmo = {}
@@ -272,152 +290,8 @@ end
 local function reload(gun)
 	r:FireServer(workspace:GetServerTimeNow(), gun)
 end
-
-if fpp then
-	pcall(function()
-		task.spawn(function()
-			local pp = Instance.new("ProximityPrompt", workspace)
-			local con; con = pp.Triggered:Connect(function()
-				con:Disconnect()
-				fppn = true
-				task.wait(0.1)
-				pp.Parent = nil
-				task.wait(0.1)
-				pp:Destroy()
-			end)
-			task.wait(0.1)
-			fpp(pp)
-			task.wait(1.5)
-			if pp and pp.Parent then
-				con:Disconnect()
-				task.wait(0.1)
-				pp.Parent = nil
-				task.wait(0.1)
-				pp:Destroy()
-			end
-		end)
-	end)
-end
-
-local function fppFunc(pp)
-	cd[pp] = true
-	local a,b,c,d,e = pp.MaxActivationDistance, pp.Enabled, pp.Parent, pp.HoldDuration, pp.RequiresLineOfSight
-	local obj = Instance.new("Part", workspace)
-	obj.Transparency = 1
-	obj.CanCollide = false
-	obj.Size = Vector3.new(0.1, 0.1, 0.1)
-	obj.Anchored = true
-	pp.Parent = obj
-	pp.MaxActivationDistance = math.huge
-	pp.Enabled = true
-	pp.HoldDuration = 0
-	pp.RequiresLineOfSight = false
-	if not pp or not pp.Parent then
-		obj:Destroy()
-		return
-	end
-	obj:PivotTo(workspace.CurrentCamera.CFrame + (workspace.CurrentCamera.CFrame.LookVector / 5))
-	rs()
-	obj:PivotTo(workspace.CurrentCamera.CFrame + (workspace.CurrentCamera.CFrame.LookVector / 5))
-	pp:InputHoldBegin()
-	rs()
-	obj:PivotTo(workspace.CurrentCamera.CFrame + (workspace.CurrentCamera.CFrame.LookVector / 5))
-	pp:InputHoldEnd()
-	rs()
-	obj:PivotTo(workspace.CurrentCamera.CFrame + (workspace.CurrentCamera.CFrame.LookVector / 5))
-	if pp.Parent == obj then
-		pp.Parent = c
-		pp.MaxActivationDistance = a
-		pp.Enabled = b
-		pp.HoldDuration = d
-		pp.RequiresLineOfSight = e
-	end
-	obj:Destroy()
-	cd[pp] = false
-end
-local ftiv = false
-local fti = getfenv().firetouchinterest
-task.spawn(function()
-	if fti then
-		local part = Instance.new("Part", workspace)
-		part.Position = Vector3.new(0, 100, 0)
-		part.Touched:Connect(function()
-			part:Destroy()
-			ftiv = true
-		end)
-		task.wait(0.1)
-		repeat task.wait() until plr and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and part and part.Parent
-		fti(part, plr.Character.HumanoidRootPart, 0)
-		fti(plr.Character.HumanoidRootPart, part, 0)
-		task.wait()
-		repeat task.wait() until plr and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and part and part.Parent
-		fti(part, plr.Character.HumanoidRootPart, 1)
-		fti(plr.Character.HumanoidRootPart, part, 1)
-	end
-end)
-local firetouchinterest = function(a,b,touching)
-	if ftiv then
-		return fti(a,b,touching)
-	end
-
-	if cd[a] or cd[b] then return end
-	cd[a] = true
-	touching = touching == 1
-
-	if not touching then
-		local c = b
-		local ct = c.CanTouch
-		c.CanTouch = false
-		task.wait(0.015)
-		c.CanTouch = ct
-	else
-		local pp = b:GetPivot()
-		local t,c,an = b.Transparency,b.CanCollide,b.Anchored
-		b:PivotTo(a:GetPivot())
-		b.Transparency = 1
-		b.CanCollide = false
-		b.Anchored = false
-		b.Velocity = b.Velocity + Vector3.new(0,1)
-		a.Touched:Wait()
-		b.Transparency = t
-		b.CanCollide = c
-		b.Anchored = an
-		b:PivotTo(pp)
-	end
-	task.wait()
-	cd[a] = false
-end
-local function sit(seat)
-	local hum = plr.Character:FindFirstChild("Humanoid")
-
-	if hum then
-		if seat:FindFirstChild("SeatWeld") then return end
-		seat.CFrame = plr.Character.HumanoidRootPart.CFrame
-
-		firetouchinterest(seat, plr.Character.HumanoidRootPart, 0)
-		firetouchinterest(seat, plr.Character.HumanoidRootPart, 1)
-	end
-end
-local function tpEnd()
-	if vals.Running then
-		vals.Running = false
-		vals.ForceNoclip = false
-		renderWait(0.1)
-		vals.ForceNoclip = false
-	end
-	vals.Running = true
-	tpToEnd(vals)
-	plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-end
-local function canGetPivot(pp)
-	return pp.Parent.GetPivot
-end
-local fireproximityprompt = function(pp, i)
-	if not i and (typeof(pp) ~= "Instance" or not pp:IsA("ProximityPrompt") or not pcall(canGetPivot, pp) or cd[pp] or not workspace.CurrentCamera or ((game.Players.LocalPlayer and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and game.Players.LocalPlayer.Character.HumanoidRootPart or workspace.CurrentCamera).CFrame.Position - pp.Parent:GetPivot().Position).Magnitude > pp.MaxActivationDistance * 2) then return end
-	if fppn then
-		return fpp(pp)
-	end
-	task.spawn(fppFunc, pp)
+local fireproximityprompt = function(...)
+	return network.Other:FireProximityPrompt(...)
 end
 
 local function insertCum(str)
@@ -436,6 +310,30 @@ local function stopDrag()
 	game:GetService("ReplicatedStorage"):FindFirstChild("RequestStopDrag", math.huge):FireServer()
 end
 
+local buzy = false
+local function fuel(object)
+	if buzy or (object:GetPivot().Position - plr.Character:GetPivot().Position).Magnitude > 10 or not train or not train:FindFirstChild("RequiredComponents") or not train.RequiredComponents:FindFirstChild("FuelZone") then
+		return false
+	end
+
+	buzy = true
+	tps.ClaimNetwork(object)
+	
+	for i=1, 100 do
+		if not object or not object.Parent or not train or not train:FindFirstChild("RequiredComponents") or not train.RequiredComponents:FindFirstChild("FuelZone") then
+			buzy = false
+			stopDrag()
+			return true
+		end
+
+		object:PivotTo(train.RequiredComponents.FuelZone:GetPivot())
+		task.wait(0.01)
+	end
+
+	buzy = false
+	stopDrag()
+end
+
 local function getSelectedObject()
 	return game:GetService("ReplicatedStorage"):FindFirstChild("DragHighlight", math.huge).Adornee
 end
@@ -445,41 +343,10 @@ local function throwObject(object)
 		return
 	end
 
-	startDrag(object)
-
-	local par
-
-	while true do
-		local drag1 = object:FindFirstChild("DragAttachment", math.huge)
-		local drag2 = object:FindFirstChild("DragAlignPosition", math.huge)
-		local drag3 = object:FindFirstChild("DragAlignOrientation", math.huge)
-
-		if not drag1 and not drag2 and not drag3 and par then
-			break
-		end
-
-		if drag1 then
-			par = drag1.Parent
-			drag1:Destroy()
-			continue
-		end
-		if drag2 then
-			par = drag2.Parent
-			drag2:Destroy()
-			continue
-		end
-		if drag3 then
-			par = drag3.Parent
-			drag3:Destroy()
-			continue
-		end
-
-		task.wait()
-	end
-
-	task.wait()
-
+	local par = tps.ClaimNetwork(object)
 	if par then
+		task.wait()
+		
 		local model = par:FindFirstAncestorOfClass("Model") or par.Parent or par
 		
 		for i,v in model:GetDescendants() do
@@ -487,6 +354,7 @@ local function throwObject(object)
 				v.AssemblyLinearVelocity = CFrame.lookAt(workspace.CurrentCamera.CFrame.Position, v:GetPivot().Position + Vector3.new(0, ((10000 - vals.ThrowPower)/10000) * 5 - 0.25)).LookVector * vals.ThrowPower
 			end
 		end
+		
 		task.wait()
 	end
 	
@@ -580,7 +448,7 @@ local function getColor(v)
 end
 
 local function getText(obj)
-	local n = obj.Name
+	local n = obj:GetAttribute("EntityName") or obj.Name
 	local l = n:lower():gsub(" ", ""):gsub("_", "")
 
 	if l:match("vase") then
@@ -604,6 +472,18 @@ local function getBase(obj)
 	return obj:FindFirstChild("Base") or obj:FindFirstChild("BasePart") or obj:FindFirstChild("Handle") or obj:FindFirstChildWhichIsA("BasePart", math.huge)
 end
 
+local function getFuelPercentage()
+	if train and train.Parent and train:FindFirstChild("RequiredComponents") and train.RequiredComponents:FindFirstChild("Controls") and train.RequiredComponents.Controls:FindFirstChild("TimeDial") then
+		return math.round((train.RequiredComponents.Controls.Fuel.SurfaceGui.ImageLabel.Gauge.Rotation - 120) / 0.03) / 100
+	else
+		return 50 -- why not?
+	end
+end
+
+local function getFuelPercentageFromValue(value)
+	return math.round((value / 240) * 10000) / 100
+end
+
 local function getItemText(object)
 	local text = getText(object)
 	local price = object:GetAttribute("Value")
@@ -622,13 +502,15 @@ local function getItemText(object)
 		otherText = otherText .. '<font color="rgb(0,255,0)">Price: <b>' .. price .. "$</b></font>\n"
 	end
 	if fuel then
-		otherText = otherText .. '<font color="rgb(50,50,50)">Fuel: <b>' .. (math.round((fuel / 240) * 1000) / 10) .. "%</b></font>\n"
+		otherText = otherText .. '<font color="rgb(50,50,50)">Fuel: <b>' .. getFuelPercentageFromValue(fuel) .. "%</b></font>\n"
 	end
 	
 	return (text .. (otherText:gsub(" ", ""):gsub("\n", ""):gsub("\r", ""):gsub("\t", "") ~= "" and otherText:sub(1, #otherText - 1) or "")):gsub("Model ", "") .. ""
 end
 
 local checked = {}
+local items = workspace.RuntimeItems
+
 local function main(v)
 	renderWait()
 
@@ -648,7 +530,8 @@ local function main(v)
 				add(monsters, v.Parent)
 
 				repeat task.wait() until not v or not v.Parent or isDead(v)
-
+				if not v or not v.Parent then return end
+				
 				pcall(espLib.DeapplyESP, v.Parent)
 
 				local dead = desps[v.Parent.Name] or {HighlightEnabled = true, Color = Color3.fromRGB(200, 150, 50):Lerp(Color3.fromRGB(255, 75, 0), (v.Parent:GetAttribute("DangerScore") / 10) / 100), Text = getItemText(v.Parent), ESPName = "Dead MonsterESP"}
@@ -664,6 +547,7 @@ local function main(v)
 				espFunc(v.Parent, animal)
 
 				repeat task.wait() until not v or not v.Parent or isDead(v)
+				if not v or not v.Parent then return end
 
 				pcall(espLib.DeapplyESP, v.Parent)
 
@@ -672,44 +556,14 @@ local function main(v)
 
 				return espFunc(v.Parent, dead)
 			end
-		elseif (v:IsA("BillboardGui") and v.Name == "ObjectInfo" and (getBase(v.Parent) and not getBase(v.Parent).Anchored or not getBase(v.Parent)) or v.Parent == workspace.RuntimeItems and v.Name ~= "Moneybag") and not checked[v] and not checked[v.Parent] then
-			renderWait(0.01)
-			if not v or not v.Parent or checked[v] or checked[v.Parent] then return end
-			
-			v = v:IsA("BillboardGui") and v or v:FindFirstChildWhichIsA("Instance")
-			local tool = esps[v.Parent.Name] or {HighlightEnabled = false, Color = getColor(v.Parent), Text = getItemText(v.Parent), ESPName = "ItemESP"}
-
-			esps[v.Parent.Name] = tool
-
-			espFunc(v.Parent, tool)
-
-			for i,va in pickupable do
-				if hasProperty(v.Parent, va) then
-					return add(tools, v.Parent)
-				end
-			end
-			
-			if v.Parent.Name == "Electrocutioner" or v.Parent.Name:lower():match("sword") then
-				return add(tools, v.Parent)
-			end
-
-			if hasProperty(v.Parent, "Currency") then
-				return add(bonds, v.Parent)
-			end
-
-			for i,va in armor do
-				if hasProperty(v.Parent, va) then
-					return add(equippables, v.Parent)
-				end
-			end
-
-			if v.Parent:GetAttribute("ActivateText") then
-				return add(other, v.Parent)
-			end
-		elseif v:IsA("Model") and v.Name == "Vault" and v:FindFirstChild("Combination") then
+		elseif v:IsA("Model") then
 			checked[v] = true
-			
-			espFunc(v, {HighlightEnabled = true, Color = Color3.fromRGB(85, 170, 0), Text = "[" .. tostring(v.Combination.Value):gsub("", " ") .. "]", ESPName = "Vault CodeESP"})
+			if v.Name == "Vault" and v:FindFirstChild("Combination") then
+				espFunc(v, {HighlightEnabled = true, Color = Color3.fromRGB(85, 170, 0), Text = "[" .. tostring(v.Combination.Value):gsub("", " ") .. "]", ESPName = "Vault CodeESP"})
+			elseif v.Parent == workspace and v:GetAttribute("Stopped") ~= nil then
+				train = v
+				espFunc(v:WaitForChild("Functional", 9e9), {HighlightEnabled = false, Color = Color3.fromRGB(55, 65, 65), Text = "Train", ESPName = "Train (the most useful)ESP"})
+			end
 		elseif v:IsA("MeshPart") and v.Name == "MoneyBag" then
 			checked[v] = true
 			checked[v.Parent] = true
@@ -724,6 +578,52 @@ local function main(v)
 		end
 	end
 end
+
+local fuels = {}
+local function itemFunc(v)
+	if not v or not v.Parent or v.Name == "Moneybag" then return end
+	renderWait(0.01)
+	if not v or not v.Parent then return end
+
+	checked[v] = true
+	local tool = esps[v.Name] or {HighlightEnabled = false, Color = getColor(v), Text = getItemText(v), ESPName = "ItemESP"}
+
+	esps[v.Name] = tool
+	espFunc(v, tool)
+	
+	if v:GetAttribute("Fuel") and v:GetAttribute("Fuel") > 0 and v.Name ~= "Chair" then
+		add(fuels, v)
+	end
+
+	for i,va in pickupable do
+		if hasProperty(v, va) then
+			return add(tools, v)
+		end
+	end
+
+	if v.Name == "Electrocutioner" or v.Name:lower():match("sword") then
+		return add(tools, v)
+	end
+
+	if hasProperty(v, "Currency") then
+		return add(bonds, v)
+	end
+
+	for i,va in armor do
+		if hasProperty(v, va) then
+			return add(equippables, v)
+		end
+	end
+
+	if v:GetAttribute("ActivateText") then
+		return add(other, v)
+	end
+end
+
+for i,v in items:GetChildren() do
+	task.spawn(itemFunc, v)
+end
+items.ChildAdded:Connect(itemFunc)
 
 local getClosestMonster; getClosestMonster = function(mode)
 	mode = mode or vals.Mode
@@ -835,7 +735,7 @@ end
 
 task.spawn(function()
 	while not closed and task.wait(0.01) do
-		if vals.SpeedBoost ~= 0 and plr.Character and plr.Character:FindFirstChild("Humanoid") and not plr.Character.Humanoid.Sit then
+		if vals.SpeedBoost ~= 0 and plr.Character and plr.Character:FindFirstChild("Humanoid") and not plr.Character.Humanoid.Sit and plr.Character.Humanoid.Health > 1 then
 			plr.Character:PivotTo(plr.Character:GetPivot() + plr.Character.Humanoid.MoveDirection / ((101 - vals.SpeedBoost) * 15))
 		end
 	end
@@ -945,23 +845,6 @@ local function finish()
 	end
 end
 
-task.spawn(function()
-	while not closed and task.wait(0.1) do
-		vals.ForceNoclip = false
-		if vals.AutoComplete and plr.Character then
-			if (plr.Character:GetPivot().Position - endPosition.Position).Magnitude > 1000 and vals.AutoComplete then
-				--print("teleporting to end")
-				pcall(tpEnd)
-				--print("finale")
-				pcall(finish)
-			elseif vals.AutoComplete then
-				--print("finale")
-				pcall(finish)
-			end
-		end
-	end
-end)
-
 for i,v in workspace:GetDescendants() do
 	task.spawn(main, v)
 end
@@ -972,40 +855,107 @@ local void = pcall(function()
 end)
 
 local function formatTime(timeInSeconds)
-	local totalMilliseconds = math.floor(timeInSeconds * 1000 + 0.5)
+	if not vals.TimeMode then
+		local totalMilliseconds = math.floor(timeInSeconds * 1000 + 0.5)
 
-	return string.format("%s:%02d.%02d", math.floor(totalMilliseconds / 60000), math.floor((totalMilliseconds % 60000) / 1000), math.floor((totalMilliseconds % 1000) / 10))
+		return string.format("%s:%02d" .. (vals.ShowMillis and ".%02d" or ""), math.floor(totalMilliseconds / 60000), math.floor((totalMilliseconds % 60000) / 1000), vals.ShowMillis and math.floor((totalMilliseconds % 1000) / 10))
+	else
+		local hours = math.floor(timeInSeconds / 3600)
+		timeInSeconds = timeInSeconds % 3600
+		local minutes = math.floor(timeInSeconds / 60)
+		local secs = timeInSeconds % 60
+
+		local result = ""
+
+		if hours > 0 then
+			result = result .. string.format(not vals.ShortMode and "%02d hours " or "%02d h; ", hours)
+		end
+
+		if minutes > 0 then
+			result = result .. string.format(not vals.ShortMode and "%02d minutes " or "%02d m; ", minutes)
+		end
+
+		result = result .. string.format(not vals.ShortMode and "%02d seconds " or "%02d s" .. (vals.ShowMillis and ";" or "") .. " ", secs)
+
+		if vals.ShowMillis then
+			local milliseconds = math.floor((timeInSeconds - math.floor(timeInSeconds)) * 1000)
+			result = result .. string.format(not vals.ShortMode and "%03d milliseconds" or "%03d ms", milliseconds)
+		end
+
+		return result
+	end
 end
 
-local items = workspace.RuntimeItems
 local oilCooldown = false
+local notified = false
+local fired = false
+
+local money = plr.PlayerGui.MoneyGui.Money
+local bond = plr.PlayerGui.BondGui.BondInfo.BondCount
+local bt = "Not refreshed"
+
 cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 	txtf("ClearText")
-	if workspace:FindFirstChild("Train") and workspace.Train.TrainControls:FindFirstChild("TimeDial") then
+	if train and train.Parent and train:FindFirstChild("RequiredComponents") and train.RequiredComponents:FindFirstChild("Controls") and train.RequiredComponents.Controls:FindFirstChild("TimeDial") then
 		if vals.ShowTime then
-			txtf("UpdateLine", "Left", "Time: " .. workspace.Train.TrainControls.TimeDial.SurfaceGui.TextLabel.Text)
+			txtf("UpdateLine", "Left", "Time: " .. train.RequiredComponents.Controls.TimeDial.SurfaceGui.TextLabel.Text)
 		end
 		if vals.ShowDistance then
-			txtf("UpdateLine", "Left", "Traveled: " .. workspace.Train.TrainControls.DistanceDial.SurfaceGui.TextLabel.Text)
+			txtf("UpdateLine", "Left", "Traveled: " .. train.RequiredComponents.Controls.DistanceDial.SurfaceGui.TextLabel.Text)
 		end
 		if vals.ShowSpeed then
-			txtf("UpdateLine", "Left", "Speed: " .. (math.round((workspace.Train.TrainControls.Spedometer.SurfaceGui.ImageLabel.Gauge.Rotation - 120) / 163 * 65 * 10) / 10) .. " s/s")
+			txtf("UpdateLine", "Left", "Speed: " .. (math.round((train.RequiredComponents.Controls.Spedometer.SurfaceGui.ImageLabel.Gauge.Rotation - 120) / 163 * 650) / 10) .. " s/s")
 		end
 		if vals.ShowFuel then
-			txtf("UpdateLine", "Left", "Fuel: " .. (math.round((workspace.Train.Fuel.Value / 240) * 1000) / 10) .. "%")
+			txtf("UpdateLine", "Left", "Fuel: " .. getFuelPercentage() .. "%")
 		end
 	end
+	local t = workspace.DistributedGameTime
+	
 	if vals.ShowTimeLeft then
 		if txtf("GetText", "Left") ~= "" then
 			txtf("UpdateLine", "Left", "")
 		end
-		txtf("UpdateLine", "Left", "Timer: " .. formatTime(math.max(600 - workspace.DistributedGameTime, 0)))
+		
+		local time = math.max(601 - t, 0)
+		txtf("UpdateLine", "Left", "Timer: " .. formatTime(time) .. " left")
+		if time == 0 and not notified then
+			notified = true
+			lib.Notifications:Notification({Title = "Timer", Text = "You can finish game now!"})
+		end
 	end
 	if vals.ShowPlayingTimer then
 		if txtf("GetText", "Left") == "" and not vals.ShowTimeLeft then
 			txtf("UpdateLine", "Left", "")
 		end
-		txtf("UpdateLine", "Left", "Playing: " .. formatTime(workspace.DistributedGameTime))
+		txtf("UpdateLine", "Left", "Playing: " .. formatTime(t))
+	end
+
+	money.Visible = not vals.ReplaceMoney
+	bond.Parent.Parent.Enabled = not vals.ReplaceBond
+
+	if vals.ReplaceMoney then
+		if txtf("GetText", "Left") ~= "" then
+			txtf("UpdateLine", "Left", "")
+		end
+		txtf("UpdateLine", "Left", "Money: " .. money.Text)
+	end
+	if vals.ReplaceBond then
+		if txtf("GetText", "Left") == "" and not vals.ReplaceMoney then
+			txtf("UpdateLine", "Left", "")
+		end
+		
+		if bond.Text ~= "0" then
+			bt = bond.Text
+		end
+		
+		txtf("UpdateLine", "Left", "Bonds: " .. bt)
+	end
+
+	if vals.ATWC and not fired and (workspace.TeslaLab:GetPivot().Position - plr.Character:GetPivot().Position).Magnitude <= 1000 and workspace.TeslaLab:FindFirstChild("PowerPrompt", math.huge) then
+		if fireproximityprompt(workspace.TeslaLab:FindFirstChild("PowerPrompt", math.huge)) then
+			fired = true
+		end
 	end
 	
 	if vals.FB then
@@ -1029,8 +979,11 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 			end
 		end
 	end
-	if vals.AutoThrottle and workspace:FindFirstChild("Train") and workspace.Train.TrainControls.ConductorSeat:FindFirstChild("VehicleSeat") and math.abs(workspace.Train.TrainControls.ConductorSeat.VehicleSeat.Throttle) == 0 then
-		workspace.Train.TrainControls.ConductorSeat.VehicleSeat.Throttle = 1
+	if vals.AutoThrottle and train and train.Parent and train:FindFirstChild("RequiredComponents") and train.RequiredComponents:FindFirstChild("Controls") and train.RequiredComponents.Controls.ConductorSeat:FindFirstChild("VehicleSeat") and math.abs(train.RequiredComponents.Controls.ConductorSeat.VehicleSeat.Throttle) == 0 then
+		train.RequiredComponents.Controls.ConductorSeat.VehicleSeat.Throttle = 1
+	end
+	if vals.AutoPlayAgain and plr.PlayerGui.EndScreen.Enabled then
+		game:GetService("ReplicatedStorage"):FindFirstChild("EndDecision", math.huge):FireServer(false)
 	end
 	if plr.Character then
 		if (vals.NoVoid or vals.ForceNoclip) and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character.HumanoidRootPart.Position.Y <= -10 then
@@ -1111,6 +1064,17 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 			oilCooldown = false
 		end
 	end
+	if vals.AutoFuel and getFuelPercentage() ~= 100 then
+		for i,v in fuels do
+			if v and v.Parent then
+				if vals.GreedyMode or getFuelPercentage() + getFuelPercentageFromValue(v:GetAttribute("Fuel")) <= 100 then
+					task.spawn(fuel, v)
+				end
+			else
+				remove(fuels, v)
+			end
+		end
+	end
 end)
 
 cons[#cons+1] = game:GetService("ProximityPromptService").PromptButtonHoldBegan:Connect(function(pp)
@@ -1153,34 +1117,24 @@ end})
 page:AddSlider({Caption = "Jump height", Default = 7.2, Min = 0, Max = 12.5, Step = 0.1, Callback = function(b)
 	vals.JumpBoost = b
 end, CustomTextDisplay = function(p)
-	return p .. " studs"
+	return p .. " / 12.5 studs"
 end})
+page:AddSeparator()
+page:AddLabel({Caption = "Max Speed boost makes youa bit faster than vampires"})
+page:AddLabel({Caption = "Max Jump height allows you to jump on the roofs"})
+page:AddSeparator()
 page:AddToggle({Caption = "Noclip", Default = false, Callback = function(b)
 	vals.Noclip = b
 end})
-page:AddSeparator()
 page:AddToggle({Caption = "No void (fix death when falling under map)", Default = false, Callback = function(b)
 	vals.NoVoid = b
 end})
 page:AddSeparator()
-page:AddButton({Caption = "Teleport to train [No TP = click that button again]", Callback = function()
-	if workspace:FindFirstChild("Train") and  workspace.Train.TrainControls.ConductorSeat:FindFirstChild("VehicleSeat") then
-		local oldPos = workspace.Train.TrainControls.ConductorSeat.VehicleSeat:GetPivot()
-
-		repeat
-			sit(workspace.Train.TrainControls.ConductorSeat.VehicleSeat)
-			task.wait(0.01)
-		until workspace.Train.TrainControls.ConductorSeat.VehicleSeat:FindFirstChild("SeatWeld")
-
-		workspace.Train.TrainControls.ConductorSeat.VehicleSeat:PivotTo(oldPos)
-	else
-		lib.Notifications:Notification({Title = "Uh-oh!", Text = "Looks like the train is way too far away"})
-	end
-end})
-page:AddButton({Caption = "Teleport to end [No TP = click that button again]", Callback = tpEnd})
-page:AddToggle({Caption = "Auto complete game", Default = false, Callback = function(b)
-	vals.AutoComplete = b
-end})
+for i,v in tps.Teleports do
+	page:AddButton({Text = "Teleport to " .. insertCum(i), Callback = function()
+		v(tps.Teleports)
+	end})
+end
 
 local page = window:AddPage({Title = "Auto"})
 page:AddToggle({Caption = "Auto grab money bags", Default = false, Callback = function(b)
@@ -1198,14 +1152,30 @@ end})
 page:AddToggle({Caption = "Auto pick up ammo & other", Default = false, Callback = function(b)
 	vals.AutoPickOther = b
 end})
-
-page:AddSeparator()
-
+page:AddToggle({Caption = "Auto play again", Default = false, Callback = function(b)
+	vals.AutoPlayAgain = b
+end})
 page:AddToggle({Caption = "Auto throttle", Default = false, Callback = function(b)
 	vals.AutoThrottle = b
 end})
 
 page:AddSeparator()
+
+page:AddToggle({Caption = "Auto fuel", Default = false, Callback = function(b)
+	vals.AutoFuel = b
+end})
+page:AddToggle({Caption = "Greedy Auto fuel", Default = false, Callback = function(b)
+	vals.GreedyMode = b
+end})
+
+page:AddSeparator()
+
+--[[page:AddToggle({Caption = "Activate Tesla's power lever without body", Default = false, Callback = function(b)
+	vals.ATWC = b
+end})
+
+page:AddSeparator()]]
+
 page:AddToggle({Caption = "Instant interact", Default = false, Callback = function(b)
 	vals.II = b
 end})
@@ -1253,6 +1223,27 @@ end})
 page:AddToggle({Caption = "Show playing timer", Default = false, Callback = function(b)
 	vals.ShowPlayingTimer = b
 end})
+page:AddToggle({Caption = "Show milliseconds", Default = false, Callback = function(b)
+	vals.ShowMillis = b
+end})
+local short
+page:AddToggle({Caption = "Second timer mode", Default = false, Callback = function(b)
+	vals.TimeMode = b
+	short:Visible(b)
+end})
+short = page:AddToggle({Caption = "Shorter second timer mode", Default = false, Callback = function(b)
+	vals.ShortMode = b
+end})
+short:Visible(false)
+
+page:AddSeparator()
+
+page:AddToggle({Caption = "Replace money GUI", Default = false, Callback = function(b)
+	vals.ReplaceMoney = b
+end})
+--[[page:AddToggle({Caption = "Replace bond GUI", Default = false, Callback = function(b)
+	vals.ReplaceBond = b
+end})]]
 
 page:AddSeparator()
 
@@ -1287,9 +1278,10 @@ for i,v in vals.ESP do
 	end})
 end
 
-local page = window:AddPage({Title = "Killaura"})
+local page = window:AddPage({Title = "Kill assist"})
+page:AddLabel({Text = "This page been temporarily removed for the rework"})
 
-page:AddToggle({Caption = "Gun kill aura", Default = false, Callback = function(b)
+--[[page:AddToggle({Caption = "Gun kill aura", Default = false, Callback = function(b)
 	vals.GKA = b
 end})
 page:AddToggle({Caption = "Faster gun kill aura", Default = false, Callback = function(b)
@@ -1309,8 +1301,7 @@ end})
 page:AddToggle({Caption = "Kill aura " .. (hmm and gncm and "and Silent aim " or "") .. "check line of sight (raycast)", Default = false, Callback = function(b)
 	vals.Raycast = b
 end})
-page:AddLabel({Caption = "Better dont enable ^^^ because unstable"})]]
-
+page:AddLabel({Caption = "Better dont enable ^^^ because unstable"})
 page:AddSeparator()
 
 local t = {"Distance", "Angle", "Random"}
@@ -1338,7 +1329,7 @@ if hmm and gncm then
 	page:AddLabel({Caption = "Better dont ^^^ this because unstable + can't kill animals"})
 	page:AddLabel({Caption = "Save bullets cancels the shoot if theres no alive zombies around"})
 	page:AddSeparator()
-end
+end]]
 
 local page = window:AddPage({Title = "Trolling"})
 
@@ -1346,26 +1337,4 @@ page:AddButton({Caption = "Throw object", Callback = throw})
 page:AddSlider({Caption = "Throw power", Default = vals.ThrowPower, Min = 10, Max = 10000, Step = 1, Callback = function(b)
 	vals.ThrowPower = b
 end})
-page:AddLabel({Caption = "Try throwing a friend's corpse XD"})
-
-page:AddSeparator()
-
-page:AddButton({Caption = "Glitch train", Callback = function()
-	if workspace:FindFirstChild("Train") and workspace.Train.TrainControls.ConductorSeat:FindFirstChild("VehicleSeat") then
-		local old = plr.Character:GetPivot()
-		
-		plr.Character:PivotTo(old + Vector3.new(0, 5))
-		task.wait(0.02)
-		plr.Character:PivotTo(workspace.Train.TrainControls.ConductorSeat.VehicleSeat:GetPivot())
-		task.wait(0.02)
-		plr.Character:PivotTo(old)
-
-		task.wait(0.1)
-
-		plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-	else
-		lib.Notifications:Notification({Title = "Uh-oh!", Text = "Looks like the train is way too far away"})
-	end
-end})
-
-espFunc(workspace:WaitForChild("Train", 9e9), {HighlightEnabled = false, Color = Color3.fromRGB(55, 65, 65), Text = "Train", ESPName = "Train (the most useful)ESP"})
+page:AddLabel({Caption = "Try throwing a friend's corpse with power of 500 XD"})
