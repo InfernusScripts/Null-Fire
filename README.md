@@ -55,7 +55,7 @@ At this moment (__8th of may 2025__) `NullFire` - `Pressure` is about to be disc
 A bit later the game called `Dead Rails` became ultra popular.
 I decided to make a script for it.
 
-`NullFire` for `Dead Rails` became EVEN MORE POPULAR THAN `PRESSURE` (__#2 popular `Dead Rails` script on `ScriptBlox`__; __8th of may 2025__).
+`NullFire` for `Dead Rails` became EVEN MORE POPULAR THAN `PRESSURE` (__#2 popular `Dead Rails` script on `ScriptBlox`__; __23rd of april 2025__).
 I'm really proud of it.
 
 ---
