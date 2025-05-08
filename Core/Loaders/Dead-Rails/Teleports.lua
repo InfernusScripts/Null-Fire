@@ -84,7 +84,7 @@ end
 teleports.ScanFor = scanFor
 
 local function getChair()
-	if chair and chair.Parent and chair:FindFirstChild("Chair") and chair.Seat.Occupant and chair.Seat.Occupant ~= plr.Character.Humanoid then return end
+	if chair and chair.Parent and chair:FindFirstChild("Chair") and (chair.Seat.Occupant and chair.Seat.Occupant == plr.Character.Humanoid or not chair.Seat.Occupant) then return chair end
 	
 	teleports.Event:Fire("Getting available chair...")
 	
@@ -256,10 +256,38 @@ function teleport(position, y, z, posName)
 		position = CFrame.new(position, y, z)
 	end
 	
+	local dist = (position.Position - plr.Character:GetPivot().Position).Magnitude
+	if dist < 50 then
+		if teleports.Values then
+			teleports.Values.ForceNoclip = true
+		end
+		plr.Character.Humanoid:MoveTo(position.Position)
+		task.wait((dist / plr.Character.Humanoid.WalkSpeed) - 1)
+		if teleports.Values then
+			teleports.Values.ForceNoclip = false
+		end
+		return
+	end
+	
 	teleports.Event:Fire("Teleporting to " .. (posName or tostring(position.Position)))
 
 	teleporting = true
-	chair = teleportToChair(getChair(), false, true)
+	
+	chair = getChair()
+
+	local dist = (chair:GetPivot().Position - plr.Character:GetPivot().Position).Magnitude
+	if dist > 50 then
+		chair = teleportToChair(chair, false, true)
+	elseif dist < 50 then
+		if teleports.Values then
+			teleports.Values.ForceNoclip = true
+		end
+		plr.Character.Humanoid:MoveTo(position.Position)
+		task.wait((dist / plr.Character.Humanoid.WalkSpeed) - 1)
+		if teleports.Values then
+			teleports.Values.ForceNoclip = false
+		end
+	end
 
 	teleports.Event:Fire("Teleporting")
 	
@@ -330,7 +358,7 @@ function teleport(position, y, z, posName)
 
 	plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 	
-	task.wait(1)
+	task.wait(0.25)
 	
 	plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 
