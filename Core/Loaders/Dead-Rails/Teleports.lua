@@ -256,7 +256,7 @@ function teleport(position, y, z, posName)
 		if teleports.Values then
 			teleports.Values.ForceNoclip = true
 		end
-		for i=1, ((dist / plr.Character.Humanoid.WalkSpeed) - 1) * 100 do
+		for i=1, ((dist / plr.Character.Humanoid.WalkSpeed / 2) - 1) * 100 do
 			plr.Character.Humanoid:MoveTo(position.Position)
 			task.wait(0.01)
 		end
@@ -285,7 +285,7 @@ function teleport(position, y, z, posName)
 		if teleports.Values then
 			teleports.Values.ForceNoclip = true
 		end
-		for i=1, ((dist / plr.Character.Humanoid.WalkSpeed) - 1) * 100 do
+		for i=1, ((dist / plr.Character.Humanoid.WalkSpeed / 2) - 1) * 100 do
 			plr.Character.Humanoid:MoveTo(chair:GetPivot().Position)
 			task.wait(0.01)
 		end
