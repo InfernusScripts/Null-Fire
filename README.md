@@ -19,5 +19,3 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-
 ---
 
 Thanks for using my script(s)!
-
----
