@@ -1,8 +1,8 @@
 local Instance1
 local n = "SideTextUI_1488"
 local h = pcall(function()
-	return game.CoreGui:GetFullName()
-end) and game.CoreGui or game.Players.LocalPlayer:WaitForChild("PlayerGui", 9e9)
+	return game:GetService("CoreGui"):GetFullName()
+end) and game:GetService("CoreGui") or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui", 9e9)
 
 if not h:FindFirstChild(n) then
 	Instance1 = Instance.new("ScreenGui", h) --SideTextUI
