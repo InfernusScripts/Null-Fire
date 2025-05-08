@@ -42,12 +42,12 @@ local bondFarm; bondFarm = {
 		if not cons[bond] and bond:FindFirstChild("Part") and bond.Part:FindFirstChild("Collect") then
 			local collect = bond.Part.Collect
 			local con; con = game:GetService("RunService").RenderStepped:Connect(function()
-				if not collect.Parent then
-					bondFarm.Missed += 1
-					return con:Disconnect()
-				elseif collect and collect.Playing then
+				if collect and collect.Playing then
 					bondFarm.Collected += 1
-					return con:Disconnect()
+					con:Disconnect()
+				elseif not collect.Parent then
+					bondFarm.Missed += 1
+					con:Disconnect()
 				end
 			end)
 		end
