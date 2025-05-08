@@ -43,10 +43,12 @@ local bondFarm; bondFarm = {
 			local collect = bond.Part.Collect
 			local con; con = game:GetService("RunService").RenderStepped:Connect(function()
 				if collect and collect.Playing then
+					bondFarm.Missed -= 1
 					bondFarm.Collected += 1
 					con:Disconnect()
 				elseif not collect.Parent then
 					bondFarm.Missed += 1
+					task.wait(1)
 					con:Disconnect()
 				end
 			end)
@@ -55,8 +57,8 @@ local bondFarm; bondFarm = {
 	CheckY = function()
 		local pos = plr.Character:GetPivot().Position
 
-		if pos.Y < -1 then
-			plr.Character:PivotTo(CFrame.new(pos.X, 5, pos.Z))
+		if pos.Y < -20 then
+			plr.Character:PivotTo(CFrame.new(pos.X, -5, pos.Z))
 		end
 
 		plr.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 1)
@@ -68,7 +70,7 @@ local bondFarm; bondFarm = {
 
 			game:GetService("ReplicatedStorage"):FindFirstChild("C_ActivateObject", math.huge):FireServer(bond)
 
-			pcall(tps.Teleport, bond:GetPivot(), nil, nil, false)
+			pcall(tps.Teleport, bond:GetPivot() - Vector3.new(0, 7.5), nil, nil, false)
 		end
 	end,
 
