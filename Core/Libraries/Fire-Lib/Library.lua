@@ -3847,9 +3847,7 @@ local lib; lib = {
                             if options.IgnoreConfig or options.IgnoreConfigs then return end
                             local val = config[counterTextPage]
                             if val then
-                                val = val[counterText]
-                            end
-                            if val then
+                                --val = val[counterText]
                                 local keybind = val[counterText.."_Keybind"]
                                 if keybind then
                                     inpt = nil
@@ -4010,9 +4008,7 @@ local lib; lib = {
                             if options.IgnoreConfig or options.IgnoreConfigs then return end
                             local val = config[counterTextPage]
                             if val then
-                                val = val[counterText]
-                            end
-                            if val then
+                                --val = val[counterText]
                                 local keybind = val[counterText.."_Keybind"]
                                 if keybind then
                                     inpt = nil
@@ -4178,9 +4174,6 @@ local lib; lib = {
                             if options.IgnoreConfig or options.IgnoreConfigs then return end
                             local val = config[counterTextPage]
                             if val then
-                                val = val[counterText]
-                            end
-                            if val then
                                 local keybind = val[counterText.."_Keybind"]
                                 if keybind then
                                     inpt = nil
@@ -4189,6 +4182,8 @@ local lib; lib = {
                                     inpt = bind[2]
                                     coroutineCall(updateFloatingKeybinds)(keybinds, binds, colors)
                                 end
+                                
+                                val = val[counterText]
                                 funcs:Set(val)
                             end
                         end)
