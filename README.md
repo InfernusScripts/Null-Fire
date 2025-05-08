@@ -27,6 +27,9 @@ Yeah, it was a small Doors script before.
 
 After lolhax leaked infinite crucifix method it gave me a huge headstart.
 
+Big thanks to @bryld, he very helped me developing my doors script and learned me alot of exploiting stuff.
+I would never forget him and never stop thanking him.
+
 I worked very hard on it and made a script of size about 3000-4000 lines of code!
 Then I realised that I want FireDoors to support more than 1 game, so I renamed it to FireDoors.
 
