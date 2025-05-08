@@ -22,40 +22,40 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-
 
 ---
 ## History
-At first there was no such thing as NullFire - there was FireDoors.
-Yeah, it was a small Doors script before.
+At first there was no such thing as `NullFire` - there was `FireDoors`.
+Yeah, it was a small `Doors` script before.
 
-After lolhax leaked infinite crucifix method it gave me a huge headstart.
+After `lolhax` leaked `infinite crucifix` method it gave me a huge headstart.
 
-Big thanks to @bryld, he very helped me developing my doors script and learned me alot of exploiting stuff.
+Big thanks to `@bryld`, he very helped me developing my `Doors` script and learned me alot of exploiting stuff.
 I would never forget him and never stop thanking him.
 
-I worked very hard on it and made a script of size about 3000-4000 lines of code!
-Then I realised that I want FireDoors to support more than 1 game, so I renamed it to FireDoors.
+I worked very hard on it and made a script of size about `3000`-`4000` lines of code!
+Then I realised that I want `FireDoors` to support more than 1 game, so I renamed it to `FireHub`.
 
 
 ...
 
 
-After a while I got sick of Doors and rarely joined that game (btw, same happened with Pressure, but about that later).
+After a while I got sick of `Doors` and rarely joined that game (btw, same happened with `Pressure`, but about that later).
 
-Doors script was discontinued.
+`Doors` script was __discontinued__.
 
-After a break that lasted about 2 years I started developing FireDoors again.
-I made a known script called "FireHub - Pressure".
-Then I made a Funky Friday one and Natural Disaster Survival.
+After a break that lasted about `2 years` I started developing `FireHub` again.
+I made a known script called `FireHub - Pressure`.
+Then I made a `Funky Friday` one and `Natural Disaster Survival`.
 
-After collabing with seikoso FireHub turned into a NullFire (btw, I like that name).
+After collabing with `@seikoso` `FireHub` turned into a `NullFire` (btw, I like that name).
 
-I updated Pressure script really lot, so there was no other scripts that could do better than me.
-And because of that I also got sick of Pressure (+ got banned).
+I updated `Pressure` script really lot, so there was no other scripts that could do better than me.
+And because of that I also got sick of `Pressure` (+ got __banned__).
 
-At this moment (8th of may 2025) NullFire - Pressure is about to be discontinued, but I think I will still do some updates, just not that fast.
+At this moment (__8th of may 2025__) `NullFire` - `Pressure` is about to be discontinued, but I think I will still do some updates, just not that fast.
 
-A bit later the game called "Dead Rails" became ultra popular.
+A bit later the game called `Dead Rails` became ultra popular.
 I decided to make a script for it.
 
-NullFire for Dead Rails became EVEN MORE POPULAR THAN PRESSURE (#2 popular dead rails script for Dead Rails on ScriptBlox; 8th of may 2025).
+`NullFire` for `Dead Rails` became EVEN MORE POPULAR THAN `PRESSURE` (__#2 popular `Dead Rails` script on `ScriptBlox`__; __8th of may 2025__).
 I'm really proud of it.
 
 ---
