@@ -92,14 +92,14 @@ task.spawn(function()
 	while task.wait(0.075) do
 		if bondFarm.Active then
 			if not workspace.Baseplates:FindFirstChild("FinalBasePlate") then
-				bondFarm.BondStep(bondFarm.GetClosestBond())
+				pcall(bondFarm.BondStep, bondFarm.GetClosestBond())
 			else
 				local bond = bondFarm.GetClosestBond()
 				if not bond then
 					bondFarm.Finished = true
 					break
 				else
-					bondFarm.BondStep(bond)
+					pcall(bondFarm.BondStep, bond)
 				end
 			end
 		end
