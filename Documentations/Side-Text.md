@@ -5,7 +5,7 @@ Just useful thing for showing some info players need!
 ```lua
 local txtf = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Side-Text/Main.lua"))()
 ```
-Alright, we got the signals library, now let's set it up!
+Alright, we got the side text library.
 
 ## There's no setup
 
