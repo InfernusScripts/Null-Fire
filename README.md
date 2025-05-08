@@ -24,5 +24,5 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-
 ## DEVELOPERS ZONE
 
 NullFire is mostly open source project, so I even made documentations!
-You can use any of NullFire's libraries or copy it's / their code, I don't mind
-You can read about libraries [here](https://github.com/InfernusScripts/Null-Fire/blob/main/Documentations/README.md), I'm trying to update these right after releasing updates for them
+You can use any of NullFire's libraries or copy it's / their code, I don't mind.
+You can read about libraries [here](https://github.com/InfernusScripts/Null-Fire/blob/main/Documentations/README.md), I'm trying to update these right after releasing updates for them.
