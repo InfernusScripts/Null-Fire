@@ -81,6 +81,8 @@ local function scanFor(func, ...)
 	end
 end
 
+teleports.ScanFor = scanFor
+
 local function getChair()
 	if chair and chair.Parent and chair:FindFirstChild("Chair") and chair.Seat.Occupant and chair.Seat.Occupant ~= plr.Character.Humanoid then return end
 	
