@@ -208,4 +208,4 @@ task.spawn(function()
 	end
 end)
 
-return settings
+return settings;
