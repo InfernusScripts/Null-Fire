@@ -10,7 +10,10 @@ local ESPChange = Instance.new("BindableEvent")
 local espLib; espLib = {
 	ESPValues = setmetatable({}, {
 		__index = function(self, name)
-			return espLib.Values[name]
+    if typeof(espLib.Values) ~= "table" then
+      espLib.Values = {}
+    end
+			return not not espLib.Values[name] -- "not not" to convert value to boolean
 		end,
 		__newindex = function(self, name, value)
     if typeof(espLib.Values) ~= "table" then
