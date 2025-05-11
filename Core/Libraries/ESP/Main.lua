@@ -13,6 +13,9 @@ local espLib; espLib = {
 			return espLib.Values[name]
 		end,
 		__newindex = function(self, name, value)
+    if typeof(espLib.Values) ~= "table" then
+      espLib.Values = {}
+    end
 			if espLib.Values[name] == value then return end
 			espLib.Values[name] = value
 			ESPChange:Fire()
