@@ -55,8 +55,10 @@ task.spawn(function()
  local lplr = plrs.LocalPlayer
 	local playerBase = {HighlightEnabled = true, Color = Color3.new(1, 1, 1), Text = "NAME", ESPName = "PlayerESP"}
 	
-	function character(char)
-		local plr = plrs:GetPlayerFromCharacter(char)
+	function character(plr)
+  local char = plr.Character
+  if not char then return end
+
 		pcall(espLib.DeapplyESP, char)
 		
 		playerBase.Color = plr.Team and plr.Team.TeamColor.Color or Color3.new(1, 1, 1)
@@ -68,10 +70,12 @@ task.spawn(function()
 	local function player(plr)
 		if plr and plr ~= lplr then
 			if plr.Character then
-				task.spawn(character, plr.Character)
+				task.spawn(character, plr)
 			end
 			
-			plr.Changed:Connect(character)
+			plr.Changed:Connect(function()
+     character(plr)
+    end)
 		end
 	end
 	
@@ -256,6 +260,7 @@ local function mainWindow(window)
 end
 
 local windowFunc = function(window)
+ warn(" gonna remove it later, 1.0")
 	local fc = typeof ~= type and type == type and 234 == 234 and typeof
 	local tbl = 1+2 == 3 and 4+5 == 6+3 and getGlobalTable()
 	local fc = 2+2 == 4 and fc ~= window and fc ~= 1488 and fc
@@ -270,7 +275,7 @@ local windowFunc = function(window)
 			signals:OnSignalRecieve(function(plr, name, ...)
 				if name == "IMNFU" then
 					vals.NFU[plr.Name] = true
-					character(plr.Character)
+					character(plr)
 				elseif name == "GETNFU" then
 					signals:SendSignal("all", "IMNFU")
 				end
