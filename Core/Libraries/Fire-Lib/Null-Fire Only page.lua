@@ -51,11 +51,12 @@ local vals = {
 }
 
 task.spawn(function()
-	local lplr = game:GetService("Players").LocalPlayer
+	local plrs = game:GetService("Players")
+ local lplr = plrs.LocalPlayer
 	local playerBase = {HighlightEnabled = true, Color = Color3.new(1, 1, 1), Text = "NAME", ESPName = "PlayerESP"}
 	
 	function character(char)
-		local plr = lplr.Parent:GetPlayerFromCharacter(char)
+		local plr = plrs:GetPlayerFromCharacter(char)
 		pcall(espLib.DeapplyESP, char)
 		
 		playerBase.Color = plr.Team and plr.Team.TeamColor.Color or Color3.new(1, 1, 1)
@@ -74,10 +75,10 @@ task.spawn(function()
 		end
 	end
 	
-	for i,v in lplr.Parent:GetPlayers() do
+	for i,v in plrs:GetPlayers() do
 		player(v)
 	end
-	lplr.Parent.PlayerAdded:Connect(player)
+	plrs.PlayerAdded:Connect(player)
 end)
 
 local function mainWindow(window)
