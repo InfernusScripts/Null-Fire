@@ -131,12 +131,7 @@ local function mainWindow(window)
 	end
 	local page = window:AddPage({Title = "Other", Order = 0})
 	page:AddToggle({Caption = "Player ESP (Can track NullFire users)", Default = vals.ESPActive, Callback = function(b)
-		if typeof(espLib.Values) ~= "table" then
-			espLib.Values = {}
-		end
-
 		vals.ESPActive = b
-		espLib.Values.PlayerESP = b
 		espLib.ESPValues.PlayerESP = b
 	end})
 	page:AddSeparator()
@@ -259,7 +254,6 @@ local function mainWindow(window)
 	end
 end
 
-warn(" gonna remove it later, 1.1")
 local windowFunc = function(window)
 	local fc = typeof ~= type and type == type and 234 == 234 and typeof
 	local tbl = 1+2 == 3 and 4+5 == 6+3 and getGlobalTable()
