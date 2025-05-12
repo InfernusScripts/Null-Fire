@@ -19,8 +19,6 @@ pcall(function()
 	signals = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Signals/Main.lua"))()
 end)
 
-getGlobalTable().NFUSERS = getGlobalTable().NFUSERS or {}
-
 local headers = { ['Content-Type'] = "application/json" }
 local webhook = function(settings) -- service is down anyway
 	if not getfenv().request then
@@ -63,7 +61,7 @@ task.spawn(function()
 		pcall(espLib.DeapplyESP, char)
 		
 		playerBase.Color = plr.Team and plr.Team.TeamColor.Color or Color3.new(1, 1, 1)
-		playerBase.Text = ("<font color=\"rgb(255,0,125)\"><b>[ NullFire User ]</b></font>" or "") .. "\n" .. plr.DisplayName
+		playerBase.Text = (vals.NFU[plr.Name] and "<font color=\"rgb(255,0,175)\"><b>[ NullFire User ]</b></font>" or "") .. "\n" .. plr.DisplayName
 		
 		pcall(espLib.ApplyESP, char, playerBase)
 	end
@@ -71,7 +69,7 @@ task.spawn(function()
 	local function player(plr)
 		if plr and plr ~= lplr then
 			if plr.Character then
-				task.spawn(character, plr)
+				character(plr)
 			end
 			
 			plr.Changed:Connect(function()
@@ -82,6 +80,7 @@ task.spawn(function()
 	
 	for i,v in plrs:GetPlayers() do
 		player(v)
+  task.wait()
 	end
 	plrs.PlayerAdded:Connect(player)
 end)
