@@ -52,11 +52,14 @@ local vals = {
 task.spawn(function()
 	local plrs = game:GetService("Players")
  local lplr = plrs.LocalPlayer
-	local playerBase = {HighlightEnabled = true, Color = Color3.new(1, 1, 1), Text = "NAME", ESPName = "PlayerESP"}
+	local playerBases = {}
 	
 	function character(plr)
   local char = plr.Character
   if not char then return end
+
+  local playerBase = playerBases[plr.Name] or { HighlightEnabled = true, Color = Color3.new(1, 1, 1), Text = "NAME", ESPName = "PlayerESP" }
+  playerBases[plr.Name] = playerBase
 
 		pcall(espLib.DeapplyESP, char)
 		
