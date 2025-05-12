@@ -1,3 +1,4 @@
+ 
 -- I were too lazy to obfuscate
 
 local function getGlobalTable()
@@ -62,7 +63,7 @@ task.spawn(function()
 		pcall(espLib.DeapplyESP, char)
 		
 		playerBase.Color = plr.Team and plr.Team.TeamColor.Color or Color3.new(1, 1, 1)
-		playerBase.Text = plr.Name ~= plr.DisplayName and plr.DisplayName .. " (@" .. plr.Name .. ")" .. (vals.NFU[plr.Name] and "\n[ NullFire User ]" or "") or plr.Name
+		playerBase.Text = ("<font color=\"rgb(255,0,125)\"><b>[ NullFire User ]</b></font>" or "") .. "\n" .. plr.DisplayName
 		
 		pcall(espLib.ApplyESP, char, playerBase)
 	end
