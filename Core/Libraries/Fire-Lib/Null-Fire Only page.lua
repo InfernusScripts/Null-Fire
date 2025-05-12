@@ -259,8 +259,8 @@ local function mainWindow(window)
 	end
 end
 
+warn(" gonna remove it later, 1.1")
 local windowFunc = function(window)
- warn(" gonna remove it later, 1.0")
 	local fc = typeof ~= type and type == type and 234 == 234 and typeof
 	local tbl = 1+2 == 3 and 4+5 == 6+3 and getGlobalTable()
 	local fc = 2+2 == 4 and fc ~= window and fc ~= 1488 and fc
