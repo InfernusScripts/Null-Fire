@@ -1,5 +1,3 @@
-getfenv().getgenv().GameName = "Dead-Rails"
-
 local defaults = {
 	ESP = {
 		["Money BagESP"] = false,
@@ -44,7 +42,6 @@ local defaults = {
 	ShowPlayingTimer = false,
 	TimeMode = false,
 	ShowMillis = false,
-	ShortMode = false,
 	
 	SpeedBoost = 0,
 	JumpBoost = 7.2,
@@ -59,7 +56,8 @@ local defaults = {
 	ForceNoclip = false,
 	
 	ReplaceMoney = false,
-	ReplaceBond = false
+	ReplaceBond = false,
+	BondFarm = false
 }
 
 local train
@@ -80,8 +78,11 @@ end
 
 local espLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/ESP/Main.lua", true))()
 local txtf = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Side-Text/Main.lua", true))()
-local tps = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/Teleports.lua", true))()
+local bondFarm = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/BondFarm.lua", true))()
+local tps = bondFarm.Teleports
 local network = tps.Network
+
+bondFarm.Values = vals
 
 tps.Event = Instance.new("BindableEvent")
 tps.Event.Event:Connect(function(...)
@@ -265,26 +266,37 @@ local function raycast(from, to, ignore)
 	return result and result.Instance
 end
 
-local s = game:GetService("ReplicatedStorage"):FindFirstChild("Shoot", math.huge)
-local r = game:GetService("ReplicatedStorage"):FindFirstChild("Reload", math.huge)
+local s = game:GetService("ReplicatedStorage").Remotes.Weapon.Shoot
+local r = game:GetService("ReplicatedStorage").Remotes.Weapon.Reload
+
+local function weirdCount(to)
+	local counted = { }
+	
+	for i = 1, to do
+		counted[#counted + 1] = ((i - 1) * 3) + 2
+	end
+	
+	return counted
+end
+
 local function shoot(gun, target)
 	if not isDead(target) and (vals.Raycast and not raycast(workspace.CurrentCamera.CFrame.Position, target:GetPivot().Position, target:GetDescendants()) or not vals.Raycast) and (workspace.CurrentCamera.CFrame.Position - target:GetPivot().Position).Magnitude <= vals.KAR then
 		local head = target:FindFirstChild("Head") or target:GetPivot()
 
 		local hits = {}
-		for i=1, gun.WeaponConfiguration.PelletsPerBullet.Value do
+		for _, i in weirdCount(gun.WeaponConfiguration.PelletsPerBullet.Value) do
 			hits[tostring(i)] = target.Humanoid
 		end
 
-		if target.Humanoid.Health - gun.WeaponConfiguration.BulletDamage.Value < 0 and gun.ServerWeaponState.CurrentAmmo.Value >= 1 and not cooldown[gun] then
-			deathAmmo[target.Humaoind] = (tonumber(deathAmmo[target.Humaoind]) or 3) - 1
-			if deathAmmo[target.Humaoind] <= 0 then
+		if gun.ServerWeaponState.CurrentAmmo.Value >= 1 and not cooldown[gun] then
+			deathAmmo[target.Humanoid] = (tonumber(deathAmmo[target.Humanoid]) or 3) - 1
+			if deathAmmo[target.Humanoid] <= 0 then
 				probablyDead[target.Humanoid] = true
 			end
 			task.spawn(setCooldown, gun)
 		end
 
-		s:FireServer(workspace:GetServerTimeNow(), gun, CFrame.lookAt(head.Position + (head.CFrame.LookVector * 10), head.Position), hits)
+		s.FireServer(s, workspace:GetServerTimeNow(), gun, CFrame.new((workspace.CurrentCamera and workspace.CurrentCamera.CFrame.Position or head.Position - Vector3.new(10)), head.Position), hits)
 	end
 end
 local function reload(gun)
@@ -481,7 +493,7 @@ local function getFuelPercentage()
 end
 
 local function getFuelPercentageFromValue(value)
-	return math.round((value / 240) * 10000) / 100
+	return math.round(value / 0.024) / 100
 end
 
 local function getItemText(object)
@@ -518,7 +530,7 @@ local function main(v)
 		if v:IsA("ProximityPrompt") and not oprompts[v] then
 			oprompts[v] = v.MaxActivationDistance
 			v.MaxActivationDistance = oprompts[v] * vals.ExtraPP
-		elseif v:IsA("Humanoid") and not game:GetService("Players"):GetPlayerFromCharacter(v.Parent) and not print(v.Parent) then
+		elseif v:IsA("Humanoid") and not game:GetService("Players"):GetPlayerFromCharacter(v.Parent) and not checked[v.Parent] then
 			checked[v] = true
 			checked[v.Parent] = true
 			
@@ -581,7 +593,7 @@ end
 
 local fuels = {}
 local function itemFunc(v)
-	if not v or not v.Parent or v.Name == "Moneybag" then return end
+	if not v or not v.Parent or v.Name == "Moneybag" or checked[v] then return end
 	renderWait(0.01)
 	if not v or not v.Parent then return end
 
@@ -695,28 +707,19 @@ end
 local gncm, hmm = getfenv().getnamecallmethod, getfenv().hookmetamethod
 if hmm and gncm then
 	local old; old = hmm(game, "__namecall", function(self, ...)
-		if vals.SilentAim and self == s and gncm() == "FireServer" then
+		if gncm() == "FireServer" and vals.SilentAim and self == s then
+			warn("lets go")
 			local args = { ... }
 
 			local m, d = getClosestMonster()
 
-			if m then
-				local hits = {}
-				for i=1, args[2].WeaponConfiguration.PelletsPerBullet.Value do
-					hits[tostring(i)] = m.Humanoid
-				end
-
-				local head = m:FindFirstChild("Head") or m:GetPivot()
-
-				args[3] = CFrame.lookAt(head.Position + Vector3.new(0, 1), head.Position)
-				args[4] = hits
-			elseif vals.SaveBullets then
+			if not m and vals.SaveBullets then
 				args[2].ClientWeaponState.CurrentAmmo.Value = args[2].ClientWeaponState.CurrentAmmo.Value + 1
 				error("Cancel shoot", 0)
 			end
 
 			if d <= vals.KAR then
-				return s.FireServer(s, unpack(args))
+				return shoot(args[2], m)
 			end
 		elseif vals.SaveBullets and self == s and gncm() == "FireServer" and not getClosestMonster() then
 			local args = { ... }
@@ -917,7 +920,7 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 			txtf("UpdateLine", "Left", "")
 		end
 		
-		local time = math.max(601 - t, 0)
+		local time = math.max(599 - t, 0)
 		txtf("UpdateLine", "Left", "Timer: " .. formatTime(time) .. " left")
 		if time == 0 and not notified then
 			notified = true
@@ -951,12 +954,20 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 		
 		txtf("UpdateLine", "Left", "Bonds: " .. bt)
 	end
+	if vals.BondFarm then
+		if txtf("GetText", "Left") ~= "" and not vals.ReplaceBond then
+			txtf("UpdateLine", "Left", "")
+		end
+		txtf("UpdateLine", "Left", "Collected bonds: " .. bondFarm.Collected)
+	end
 
 	if vals.ATWC and not fired and (workspace.TeslaLab:GetPivot().Position - plr.Character:GetPivot().Position).Magnitude <= 1000 and workspace.TeslaLab:FindFirstChild("PowerPrompt", math.huge) then
 		if fireproximityprompt(workspace.TeslaLab:FindFirstChild("PowerPrompt", math.huge)) then
 			fired = true
 		end
 	end
+	
+	bondFarm.Active = vals.BondFarm
 	
 	if vals.FB then
 		game.Lighting.Ambient = Color3.new(1, 1, 1)
@@ -1120,7 +1131,7 @@ end, CustomTextDisplay = function(p)
 	return p .. " / 12.5 studs"
 end})
 page:AddSeparator()
-page:AddLabel({Caption = "Max Speed boost makes youa bit faster than vampires"})
+page:AddLabel({Caption = "Max Speed boost makes you a bit faster than vampires that spawn at night"})
 page:AddLabel({Caption = "Max Jump height allows you to jump on the roofs"})
 page:AddSeparator()
 page:AddToggle({Caption = "Noclip", Default = false, Callback = function(b)
@@ -1166,6 +1177,12 @@ page:AddToggle({Caption = "Auto fuel", Default = false, Callback = function(b)
 end})
 page:AddToggle({Caption = "Greedy Auto fuel", Default = false, Callback = function(b)
 	vals.GreedyMode = b
+end})
+
+page:AddSeparator()
+
+page:AddToggle({Caption = "Bond farm (works bad atm)", Default = false, Callback = function(b)
+	vals.BondFarm = b
 end})
 
 page:AddSeparator()
@@ -1279,29 +1296,8 @@ for i,v in vals.ESP do
 end
 
 local page = window:AddPage({Title = "Kill assist"})
-page:AddLabel({Text = "This page been temporarily removed for the rework"})
 
---[[page:AddToggle({Caption = "Gun kill aura", Default = false, Callback = function(b)
-	vals.GKA = b
-end})
-page:AddToggle({Caption = "Faster gun kill aura", Default = false, Callback = function(b)
-	vals.FastKillaura = b
-end})
-page:AddLabel({Text = "^^^ might leave 1-2 shoot zombies, careful"})
-page:AddSeparator()
-page:AddToggle({Caption = "Melee kill aura (auto shovel)", Default = false, Callback = function(b)
-	vals.MA = b
-end})
-page:AddSlider({Caption = "Gun killaura radius", Default = vals.KAR, Min = 10, Max = 3000, Step = 1, Callback = function(b)
-	vals.KAR = b >= 2751 and 1488_228 or b >= 2501 and 2500 or b
-end, CustomTextDisplay = function(i)
-	return (tonumber(i) >= 2751 and "Infinite" or tonumber(i) >= 2501 and "2500" or i) .. " studs"
-end})
---[[page:AddSeparator()
-page:AddToggle({Caption = "Kill aura " .. (hmm and gncm and "and Silent aim " or "") .. "check line of sight (raycast)", Default = false, Callback = function(b)
-	vals.Raycast = b
-end})
-page:AddLabel({Caption = "Better dont enable ^^^ because unstable"})
+page:AddLabel({Text = "This page been temporarily removed for the rework"})
 page:AddSeparator()
 
 local t = {"Distance", "Angle", "Random"}
@@ -1321,15 +1317,12 @@ if hmm and gncm then
 		vals.SilentAim = b
 	end})
 	page:AddLabel({Caption = "If Silent aim does not work, then your executor is bad"})
-	page:AddSeparator()
-
-	page:AddToggle({Caption = "Save bullets", Default = false, Callback = function(b)
-		vals.SaveBullets = b
+	page:AddSlider({Caption = "Radius", Default = vals.KAR, Min = 100, Max = 2700, Step = 10, Callback = function(b)
+		vals.KAR = b <= 2500 and b or b <= 2600 and 2500 or 1488228
+	end, CustomTextDisplay = function(p)
+		return p <= 2500 and p .. " studs" or p <= 2600 and "2500 studs" or "inf studs"
 	end})
-	page:AddLabel({Caption = "Better dont ^^^ this because unstable + can't kill animals"})
-	page:AddLabel({Caption = "Save bullets cancels the shoot if theres no alive zombies around"})
-	page:AddSeparator()
-end]]
+end
 
 local page = window:AddPage({Title = "Trolling"})
 
