@@ -845,7 +845,8 @@ local oilCooldown = false
 local notified = false
 local fired = false
 
-local money = plr.PlayerGui.MoneyGui.Money
+local money = plr.PlayerGui:WaitForChild("MoneyGui", 9e9):WaitForChild("Money", 9e9)
+task.wait(1)
 local bond = plr.PlayerGui.BondGui.BondInfo.BondCount
 local bt = "Not refreshed"
 
@@ -895,11 +896,13 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 		end
 		txtf("UpdateLine", "Left", "Money: " .. money.Text)
 	end
-	if txtf("GetText", "Left") ~= "" then
-		txtf("UpdateLine", "Left", "")
+	if vals.BondFarm then
+		if txtf("GetText", "Left") ~= "" then
+			txtf("UpdateLine", "Left", "")
+		end
+		txtf("UpdateLine", "Left", "Collected bonds: " .. bondFarm.Collected .. " / " .. bondFarm.Found)
+		txtf("UpdateLine", "Left", "Can be incorrect, especially when not solo")
 	end
-	txtf("UpdateLine", "Left", "Collected bonds: " .. bondFarm.Collected .. " / " .. bondFarm.Found)
-	txtf("UpdateLine", "Left", "Can be incorrect, especially when not solo")
 	
 	bondFarm.Enabled = vals.BondFarm
 	
