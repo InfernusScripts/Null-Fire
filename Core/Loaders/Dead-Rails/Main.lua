@@ -1,3 +1,5 @@
+getfenv().getgenv().GameName = "Dead-Rails"
+
 local defaults = {
 	ESP = {
 		["Money BagESP"] = false,
@@ -78,19 +80,10 @@ end
 
 local espLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/ESP/Main.lua", true))()
 local txtf = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Side-Text/Main.lua", true))()
-local bondFarm = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/BondFarm.lua", true))()
-local tps = bondFarm.Teleports
-local network = tps.Network
-
-bondFarm.Values = vals
-
-tps.Event = Instance.new("BindableEvent")
-tps.Event.Event:Connect(function(...)
-	for i, v in ({...}) do
-		lib.Notifications:Notification({Title = "Teleport", Text = v})
-		task.wait(2.5)
-	end
-end)
+local bondFarm = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/BondFarmV2.lua", true))()
+local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Network/Main.lua", true))()
+local dragFuncs = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/DragFunctions.lua", true))()
+local tps = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/Teleports.lua", true))()
 
 local plr = game:GetService("Players").LocalPlayer
 
@@ -329,7 +322,7 @@ local function fuel(object)
 	end
 
 	buzy = true
-	tps.ClaimNetwork(object)
+	dragFuncs:ClaimNetwork(object)
 	
 	for i=1, 100 do
 		if not object or not object.Parent or not train or not train:FindFirstChild("RequiredComponents") or not train.RequiredComponents:FindFirstChild("FuelZone") then
@@ -355,7 +348,7 @@ local function throwObject(object)
 		return
 	end
 
-	local par = tps.ClaimNetwork(object)
+	local par = dragFuncs:ClaimNetwork(object)
 	if par then
 		task.wait()
 		
@@ -958,7 +951,8 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 		if txtf("GetText", "Left") ~= "" and not vals.ReplaceBond then
 			txtf("UpdateLine", "Left", "")
 		end
-		txtf("UpdateLine", "Left", "Collected bonds: " .. bondFarm.Collected)
+		txtf("UpdateLine", "Left", "Collected bonds: " .. bondFarm.Collected .. " / " .. bondFarm.Collected)
+		txtf("UpdateLine", "Can be incorrect")
 	end
 
 	if vals.ATWC and not fired and (workspace.TeslaLab:GetPivot().Position - plr.Character:GetPivot().Position).Magnitude <= 1000 and workspace.TeslaLab:FindFirstChild("PowerPrompt", math.huge) then
@@ -967,7 +961,7 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 		end
 	end
 	
-	bondFarm.Active = vals.BondFarm
+	bondFarm.Enabled = vals.BondFarm
 	
 	if vals.FB then
 		game.Lighting.Ambient = Color3.new(1, 1, 1)
