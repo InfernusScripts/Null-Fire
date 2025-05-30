@@ -1,5 +1,3 @@
-getfenv().getgenv().GameName = "Dead-Rails"
-
 local defaults = {
 	ESP = {
 		["Money BagESP"] = false,
@@ -27,14 +25,11 @@ local defaults = {
 	GKA = false,
 	MA = false,
 	ARG = false,
-	Raycast = false, -- causing huge lags
 	SilentAim = false,
 	Mode = "Distance",
 	NoVoid = false,
 	SaveBulltets = false,
 	AutoThrottle = false,
-	FastKillaura = false,
-	ATWC = false,
 	AutoPlayAgain = false,
 
 	AutoFuel = false,
@@ -58,7 +53,6 @@ local defaults = {
 	ForceNoclip = false,
 	
 	ReplaceMoney = false,
-	ReplaceBond = false,
 	BondFarm = false
 }
 
@@ -806,41 +800,6 @@ task.spawn(function()
 	end
 end)
 
-local endPosition = CFrame.new(-380, 40, -48885)
-local function finish()
-	if plr.Character and vals.AutoComplete and plr.Character:FindFirstChild("Humanoid") and (plr.Character:GetPivot().Position - endPosition.Position).Magnitude < 1000 then
-		for i=1, 3 do
-			--print("walking")
-			vals.ForceNoclip = true
-			if plr.Character and vals.AutoComplete and plr.Character:FindFirstChild("Humanoid") and (plr.Character:GetPivot().Position - endPosition.Position).Magnitude < 1000 then
-				--print("walking 2")
-				plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-				plr.Character.Humanoid:MoveTo(workspace.Baseplates.FinalBasePlate.OutlawBase.Bridge.BridgeControl.Part.Position + Vector3.new(13.5, 0, 5))
-				task.wait(2)
-				plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-			end
-			vals.ForceNoclip = true
-		end
-		if plr.Character and vals.AutoComplete and plr.Character:FindFirstChild("Humanoid") and (plr.Character:GetPivot().Position - endPosition.Position).Magnitude < 1000 then
-			--print("hiding")
-			local prompt = workspace.Baseplates:FindFirstChild("EndGame", math.huge)
-			while not closed and vals.AutoComplete and task.wait(0.1) and plr.Character and plr.Character:FindFirstChild("Humanoid") and (plr.Character:GetPivot().Position - endPosition.Position).Magnitude < 1000 do
-				--print("loop")
-				prompt = prompt or workspace.Baseplates:FindFirstChild("EndGame", math.huge)
-				vals.ForceNoclip = true
-				if prompt and prompt.Parent then
-					oprompts[prompt] = oprompts[prompt] or prompt.MaxActivationDistance
-					prompt.MaxActivationDistance = oprompts[prompt] * 3
-					
-					fireproximityprompt(prompt)
-				end
-				plr.Character.Humanoid:MoveTo(workspace.Baseplates.FinalBasePlate.OutlawBase.Bridge.BridgeControl.Part.Position + Vector3.new(13.5, 0, 5))
-				vals.ForceNoclip = true
-			end
-		end
-	end
-end
-
 for i,v in workspace:GetDescendants() do
 	task.spawn(main, v)
 end
@@ -921,7 +880,7 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 		end
 	end
 	if vals.ShowPlayingTimer then
-		if txtf("GetText", "Left") == "" and not vals.ShowTimeLeft then
+		if txtf("GetText", "Left") ~= "" and not vals.ShowTimeLeft then
 			txtf("UpdateLine", "Left", "")
 		end
 		txtf("UpdateLine", "Left", "Playing: " .. formatTime(t))
@@ -936,30 +895,11 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 		end
 		txtf("UpdateLine", "Left", "Money: " .. money.Text)
 	end
-	if vals.ReplaceBond then
-		if txtf("GetText", "Left") == "" and not vals.ReplaceMoney then
-			txtf("UpdateLine", "Left", "")
-		end
-		
-		if bond.Text ~= "0" then
-			bt = bond.Text
-		end
-		
-		txtf("UpdateLine", "Left", "Bonds: " .. bt)
+	if txtf("GetText", "Left") ~= "" then
+		txtf("UpdateLine", "Left", "")
 	end
-	if vals.BondFarm then
-		if txtf("GetText", "Left") ~= "" and not vals.ReplaceBond then
-			txtf("UpdateLine", "Left", "")
-		end
-		txtf("UpdateLine", "Left", "Collected bonds: " .. bondFarm.Collected .. " / " .. bondFarm.Collected)
-		txtf("UpdateLine", "Can be incorrect")
-	end
-
-	if vals.ATWC and not fired and (workspace.TeslaLab:GetPivot().Position - plr.Character:GetPivot().Position).Magnitude <= 1000 and workspace.TeslaLab:FindFirstChild("PowerPrompt", math.huge) then
-		if fireproximityprompt(workspace.TeslaLab:FindFirstChild("PowerPrompt", math.huge)) then
-			fired = true
-		end
-	end
+	txtf("UpdateLine", "Left", "Collected bonds: " .. bondFarm.Collected .. " / " .. bondFarm.Found)
+	txtf("UpdateLine", "Left", "Can be incorrect, especially when not solo")
 	
 	bondFarm.Enabled = vals.BondFarm
 	
@@ -1180,12 +1120,6 @@ page:AddToggle({Caption = "Bond farm (works bad atm)", Default = false, Callback
 end})
 
 page:AddSeparator()
-
---[[page:AddToggle({Caption = "Activate Tesla's power lever without body", Default = false, Callback = function(b)
-	vals.ATWC = b
-end})
-
-page:AddSeparator()]]
 
 page:AddToggle({Caption = "Instant interact", Default = false, Callback = function(b)
 	vals.II = b
