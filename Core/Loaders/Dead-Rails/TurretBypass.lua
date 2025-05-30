@@ -146,7 +146,8 @@ end
 local tbl = {
 	Position = vector.create(55, 25, 29910),
 	Enabled = false,
-	Active = false
+	Active = false,
+	Scan = scanFor
 }
 
 local meta; meta = setmetatable({}, {
