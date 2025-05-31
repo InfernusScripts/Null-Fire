@@ -29,13 +29,24 @@ workspace.RuntimeItems.ChildRemoved:Connect(function(v)
 	end
 end)
 
+local prevBond
+local start
+
 task.spawn(function()
 	while task.wait() do
-		tb.Enabled = bondFarm.Enabled
-		
-		if tb.Active then
+		if tb.Active and bondFarm.Enabled then
 			local bond = tb.Scan("Bond")
 			if bond then
+				if bond ~= prevBond then
+					prevBond = bond
+					start = tick()
+				else
+					if tick() - start > 5 then
+						game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+						start = tick()
+					end
+				end
+				
 				tb.Position = bond:GetPivot().Position
 				
 				game:GetService("Players").LocalPlayer.Character:PivotTo(bond:GetPivot())
