@@ -846,7 +846,8 @@ local oilCooldown = false
 local notified = false
 local fired = false
 
-local money = plr.PlayerGui.MoneyGui.Money
+local money = plr:WaitForChild("PlayerGui", 9e9):WaitForChild("MoneyGui", 9e9):WaitForChild("Money", 9e9)
+task.wait(1)
 local bond = plr.PlayerGui.BondGui.BondInfo.BondCount
 local bt = "Not refreshed"
 
