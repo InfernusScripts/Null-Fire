@@ -102,7 +102,7 @@ local function scanFor(item, fromStart)
 		local rail = findLastRail()
 		if not rail then break end
 
-		pivot(rail:GetPivot())
+		pivot(rail:GetPivot() - (rail:GetPivot().LookVector * 500))
 
 		local res = item()
 		if res then
