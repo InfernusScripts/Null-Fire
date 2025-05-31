@@ -78,6 +78,7 @@ local bondFarm = loadstring(game:HttpGet("https://raw.githubusercontent.com/Infe
 local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Network/Main.lua", true))()
 local dragFuncs = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/DragFunctions.lua", true))()
 local tps = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/Teleports.lua", true))()
+local tb = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/TurretBypass.lua"))()
 
 local plr = game:GetService("Players").LocalPlayer
 
@@ -845,8 +846,7 @@ local oilCooldown = false
 local notified = false
 local fired = false
 
-local money = plr.PlayerGui:WaitForChild("MoneyGui", 9e9):WaitForChild("Money", 9e9)
-task.wait(1)
+local money = plr.PlayerGui.MoneyGui.Money
 local bond = plr.PlayerGui.BondGui.BondInfo.BondCount
 local bt = "Not refreshed"
 
@@ -905,6 +905,7 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 	end
 	
 	bondFarm.Enabled = vals.BondFarm
+	tb.Enabled = vals.BondFarm
 	
 	if vals.FB then
 		game.Lighting.Ambient = Color3.new(1, 1, 1)
