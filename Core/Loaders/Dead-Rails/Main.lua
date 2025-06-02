@@ -22,8 +22,7 @@ local defaults = {
 	ShowSpeed = false,
 	ShowFuel = false,
 	II = false,
-	GKA = false,
-	MA = false,
+	MeleeAura = false,
 	ARG = false,
 	SilentAim = false,
 	Mode = "Distance",
@@ -31,14 +30,20 @@ local defaults = {
 	SaveBulltets = false,
 	AutoThrottle = false,
 	AutoPlayAgain = false,
+	DontShootAll = false,
+	FastKillaura = false,
+	AlwaysCritical = false,
 
 	AutoFuel = false,
 	GreedyMode = false,
+	
+	ControlMobs = false,
 	
 	ShowTimeLeft = false,
 	ShowPlayingTimer = false,
 	TimeMode = false,
 	ShowMillis = false,
+	ACBypass = false,
 	
 	SpeedBoost = 0,
 	JumpBoost = 7.2,
@@ -53,7 +58,10 @@ local defaults = {
 	ForceNoclip = false,
 	
 	ReplaceMoney = false,
-	BondFarm = false
+	BondFarm = false,
+	
+	Killaura = false,
+	KillauraOne = false
 }
 
 local train
@@ -78,7 +86,7 @@ local bondFarm = loadstring(game:HttpGet("https://raw.githubusercontent.com/Infe
 local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Network/Main.lua", true))()
 local dragFuncs = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/DragFunctions.lua", true))()
 local tps = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/Teleports.lua", true))()
-local tb = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/TurretBypass.lua"))()
+local tb = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/TurretBypass.lua", true))()
 
 local plr = game:GetService("Players").LocalPlayer
 
@@ -114,30 +122,16 @@ local prompts = {}
 local oprompts = {}
 local hooks = {}
 
-local probablyDead = {}
 local deathAmmo = {}
 
 local function isDead(hum)
-	if probablyDead[hum] and vals.FastKillaura then
-		return true
-	end
-
 	if hum and hum.Parent then
 		if not hum:IsA("Humanoid") then
 			hum = hum:FindFirstChild("Humanoid")
 		end
 
 		if hum then
-			if probablyDead[hum] and vals.FastKillaura then
-				return true
-			end
-
-			local dead = hum.Health <= 0.01 and hum.PlatformStand
-			if dead then
-				probablyDead[hum] = true
-			end
-
-			return dead
+			return hum.Health <= 0.01 and hum.PlatformStand
 		end
 	end
 
@@ -189,13 +183,6 @@ for i,v in toolsMt.GetChildren do
 	bp(v)
 end
 cons[#cons+1] = plr.Backpack.ChildAdded:Connect(bp)
-
-local cooldown = {}
-local function setCooldown(gun)
-	cooldown[gun] = true
-	task.wait((gun.WeaponConfiguration.FireDelay.Value * 1.5) + 0.25)
-	cooldown[gun] = false
-end
 
 local function addFunction(t,v)
 	if v == nil or typeof(t) ~= "table" then return end
@@ -257,36 +244,45 @@ end
 local s = game:GetService("ReplicatedStorage").Remotes.Weapon.Shoot
 local r = game:GetService("ReplicatedStorage").Remotes.Weapon.Reload
 
-local function weirdCount(to)
-	local counted = { }
-	
-	for i = 1, to do
-		counted[#counted + 1] = ((i - 1) * 3) + 2
-	end
-	
-	return counted
+local function weirdIndex(i)
+	return ((i - 1) * 3) + 2
 end
 
-local function shoot(gun, target)
+local mobLabel
+local currentMob = 0
+local current
+
+local monsters = {}
+
+local function shoot(gun, target, dontShootOther)
 	if not isDead(target) and (vals.Raycast and not raycast(workspace.CurrentCamera.CFrame.Position, target:GetPivot().Position, target:GetDescendants()) or not vals.Raycast) and (workspace.CurrentCamera.CFrame.Position - target:GetPivot().Position).Magnitude <= vals.KAR then
 		local head = target:FindFirstChild("Head") or target:GetPivot()
 
 		local hits = {}
-		for _, i in weirdCount(gun.WeaponConfiguration.PelletsPerBullet.Value) do
-			hits[tostring(i)] = target.Humanoid
+		local idx = 1
+		
+		for _ = 1, gun.WeaponConfiguration.PelletsPerBullet.Value + 2 do -- +2 to imitate raycast shootthroughs
+			idx += 1
+			hits[tostring(weirdIndex(idx))] = target.Humanoid
 		end
-
-		if gun.ServerWeaponState.CurrentAmmo.Value >= 1 and not cooldown[gun] then
-			deathAmmo[target.Humanoid] = (tonumber(deathAmmo[target.Humanoid]) or 3) - 1
-			if deathAmmo[target.Humanoid] <= 0 then
-				probablyDead[target.Humanoid] = true
+		
+		--[[if not dontShootOther then
+			for _, v in monsters do
+				if isDead(v) or not v:FindFirstChild("Humanoid") then
+					remove(monsters, v)
+				else
+					for _ = 1, gun.WeaponConfiguration.PelletsPerBullet.Value + 2 do -- same here
+						idx += 1
+						hits[tostring(weirdIndex(idx))] = v.Humanoid
+					end
+				end
 			end
-			task.spawn(setCooldown, gun)
-		end
+		end]]
 
 		s.FireServer(s, workspace:GetServerTimeNow(), gun, CFrame.new((workspace.CurrentCamera and workspace.CurrentCamera.CFrame.Position or head.Position - Vector3.new(10)), head.Position), hits)
 	end
 end
+
 local function reload(gun)
 	r:FireServer(workspace:GetServerTimeNow(), gun)
 end
@@ -334,6 +330,8 @@ local function fuel(object)
 	stopDrag()
 end
 
+local cameraOffset = Vector3.new()
+
 local function getSelectedObject()
 	return game:GetService("ReplicatedStorage"):FindFirstChild("DragHighlight", math.huge).Adornee
 end
@@ -374,7 +372,6 @@ end
 
 local esps = {}
 local desps = {}
-local monsters = {}
 
 local tools = {}
 local bonds = {}
@@ -585,6 +582,10 @@ local function itemFunc(v)
 	renderWait(0.01)
 	if not v or not v.Parent then return end
 
+	v:WaitForChild("ObjectInfo", 9e9)
+	
+	if not v or not v.Parent or v:FindFirstChildOfClass("Humanoid") then return end
+
 	checked[v] = true
 	local tool = esps[v.Name] or {HighlightEnabled = false, Color = getColor(v), Text = getItemText(v), ESPName = "ItemESP"}
 
@@ -649,6 +650,24 @@ local getClosestMonster; getClosestMonster = function(mode)
 		end
 
 		return m, d
+	elseif mode == "MaxHealth" then
+		local h, m = -1, nil
+		for i,v in monsters do
+			if v and v.Parent and not isDead(v) and not v:GetAttribute("Reanimated") and not v:GetAttribute("Tamed") then
+				if vals.Raycast and raycast(workspace.CurrentCamera.CFrame.Position, v.GetPivot(v).Position, v.GetDescendants(v)) then
+					continue
+				end
+
+				local hum = v:FindFirstChildOfClass("Humanoid")
+				if hum and hum.MaxHealth > h then
+					h, m = hum.MaxHealth, v
+				end
+			else
+				remove(monsters, v)
+			end
+		end
+
+		return m, h
 	elseif mode == "Random" then
 		local allowedMonsters = {}
 		for i,v in monsters do
@@ -707,7 +726,7 @@ if hmm and gncm then
 			end
 
 			if d <= vals.KAR then
-				return shoot(args[2], m)
+				return shoot(args[2], m, vals.DontShootAll)
 			end
 		elseif vals.SaveBullets and self == s and gncm() == "FireServer" and not getClosestMonster() then
 			local args = { ... }
@@ -724,25 +743,74 @@ if hmm and gncm then
 	end
 end
 
+local ad = 30
+local farEvents = {}
+
+local function equipUntilNoZombie(tool, zombie, name)
+	tool.Parent = plr.Character
+
+	if not farEvents[zombie] then
+		farEvents[zombie] = Instance.new("BindableEvent")
+		repeat task.wait() until not vals[name] or isDead(zombie)
+
+		farEvents[zombie]:Fire()
+
+		farEvents[zombie]:Destroy()
+		farEvents[zombie] = nil
+	else
+		farEvents[zombie].Event:Wait()
+	end
+
+	tool.Parent = plr.Backpack
+end
+
 task.spawn(function()
 	while not closed and task.wait(0.01) do
 		if vals.SpeedBoost ~= 0 and plr.Character and plr.Character:FindFirstChild("Humanoid") and not plr.Character.Humanoid.Sit and plr.Character.Humanoid.Health > 1 then
-			plr.Character:PivotTo(plr.Character:GetPivot() + plr.Character.Humanoid.MoveDirection / ((101 - vals.SpeedBoost) * 15))
+			plr.Character:PivotTo(plr.Character:GetPivot() + plr.Character.Humanoid.MoveDirection / ((101 - vals.SpeedBoost) * 14))
+			if workspace.CurrentCamera then
+				workspace.CurrentCamera.FieldOfView = 70 + (vals.SpeedBoost / 5)
+			end
 		end
 	end
 end)
+
 task.spawn(function()
 	while not closed and task.wait(0.1) do
-		if vals.GKA and plr.Character and not vals.Running then
+		if vals.Killaura and plr.Character and not vals.Running then
 			local m, d = getClosestMonster()
-			print(d, vals.KAR, d <= vals.KAR)
 			if m and d <= vals.KAR then
-				for v in myGuns do
-					if v and v.Parent and v:FindFirstChild("WeaponConfiguration") and not vals.Running then
-						pcall(shoot, v, m)
-						if not vals.FastKillaura then
-							task.wait(0.1)
+				if not vals.KillauraOne then
+					for v in myGuns do
+						if v and v.Parent and v:FindFirstChild("WeaponConfiguration") and not vals.Running then
+							if v.Parent == plr.Backpack then
+								task.spawn(equipUntilNoZombie, v, m, "Killaura")
+							end
+							
+							pcall(shoot, v, m, vals.DontShootAll)
+							
+							if not vals.FastKillaura then
+								task.wait(0.1)
+							end
 						end
+					end
+				else
+					local weapon = plr.Character:FindFirstChildOfClass("Tool")
+					if not weapon or not weapon:FindFirstChild("WeaponConfiguration") then
+						for v in myGuns do
+							if v and v.Parent and v:FindFirstChild("WeaponConfiguration") and not vals.Running then
+								weapon = v
+								break
+							end
+						end
+					end
+					
+					if weapon then
+						if weapon.Parent == plr.Backpack then
+							task.spawn(equipUntilNoZombie, weapon, m, "Killaura")
+						end
+						
+						pcall(shoot, weapon, m, vals.DontShootAll)
 					end
 				end
 			end
@@ -761,39 +829,25 @@ task.spawn(function()
 	end
 end)
 
-local ad = 30
-local farEvents = {}
-
-local function equipUntilNoZombie(tool, zombie)
-	tool.Parent = plr.Character
-
-	if not farEvents[zombie] then
-		farEvents[zombie] = Instance.new("BindableEvent")
-		repeat task.wait() until not vals.MA or isDead(zombie)
-
-		farEvents[zombie]:Fire()
-
-		farEvents[zombie]:Destroy()
-		farEvents[zombie] = nil
-	else
-		farEvents[zombie].Event:Wait()
-	end
-
-	tool.Parent = plr.Backpack
-end
+local swing = game:GetService("ReplicatedStorage"):FindFirstChild("SwingMelee", math.huge)
+local charge = game:GetService("ReplicatedStorage"):FindFirstChild("ChargeMelee", math.huge)
 
 task.spawn(function()
-	while not closed and task.wait(0.1) do
-		if vals.MA and plr.Character and not vals.Running then
+	while not closed and task.wait(0.025) do
+		if vals.MeleeAura and plr.Character and not vals.Running then
 			local m, d = getClosestMonster("Distance")
 			if m and d <= ad then
 				for v in melee do
 					if v and v.Parent and v:FindFirstChild("SwingEvent") and not vals.Running then
 						if v.Parent == plr.Backpack then
-							task.spawn(equipUntilNoZombie, v, m)
+							task.spawn(equipUntilNoZombie, v, m, "MeleeAura")
 						end
 
-						v.SwingEvent:FireServer(CFrame.lookAt(plr.Character:GetPivot().Position, m:GetPivot().Position + Vector3.new(0, 2)).LookVector)
+						if vals.AlwaysCritical then
+							charge:FireServer(v, workspace:GetServerTimeNow())
+							task.wait(1.5)
+						end
+						swing:FireServer(v, workspace:GetServerTimeNow(), CFrame.lookAt(plr.Character:GetPivot().Position, m:GetPivot().Position + Vector3.new(0, 2)).LookVector)
 					end
 				end
 			end
@@ -851,6 +905,12 @@ task.wait(1)
 local bond = plr.PlayerGui.BondGui.BondInfo.BondCount
 local bt = "Not refreshed"
 
+local emptyModel = workspace:FindFirstChild("EmptyModel") or Instance.new("Model", workspace)
+emptyModel.Name = "EmptyModel"
+
+local controlHighlight = Instance.new("Highlight", workspace)
+controlHighlight.Adornee = emptyModel
+
 cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 	txtf("ClearText")
 	if train and train.Parent and train:FindFirstChild("RequiredComponents") and train.RequiredComponents:FindFirstChild("Controls") and train.RequiredComponents.Controls:FindFirstChild("TimeDial") then
@@ -902,15 +962,25 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 			txtf("UpdateLine", "Left", "")
 		end
 		txtf("UpdateLine", "Left", "Collected bonds: " .. bondFarm.Collected .. " / " .. bondFarm.Found)
-		txtf("UpdateLine", "Left", "Can be incorrect, especially when not solo")
+		txtf("UpdateLine", "Left", "That value is not fully real")
 	end
 	
-	bondFarm.Enabled = vals.BondFarm
-	tb.Enabled = vals.BondFarm
+	if workspace.CurrentCamera then
+		workspace.CurrentCamera.CFrame += cameraOffset
+	end
+	
+	bondFarm.Enabled = vals.BondFar
+
+	local monstrs = (#monsters)
+	if currentMob > monstrs then
+		currentMob = 0
+	end
+	
+	tb.Enabled = vals.BondFarm or vals.ControlMobs or vals.ACBypass
 	
 	if vals.FB then
-		game.Lighting.Ambient = Color3.new(1, 1, 1)
-		game.Lighting.Brightness = 1.5
+		game:GetService("Lighting").Ambient = Color3.new(1, 1, 1)
+		game:GetService("Lighting").Brightness = 1.5
 	end
 	if vals.NC then
 		plr.CameraMode = Enum.CameraMode.Classic
@@ -918,8 +988,8 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 	if void then
 		workspace.FallenPartsDestroyHeight = vals.NoVoid and 0/0 or -500
 	end
-	plr.DevCameraOcclusionMode = vals.NC and Enum.DevCameraOcclusionMode.Invisicam or Enum.DevCameraOcclusionMode.Zoom
-	game.Lighting.GlobalShadows = not vals.FB
+	plr.DevCameraOcclusionMode = vals.NC and not vals.ACBypass and not vals.ControlMobs and Enum.DevCameraOcclusionMode.Invisicam or Enum.DevCameraOcclusionMode.Zoom
+	game:GetService("Lighting").GlobalShadows = not vals.FB
 	if vals.AutoCollectBags then
 		for i,v in prompts do
 			if v and v.Parent then
@@ -929,6 +999,17 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 			end
 		end
 	end
+	
+	local mobText = "Currently controlling: " .. currentMob .. " / "  .. monstrs
+	mobLabel:SetText(mobText)
+	
+	if vals.ControlMobs then
+		if txtf("GetText", "Left") ~= "" then
+			txtf("UpdateLine", "Left", "")
+		end
+		txtf("UpdateLine", "Left", mobText)
+	end
+	
 	if vals.AutoThrottle and train and train.Parent and train:FindFirstChild("RequiredComponents") and train.RequiredComponents:FindFirstChild("Controls") and train.RequiredComponents.Controls.ConductorSeat:FindFirstChild("VehicleSeat") and math.abs(train.RequiredComponents.Controls.ConductorSeat.VehicleSeat.Throttle) == 0 then
 		train.RequiredComponents.Controls.ConductorSeat.VehicleSeat.Throttle = 1
 	end
@@ -1027,6 +1108,46 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function()
 	end
 end)
 
+task.spawn(function()
+	while not closed and task.wait(0.05) do
+		cameraOffset = Vector3.new()
+		local hum = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid")
+		
+		if not vals.BondFarm and (vals.ControlMobs or vals.ACBypass) and hum then
+			controlHighlight.Adornee = emptyModel
+
+			if vals.ControlMobs and current and current.Parent then
+				local cpiv = current:GetPivot()
+
+				controlHighlight.Adornee = current
+
+				if workspace.CurrentCamera then
+					workspace.CurrentCamera.CameraSubject = current
+				end
+				
+				local attackDistance = current:FindFirstChild("AttackDistance", math.huge)
+				if attackDistance then
+					attackDistance = attackDistance.Value
+				end
+				
+				attackDistance = tonumber(attackDistance) or 0
+				tb.Position = Vector3.new(cpiv.Position.X, -7.5 - attackDistance, cpiv.Position.Z) + (hum.MoveDirection * 50)
+			else
+				local cpiv = plr.Character:GetPivot()
+
+				controlHighlight.Adornee = plr.Character
+
+				if workspace.CurrentCamera then
+					workspace.CurrentCamera.CameraSubject = plr.Character
+				end
+				
+				cameraOffset = Vector3.new(0, 10)
+				tb.Position = Vector3.new(cpiv.Position.X, -7.5, cpiv.Position.Z) + (hum.MoveDirection * 10 * ((vals.SpeedBoost + 25) / 25))
+			end
+		end
+	end
+end)
+
 cons[#cons+1] = game:GetService("ProximityPromptService").PromptButtonHoldBegan:Connect(function(pp)
 	if vals.II then
 		fireproximityprompt(pp, true)
@@ -1053,6 +1174,7 @@ local window = lib:MakeWindow({Title = "NullFire - Dead Rails", CloseCallback = 
 
 	renderWait(0.1)
 
+	controlHighlight:Destroy()
 	for i,v in cons do
 		v:Disconnect()
 	end
@@ -1076,12 +1198,53 @@ page:AddSeparator()
 page:AddToggle({Caption = "Noclip", Default = false, Callback = function(b)
 	vals.Noclip = b
 end})
+page:AddToggle({Caption = "AC Bypass + invisible (can't grab items)", Default = false, Callback = function(b)
+	tb.Position = plr.Character:GetPivot()
+	vals.ACBypass = b
+end})
 page:AddToggle({Caption = "No void (fix death when falling under map)", Default = false, Callback = function(b)
 	vals.NoVoid = b
 end})
 page:AddSeparator()
+mobLabel = page:AddLabel({Caption = "Currently controlling: 0 / 0"})
+
+local next = page:AddButton({Caption = "Next mob", Callback = function()
+	currentMob += 1
+
+	if currentMob > #monsters then
+		currentMob = 0
+	end
+
+	current = monsters[currentMob]
+end})
+
+local previous = page:AddButton({Caption = "Previous mob", Callback = function()
+	currentMob -= 1
+
+	if currentMob < 0 then
+		currentMob = #monsters
+	end
+
+	current = monsters[currentMob]
+end})
+
+next:Visible(false)
+previous:Visible(false)
+
+page:AddToggle({Caption = "Control mobs", Default = false, Callback = function(b)
+	vals.ControlMobs = b
+	tb.Position = plr.Character:GetPivot()
+
+	next:Visible(b)
+	previous:Visible(b)
+end})
+
+page:AddSeparator()
+
+page:AddLabel({Caption = "Teleports (might be broken)"})
 for i,v in tps.Teleports do
 	page:AddButton({Text = "Teleport to " .. insertCum(i), Callback = function()
+		tb.Position = plr.Character:GetPivot()
 		v(tps.Teleports)
 	end})
 end
@@ -1121,6 +1284,7 @@ end})
 page:AddSeparator()
 
 page:AddToggle({Caption = "Bond farm (works bad atm)", Default = false, Callback = function(b)
+	tb.Position = plr.Character:GetPivot()
 	vals.BondFarm = b
 end})
 
@@ -1250,10 +1414,31 @@ if hmm and gncm then
 		vals.SilentAim = b
 	end})
 	page:AddLabel({Caption = "If Silent aim does not work, then your executor is bad"})
+	page:AddSeparator()
+	--[[page:AddToggle({Caption = "Don't shoot all zombies at once", Default = false, Callback = function(b)
+		vals.DontShootAll = b
+	end})]]
 	page:AddSlider({Caption = "Radius", Default = vals.KAR, Min = 100, Max = 2700, Step = 10, Callback = function(b)
 		vals.KAR = b <= 2500 and b or b <= 2600 and 2500 or 1488228
 	end, CustomTextDisplay = function(p)
 		return p <= 2500 and p .. " studs" or p <= 2600 and "2500 studs" or "inf studs"
+	end})
+	page:AddSeparator()
+	page:AddToggle({Caption = "Melee aura (Shovel killaura)", Default = false, Callback = function(b)
+		vals.MeleeAura = b
+	end})
+	--[[page:AddToggle({Caption = "Always do critical hits", Default = false, Callback = function(b)
+		vals.AlwaysCritical = b
+	end})]]
+	page:AddSeparator()
+	page:AddToggle({Caption = "Killaura", Default = false, Callback = function(b)
+		vals.Killaura = b
+	end})
+	page:AddToggle({Caption = "Make killaura faster", Default = false, Callback = function(b)
+		vals.FastKillaura = b
+	end})
+	page:AddToggle({Caption = "Use only 1 weapon for killaura", Default = false, Callback = function(b)
+		vals.KillauraOne = b
 	end})
 end
 
