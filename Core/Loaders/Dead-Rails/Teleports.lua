@@ -86,14 +86,18 @@ teleports.Teleports = table.freeze({
 	end,
 	Train = function(self, retry)
 		if train and train.Parent and train:FindFirstChild("RequiredComponents") and train.RequiredComponents:FindFirstChild("Controls") and train.RequiredComponents.Controls.ConductorSeat:FindFirstChild("VehicleSeat") then
-			local oldPos = train.RequiredComponents.Controls.ConductorSeat.VehicleSeat:GetPivot()
+			if tb.Enabled then
+				tb.Position = train:GetPivot().Position + Vector3.new(0, 10)
+			else
+				local oldPos = train.RequiredComponents.Controls.ConductorSeat.VehicleSeat:GetPivot()
 
-			repeat
-				network.Other:Sit(train.RequiredComponents.Controls.ConductorSeat.VehicleSeat)
-				task.wait(0.01)
-			until train.RequiredComponents.Controls.ConductorSeat.VehicleSeat:FindFirstChild("SeatWeld")
+				repeat
+					network.Other:Sit(train.RequiredComponents.Controls.ConductorSeat.VehicleSeat)
+					task.wait(0.01)
+				until train.RequiredComponents.Controls.ConductorSeat.VehicleSeat:FindFirstChild("SeatWeld")
 
-			train.RequiredComponents.Controls.ConductorSeat.VehicleSeat:PivotTo(oldPos)
+				train.RequiredComponents.Controls.ConductorSeat.VehicleSeat:PivotTo(oldPos)
+			end
 		else
 			if retry then return end
 			
@@ -108,7 +112,7 @@ teleports.Teleports = table.freeze({
 			
 			scan(function()
 				return train and train.Parent
-			end)
+			end, true)
 
 			return self:Train(true)
 		end
