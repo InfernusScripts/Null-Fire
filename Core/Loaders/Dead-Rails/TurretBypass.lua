@@ -7,6 +7,8 @@ if getGlobalTable().TACB then
 end
 
 local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Network/Main.lua"))()
+local dragFuncs = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Loaders/Dead-Rails/DragFunctions.lua", true))()
+
 local plr = game:GetService("Players").LocalPlayer
 
 local function findLastRail()
@@ -221,20 +223,25 @@ local function loopStep()
 					network.Other:Sit(seat)
 
 					task.wait(0.5)
-					pivot(meta.Position)
-					task.wait(0.5)
-					pivot(meta.Position)
-
-					hum:ChangeState(Enum.HumanoidStateType.Jumping)
-
-					task.wait(1)
-
-					network.Other:Sit(seat)
-
-					task.wait(0.5)
-					pivot(meta.Position)
-					task.wait(0.5)
-					pivot(meta.Position)
+					
+					local succeed = false
+					
+					while true do
+						local pos = maximGun:GetPivot() + Vector3.new(0, 100)
+						pivot(pos)
+					
+						task.wait(1)
+						
+						if (maximGun:GetPivot().Position - pos.Position).Magnitude <= 10 then
+							hum:ChangeState(Enum.HumanoidStateType.Jumping)
+							task.wait(0.1)
+							dragFuncs:ClaimNetwork(maximGun)
+							task.wait(0.1)
+							maximGun:PivotTo(CFrame.new(55, 25, 29910))
+						else
+							break
+						end
+					end
 				end
 			end
 		elseif hum.SeatPart and hum.SeatPart.Parent and hum.SeatPart.Parent.Name == "MaximGun" then
