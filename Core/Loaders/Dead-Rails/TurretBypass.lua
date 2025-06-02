@@ -35,7 +35,7 @@ local function pivot(pos)
 
 		plr.Character:PivotTo(pos)
 		if plr.Character:FindFirstChild("HumanoidRootPart") then
-			plr.Character.HumanoidRootPart.AssemblyLinearVelocity = vector.create(0, 0, 0)
+			plr.Character.HumanoidRootPart.AssemblyLinearVelocity = vector.create(0, 1, 0)
 		end
 	end
 end
@@ -151,7 +151,7 @@ local function getMaximGun()
 end
 
 local tbl = {
-	Position = plr.Character and plr.Character:GetPivot().Position + vector.create(0, 5, 0) or vector.create(55, 25, 29910),
+	Position = plr.Character and plr.Character:GetPivot() + vector.create(0, 5, 0) or CFrame.new(55, 25, 29910),
 	Enabled = false,
 	Active = false,
 	Scan = scanFor
@@ -175,8 +175,8 @@ local meta; meta = setmetatable({}, {
 		
 		if index == "Position" then
 			assert(typeof(value) == "Vector3" or typeof(value) == "CFrame", "invalid #3 argument for __newindex (Vector3 or CFrame expected)")
-			if typeof(value) == "CFrame" then
-				value = value.Position
+			if typeof(value) == "Vector3" then
+				value = CFrame.new(value)
 			end
 
 			tbl.Position = value
@@ -195,7 +195,6 @@ getGlobalTable().TACB = meta
 local function loopStep()
 	if not plr.Character or not plr.Character:FindFirstChildOfClass("Humanoid") then
 		tbl.Active = false
-		tbl.Position = plr.Character and plr.Character:GetPivot().Position + vector.create(0, 5, 0) or vector.create(55, 25, 29910)
 		return
 	end
 
@@ -203,11 +202,9 @@ local function loopStep()
 	if tbl.Enabled then
 		if hum.SeatPart and hum.SeatPart.Parent and hum.SeatPart.Parent.Name ~= "MaximGun" then
 			tbl.Active = false
-			tbl.Position = plr.Character and plr.Character:GetPivot().Position + vector.create(0, 5, 0) or vector.create(55, 25, 29910)
 			hum:ChangeState(Enum.HumanoidStateType.Jumping)
 		elseif not hum.SeatPart or not hum.SeatPart.Parent then
 			tbl.Active = false
-			tbl.Position = plr.Character and plr.Character:GetPivot().Position + vector.create(0, 5, 0) or vector.create(55, 25, 29910)
 			
 			if hum.SeatPart then
 				hum:ChangeState(Enum.HumanoidStateType.Jumping)
@@ -251,7 +248,6 @@ local function loopStep()
 	elseif hum.SeatPart and hum.SeatPart.Parent and hum.SeatPart.Parent == maximGun then
 		hum:ChangeState(Enum.HumanoidStateType.Jumping)
 		tbl.Active = false
-		tbl.Position = plr.Character and plr.Character:GetPivot().Position + vector.create(0, 5, 0) or vector.create(55, 25, 29910)
 	end
 end
 
