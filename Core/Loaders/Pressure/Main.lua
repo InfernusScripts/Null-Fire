@@ -170,6 +170,10 @@ local function rs(times)
 	return dt / times
 end
 
+if not workspace:FindFirstChild("Monsters") then
+    Instance.new("Folder", workspace).Name = "Monsters"
+end
+
 local dropBtn = game:GetService("Players").LocalPlayer.PlayerGui.Main.Controls.Mobile.BaseControls:FindFirstChild("Drop")
 if not dropBtn then
 	dropBtn = game:GetService("Players").LocalPlayer.PlayerGui.Main.Controls.Mobile.BaseControls.BindKey1:Clone()
