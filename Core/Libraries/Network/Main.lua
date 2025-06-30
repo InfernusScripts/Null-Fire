@@ -20,14 +20,29 @@ local plr = game:GetService("Players").LocalPlayer
 local function rs(times)
 	local times = math.max(math.round(tonumber(times) or 1), 1)
 	local dt = 0
-	for i=1, times do
+	
+	for i = 1, times do
 		dt = dt + game:GetService("RunService").RenderStepped:Wait()
 	end
+	
 	return dt / times
+end
+
+local function renderWait(seconds)
+	local start = tick()
+	
+	seconds = tonumber(seconds) or 0
+	
+	task.wait((seconds / 2) - rs())
+	task.wait((seconds / 2) - (rs() * 2))
+	rs()
+	
+	return tick() - start
 end
 
 game:GetService("RunService").RenderStepped:Connect(function()
 	if not active then return end
+	
 	for _, v in game:GetService("Players"):GetPlayers() do
 		if v and v ~= plr then
 			pcall(set, v, "MaximumSimulationRadius", 0)
@@ -45,12 +60,14 @@ game:GetService("RunService").RenderStepped:Connect(function()
 		pcall(sethiddenproperty, plr, 'MaxSimulationRadius', math.huge)
 		pcall(sethiddenproperty, plr, 'SimulationRadius', math.huge)
 	end
+	
 	if setsimulationradius then pcall(setsimulationradius, 9e8, 9e9) end
 
 	pcall(set, plr, "MaximumSimulationRadius", math.huge)
 end)
 
-local cd = {}
+local cd = { }
+
 local ftiv = false
 local fti = getfenv().firetouchinterest
 local plr = game:GetService("Players").LocalPlayer
@@ -76,12 +93,14 @@ task.spawn(pcall, function()
 		fti(plr.Character.HumanoidRootPart, part, 1)
 	end
 end)
+
 local firetouchinterest = function(a,b,touching)
 	if ftiv then
 		return fti(a,b,touching)
 	end
 
 	if cd[a] or cd[b] then return end
+	
 	if a:IsDescendantOf(plr.Character) and b:IsDescendantOf(plr.Character) then return end
 	if b:IsDescendantOf(plr.Character) then
 		local c = a
@@ -91,6 +110,7 @@ local firetouchinterest = function(a,b,touching)
 
 	cd[a] = true
 	cd[b] = true
+	
 	touching = touching == 0
 
 	if not touching then
@@ -121,6 +141,7 @@ end
 
 local fppn = false
 local fpp = getfenv().fireproximityprompt
+
 if fpp then
 	task.spawn(pcall, function()
 		local pp = Instance.new("ProximityPrompt", plr.Character)
@@ -129,9 +150,13 @@ if fpp then
 			pp:Destroy()
 			fppn = true
 		end)
+		
 		task.wait(0.1)
+		
 		fpp(pp)
+		
 		task.wait(1.5)
+		
 		if pp and pp.Parent then
 			pp:Destroy()
 			con:Disconnect()
@@ -140,7 +165,10 @@ if fpp then
 end
 
 local function fppFunc(pp)
+	if cd[pp] then return end
+	
 	cd[pp] = true
+	
 	local a,b,c,d,e = pp.MaxActivationDistance, pp.Enabled, pp.Parent, pp.HoldDuration, pp.RequiresLineOfSight
 	local obj = Instance.new("Part", workspace)
 	obj.Transparency = 1
@@ -157,14 +185,23 @@ local function fppFunc(pp)
 		return
 	end
 	obj:PivotTo(workspace.CurrentCamera.CFrame + (workspace.CurrentCamera.CFrame.LookVector / 5))
+	
 	rs()
+	
 	obj:PivotTo(workspace.CurrentCamera.CFrame + (workspace.CurrentCamera.CFrame.LookVector / 5))
+	
 	rs()
+	
 	obj:PivotTo(workspace.CurrentCamera.CFrame + (workspace.CurrentCamera.CFrame.LookVector / 5))
+	
 	pp:InputHoldBegin()
+	
 	rs()
+	
 	pp:InputHoldEnd()
+	
 	rs()
+	
 	if pp.Parent == obj then
 		pp.Parent = c
 		pp.MaxActivationDistance = a
@@ -172,25 +209,39 @@ local function fppFunc(pp)
 		pp.HoldDuration = d
 		pp.RequiresLineOfSight = e
 	end
+	
 	obj:Destroy()
 	cd[pp] = false
 end
-local function canGetPivot(pp)
-	return pp.Parent.GetPivot
+
+local function canGetPivot(obj)
+	return obj.GetPivot
 end
+
+local getpivot; function getpivot(obj)
+	if not obj or not obj.Parent or obj == workspace then return CFrame.new() end
+	
+	if obj:IsA("BasePart") or obj:IsA("Model") then
+		return obj:GetPivot()
+	elseif obj:IsA("Attachment") then
+		return obj.WorldCFrame
+	end
+	
+	return getpivot(obj:FindFirstAncestorWhichIsA("BasePart") or obj:FindFirstAncestorWhichIsA("Attachment") or obj:FindFirstAncestorWhichIsA("Model"))
+end
+
 local fireproximityprompt = function(pp, ddc)
 	if ddc == nil then
 		ddc = true
 	end
 	
-	if (typeof(pp) ~= "Instance" or not pp:IsA("ProximityPrompt")) or
-		(ddc and not pcall(canGetPivot, pp) or not workspace.CurrentCamera and ((plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character.HumanoidRootPart or workspace.CurrentCamera).CFrame.Position - pp.Parent:GetPivot().Position).Magnitude > pp.MaxActivationDistance) or
-		cd[pp] then
+	if typeof(pp) ~= "Instance" or not pp:IsA("ProximityPrompt") or cd[pp] or not ddc and (getpivot(pp.Parent).Position - (plr.Character or plr.CharacterAdded:Wait()):GetPivot().Position).Magnitude > pp.MaxActivationDistance then
 		return false
 	end
 	
 	if fppn then
-		fpp(pp)
+		task.spawn(fpp, pp)
+		return true
 	end
 	
 	task.spawn(fppFunc, pp)
@@ -204,12 +255,13 @@ local main = setmetatable({
 		return self(state)
 	end,
 
-	IsNetworkOwner = function(self, part)
-		if getfenv().isnetworkowner then
+	IsNetworkOwner = function(self, part, fullCustomCheck)
+		if getfenv().isnetworkowner and not fullCustomCheck then
 			return getfenv().isnetworkowner(part)
 		end
-
-		return part.ReceiveAge == 0
+		
+		local currentNetworkOwner = getfenv().gethiddenproperty and getfenv().gethiddenproperty(part, "NetworkOwnerV3")
+		return (typeof(currentNetworkOwner) == "number" and currentNetworkOwner > 2 or part.ReceiveAge == 0) and not part.Anchored
 	end,
 	
 	Other = table.freeze({
@@ -236,7 +288,8 @@ local main = setmetatable({
 		
 		Touch = function(self, target, instant)
 			if not plr.Character or not target then return end
-			local randomParts = {}
+			
+			local randomParts = { }
 			
 			for i,v in plr.Character:GetChildren() do
 				if v and v:IsA("BasePart") then
@@ -248,9 +301,11 @@ local main = setmetatable({
 			local part = randomParts[math.random(1, #randomParts)]
 			
 			self:TouchInterest(part, target, 0)
+			
 			if not instant then
-				task.wait(0.001)
+				renderWait()
 			end
+			
 			self:TouchInterest(part, target, 1)
 		end,
 		TouchPart = function(self, ...)
