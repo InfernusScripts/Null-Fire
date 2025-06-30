@@ -29,7 +29,8 @@ print(network.Active) -- true / false
 - Is network owner
 ```lua
 local part = -- path of basepart
-print(network:IsNetworkOwner(part)) -- true / false
+print(network:IsNetworkOwner(part, false)) -- true / false, will use isnetworkowner if available
+print(network:IsNetworkOwner(part, true)) -- also true / false, but it wont use isnetworkowner and will do it's own checks
 ```
 ---
 ## Fire
