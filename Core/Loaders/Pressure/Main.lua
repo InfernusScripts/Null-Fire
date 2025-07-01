@@ -105,7 +105,6 @@ local function blockInstance(object, condition, reversed, dontCreateClone)
 
 		if copy then
 			copy.Parent = not object.Parent and oldParent or nil
-			print(copy.Parent)
 		end
 
 		changedEvent.Event:Wait()
@@ -121,7 +120,7 @@ local function blockInstance(object, condition, reversed, dontCreateClone)
 end
 
 local function fireBlockedEvent(eventName, ...)
-	local event = typeof(eventName) == "string" and blockedEvents[eventName] or copies[eventName] or eventName
+	local event = blockedEvents[eventName] or copies[eventName] or eventName
 	
 	if event then
 		if not event.Parent then
@@ -289,7 +288,7 @@ page:AddLabel({Caption = "Expect more features to be added"})
 local page = window:AddPage({Title = "Bypasses"})
 local gm; gm = page:AddToggle({Caption = "God Mode", Default = false, Callback = function(b)
 	vals.GodMode = b
-	fireBlockedEvent("ResetState")
+	fireBlockedEvent("ResetStatus")
 	
 	if b then
 		for _, v in lockers do
