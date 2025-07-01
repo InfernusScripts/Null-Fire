@@ -99,22 +99,27 @@ local function object(obj)
 				end
 
 				plr.Character.HumanoidRootPart.Anchored = true
-
+				
+				local atStart = false
 				if obj and obj.Parent and not closed then
 					for i=0, string.rep("9", (obj:FindFirstAncestorOfClass("Model"):GetAttribute("MaxIndex") or 4)) do
-						if obj.Parent.KeycardUnlocking.Playing or obj.Parent.KeycardUnlock.Playing then
+						if obj.Parent.KeycardUnlocking.Playing or obj.Parent.KeycardUnlock.Playing or obj:FindFirstAncestorOfClass("Model").Parent.OpenValue.Value then
+							atStart = i < 75
 							break
 						end
 						
 						task.spawn(obj.InvokeServer, obj, string.format("%04d", i))
 						
-						if i % 75 == 0 then
+						if i + 1 % 75 == 0 then
 							task.wait(0.01)
 						end
 					end
 				end
 				
-				renderWait(2.5)
+				if not atStart then
+					renderWait(2.5)
+				end
+				
 				plr.Character.HumanoidRootPart.Anchored = false
 
 				if tped then
