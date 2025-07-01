@@ -79,28 +79,31 @@ local function object(obj)
 
 		elseif obj:IsA("RemoteFunction") then
 			if obj:FindFirstAncestorOfClass("Model") and obj:FindFirstAncestorOfClass("Model").Name == "Lock" then
-				waitUntil(obj, "AutoInputCode")
+				if not waitUntil(obj, "AutoInputCode") then return end
 
 				repeat task.wait() until closed or not obj or not obj.Parent or not obj:FindFirstAncestorOfClass("Model") or vals.TeleportToDoorLock or (obj:FindFirstAncestorOfClass("Model"):GetPivot().Position - plr.Character:GetPivot().Position).Magnitude <= 15
 
+				if not waitUntil(obj, "AutoInputCode") then return end
+				
 				local oldPosition = plr.Character:GetPivot()
 				if vals.TeleportToDoorLock then
 					plr.Character:PivotTo(obj:FindFirstAncestorOfClass("Model"):GetPivot())
 					renderWait(0.025)
 				end
 
-				if obj and obj.Parent and not closed and vals.BruteforceCode then
+				if obj and obj.Parent and not closed then
 					for i=0, 9999 do
 						task.spawn(obj.InvokeServer, obj, string.format("%04d", i))
-						if i % 100 == 0 then
+						
+						if i % 50 == 0 then
 							task.wait(0.01)
 						end
 					end
 				end
 
 				if vals.TeleportToDoorLock then
+					renderWait(2.5)
 					plr.Character:PivotTo(oldPosition)
-					renderWait(0.025)
 				end
 			end
 		end
@@ -139,8 +142,8 @@ page:AddLabel({Caption = "At this moment script being fully rewrited"})
 page:AddLabel({Caption = "Expect more features to be added"})
 
 local page = window:AddPage({Title = "Interact"})
-page:AddToggle({Caption = "Bruteforce door code", Default = false, Callback = function(b)
-	vals.BruteforceCode = b
+page:AddToggle({Caption = "Auto input door code (uses bruteforcing)", Default = false, Callback = function(b)
+	vals.AutoInputCode = b
 end})
 page:AddToggle({Caption = "Teleport to enter code", Default = false, Callback = function(b)
 	vals.TeleportToDoorLock = b
