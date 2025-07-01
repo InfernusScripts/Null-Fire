@@ -295,15 +295,11 @@ local gm; gm = page:AddToggle({Caption = "God Mode", Default = false, Callback =
 			if v and v.Parent and v:FindFirstChild("Folder") and v.Folder:FindFirstChild("Enter") and not v.Folder.PlayerIn.Value then
 				local oldPos = plr.Character:GetPivot()
 				
-				plr.Character:PivotTo(v:GetPivot())
-				renderWait(0.025)
-				plr.Character.HumanoidRootPart.Anchored = true
-				renderWait(0.025)
+				repeat
+					plr.Character:PivotTo(v:GetPivot())
+					v.Folder.Enter:InvokeServer(true)
+				until v.Folder.PlayerIn.Value or closed -- wont crash because invokeserver yields
 				
-				v.Folder.Enter:InvokeServer(true)
-				
-				render()
-				plr.Character.HumanoidRootPart.Anchored = false
 				render()
 				plr.Character:PivotTo(oldPos)
 				
