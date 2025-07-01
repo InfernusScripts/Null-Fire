@@ -3,7 +3,10 @@ local defaults = {
 	},
 
 	AutoInputCode = false,
-	TeleportToDoorLock = false
+	TeleportToDoorLock = false,
+	
+	NoLocalDamage = false,
+	GodMode = false
 }
 
 local vals = table.clone(defaults)
@@ -72,18 +75,90 @@ local function waitUntil(object, name)
 end
 
 local changedEvent = Instance.new("BindableEvent")
-local function blockInstance(object, condition, reversed)
-	
+
+local function parentUpdate(a, b)
+	a.Parent = b
 end
 
+local blockedEvents = { }
+local function blockInstance(object, condition, reversed, dontCreateClone)
+	local oldParent = object.Parent
+	local copy
+	
+	if (object:IsA("RemoteEvent") or object:IsA("RemoteFunction") or object:IsA("UnreliableRemoteEvent")) then
+		if not dontCreateClone then
+			copy = object:Clone()
+		end
+		
+		blockedEvents[object.Name] = object
+	end
+	
+	while not closed do
+		if not pcall(parentUpdate, object, (not reversed and not condition or reversed and condition) and oldParent or (not reversed and condition or reversed and not condition) and nil) then return end
+		
+		if copy then	
+			copy.Parent = not object.Parent and oldParent or nil
+		end
+		
+		changedEvent.Event:Wait()
+		if not object then return end
+	end
+	
+	copy:Destroy()
+	
+	pcall(parentUpdate, object, oldParent)
+end
+
+local function fireBlockedEvent(eventName, ...)
+	local event = blockedEvents[eventName]
+	if event then
+		if not event.Parent then
+			event.Parent = game:GetService("TestService")
+		end
+		
+		task.delay(0, changedEvent.Fire, changedEvent)
+		
+		if event:IsA("RemoteEvent") or event:IsA("UnreliableRemoteEvent") then
+			return event:FireServer(...)
+		else
+			return event:InvokeServer(...)
+		end
+	end
+end
+
+local oldValues = table.clone(vals)
+
+task.spawn(function()
+	while task.wait(0.1) and not closed do
+		for i, v in vals do
+			if oldValues[i] ~= v then
+				changedEvent:Fire()
+				break
+			end
+		end
+
+		for i, v in vals do
+			oldValues[i] = v
+		end
+	end
+end)
+
 local plr = game:GetService("Players").LocalPlayer
+local events = game:GetService("ReplicatedStorage").Events
+
+task.spawn(blockInstance, events.LocalDamage, "NoLocalDamage")
+task.spawn(blockInstance, events.ResetStatus, "GodMode")
+
+local lockers = { }
 
 local function object(obj)
 	if obj and obj.Parent then
 		if obj:IsA("Model") then
 
 		elseif obj:IsA("RemoteFunction") then
-			if obj:FindFirstAncestorOfClass("Model") and obj:FindFirstAncestorOfClass("Model").Name == "Lock" then
+			if obj.Name == "Enter" and obj.Parent and obj.Parent:IsA("Folder") and obj.Parent.Parent and obj.Parent.Parent.Name == "Locker" then
+				
+			elseif obj:FindFirstAncestorOfClass("Model") and obj:FindFirstAncestorOfClass("Model").Name == "Lock" then
 				if not waitUntil(obj, "AutoInputCode") then return end
 
 				repeat task.wait() until closed or not obj or not obj.Parent or not obj:FindFirstAncestorOfClass("Model") or vals.TeleportToDoorLock or (obj:FindFirstAncestorOfClass("Model"):GetPivot().Position - plr.Character:GetPivot().Position).Magnitude <= 15
@@ -161,6 +236,36 @@ local page = window:AddPage({Title = "! READ ME NOW !"})
 page:AddLabel({Caption = "Because pressure has been updated, NullFire got patched"})
 page:AddLabel({Caption = "At this moment script being fully rewrited"})
 page:AddLabel({Caption = "Expect more features to be added"})
+
+local page = window:AddPage({Title = "Character"})
+page:AddToggle({Caption = "God Mode", Default = false, Callback = function(b)
+	vals.GodMode = b
+	fireBlockedEvent("ResetState")
+	
+	if b then
+		for _, v in lockers do
+			if v and v.Parent and v:FindFirstChild("Folder") and v.Folder:FindFirstChild("Enter") and not v.PlayerIn.Value then
+				local oldPos = plr.Character:GetPivot()
+				
+				plr.Character:PivotTo(v:GetPivot())
+				renderWait(0.025)
+				plr.Character.HumanoidRootPart.Anchored = true
+				
+				v.Folder.Enter:InvokeServer(true)
+				
+				render()
+				plr.Character.HumanoidRootPart.Anchored = false
+				render()
+				plr.Character:PivotTo(oldPos)
+				
+				break
+			end
+		end
+	end
+end})
+page:AddToggle({Caption = "No damage (I hope it works)", Default = false, Callback = function(b)
+	vals.NoLocalDamage = b
+end})
 
 local page = window:AddPage({Title = "Interact"})
 page:AddToggle({Caption = "Auto input door code (uses bruteforcing)", Default = false, Callback = function(b)
