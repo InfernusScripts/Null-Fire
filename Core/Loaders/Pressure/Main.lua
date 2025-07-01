@@ -8,7 +8,10 @@ local defaults = {
 	NoLocalDamage = false,
 	GodMode = false,
 	
-	AntiSearchlights = false
+	AntiSearchlights = false,
+	
+	ExtraPrompt = 0,
+	InstantInteract = false
 }
 
 local vals = table.clone(defaults)
@@ -23,6 +26,11 @@ getGlobalTable().FireHubLoaded = true
 local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Fire-Lib/Main.lua", true))()
 local espLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/ESP/Main.lua", true))()
 local txtf = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Side-Text/Main.lua", true))()
+local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Network/Main.lua", true))()
+
+local fireproximityprompt = function(...)
+	return network.Other:FireProximityPrompt(...)
+end
 
 espLib.Values = vals.ESP
 
@@ -84,6 +92,7 @@ end
 
 local blockedEvents = { }
 local copies = { }
+local originalDistances = { }
 
 local function blockInstance(object, condition, reversed, dontCreateClone)
 	local oldParent = object.Parent
@@ -174,6 +183,9 @@ local function object(obj)
 	if obj and obj.Parent then
 		if obj:IsA("Model") then
 
+		elseif obj:IsA("ProximityPrompt") then
+			originalDistances[obj] = obj.MaxActivationDistance
+			obj.MaxActivationDistance *= (vals.ExtraPrompt / 100) + 1
 		elseif obj:IsA("RemoteEvent") then
 			if obj.Parent and obj.Parent:IsA("Part") and obj.Name == "RemoteEvent" and obj.Parent.Name:lower():match("searchlight") then
 				task.spawn(blockInstance, obj, "AntiSearchlights")
@@ -235,9 +247,15 @@ for _, v in workspace:GetDescendants() do
 end
 
 cons[#cons + 1] = workspace.DescendantAdded:Connect(object)
+cons[#cons + 1] = game:GetService("ProximityPromptService").PromptButtonHoldBegan:Connect(function(prompt)
+	if vals.InstantInteract then
+		prompt:InputHoldEnd()
+		fireproximityprompt(prompt)
+	end
+end)
 
 local time = 0
-rs.RenderStepped:Connect(function(dt)
+cons[#cons + 1] = rs.RenderStepped:Connect(function(dt)
 	time += dt
 	if time > 1 then
 		time %= 1
@@ -278,6 +296,10 @@ local window = lib:MakeWindow({Title = "NullFire - Pressure", CloseCallback = fu
 			v:Disconnect()
 		end
 	end
+
+	for prompt, original in originalDistances do
+		prompt.MaxActivationDistance = original
+	end
 end}, true)
 
 local page = window:AddPage({Title = "! READ ME NOW !"})
@@ -311,15 +333,33 @@ local gm; gm = page:AddToggle({Caption = "God Mode", Default = false, Callback =
 		lib.Notifications:Notification({Title = "God Mode", Text = "Failed to turn on the god mode:\nNo available lockers"})
 	end
 end})
+
 page:AddToggle({Caption = "No damage", Default = false, Callback = function(b)
 	vals.NoLocalDamage = b
 end})
+
 page:AddSeparator()
+
 page:AddToggle({Caption = "Anti searchlights", Default = false, Callback = function(b)
 	vals.AntiSearchlights = b
 end})
 
 local page = window:AddPage({Title = "Interact"})
+page:AddToggle({Caption = "Instant proximity prompt interact", Default = false, Callback = function(b)
+	vals.InstantInteract = b
+end})
+page:AddSlider({Caption = "Extra proximity prompt activation range", Default = 0, Min = 0, Max = 100, Step = 0.25, Callback = function(b)
+	vals.ExtraPrompt = b
+	
+	for prompt, original in originalDistances do
+		prompt.MaxActivationDistance = original * ((b / 100) + 1)
+	end
+end, CustomTextDisplay = function(x)
+	return "+" .. math.floor(x) .. "%"
+end})
+
+page:AddSeparator()
+
 page:AddToggle({Caption = "Auto input door code (uses bruteforcing)", Default = false, Callback = function(b)
 	vals.AutoInputCode = b
 end})
