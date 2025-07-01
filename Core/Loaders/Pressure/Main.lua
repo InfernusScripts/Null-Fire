@@ -71,6 +71,11 @@ local function waitUntil(object, name)
 	return object and object.Parent
 end
 
+local changedEvent = Instance.new("BindableEvent")
+local function blockInstance(object, condition, reversed)
+	
+end
+
 local plr = game:GetService("Players").LocalPlayer
 
 local function object(obj)
@@ -85,24 +90,29 @@ local function object(obj)
 
 				if not waitUntil(obj, "AutoInputCode") then return end
 				
+				local tped = false
 				local oldPosition = plr.Character:GetPivot()
 				if vals.TeleportToDoorLock then
+					tped = true
 					plr.Character:PivotTo(obj:FindFirstAncestorOfClass("Model"):GetPivot())
 					renderWait(0.025)
+					plr.Character.HumanoidRootPart.Anchored = true
 				end
 
 				if obj and obj.Parent and not closed then
-					for i=0, 9999 do
+					for i=0, string.rep("9", (obj:FindFirstAncestorOfClass("Model"):GetAttribute("MaxIndex") or 4)) do
 						task.spawn(obj.InvokeServer, obj, string.format("%04d", i))
 						
-						if i % 50 == 0 then
+						if i % 75 == 0 then
 							task.wait(0.01)
 						end
 					end
 				end
 
-				if vals.TeleportToDoorLock then
+				if tped then
 					renderWait(2.5)
+					plr.Character.HumanoidRootPart.Anchored = false
+					render()
 					plr.Character:PivotTo(oldPosition)
 				end
 			end
@@ -114,7 +124,7 @@ for _, v in workspace:GetDescendants() do
 	task.spawn(object, v)
 end
 
-workspace.DescendantAdded:Connect(object)
+cons[#cons + 1] = workspace.DescendantAdded:Connect(object)
 
 local window = lib:MakeWindow({Title = "NullFire - Pressure", CloseCallback = function()
 	for i, v in defaults.ESP do
