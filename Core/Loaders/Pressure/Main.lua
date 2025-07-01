@@ -2,7 +2,8 @@ local defaults = {
 	ESP = {
 	},
 
-	AutoInputCode = false
+	AutoInputCode = false,
+	TeleportToDoorLock = false
 }
 
 local vals = table.clone(defaults)
@@ -66,35 +67,40 @@ local function waitUntil(object, name)
 	while object and object.Parent and not vals[name] and not closed do
 		render()
 	end
-	
+
 	return object and object.Parent
 end
 
-local roomCodes = { }
+local plr = game:GetService("Players").LocalPlayer
+
 local function object(obj)
 	if obj and obj.Parent then
 		if obj:IsA("Model") then
-			if obj.Name == "PasswordPaper" then
-				while obj and obj.Parent and not getRoom(obj) and not closed do
-					warn("waiting")
-					render()
-				end
-				
-				if obj and obj.Parent and not closed then
-					print("code:", obj.Code.SurfaceGui.TextLabel.Text, getRoom(obj))
-					roomCodes[getRoom(obj)] = obj.Code.SurfaceGui.TextLabel.Text
-				end
-			end
+
 		elseif obj:IsA("RemoteFunction") then
 			if obj:FindFirstAncestorOfClass("Model") and obj:FindFirstAncestorOfClass("Model").Name == "Lock" then
-				print("Is lock")
-				while obj and obj.Parent and not roomCodes[getRoom(obj) or false] and not closed do
-					render()
+				waitUntil(obj, "AutoInputCode")
+
+				repeat task.wait() until closed or not obj or not obj.Parent or not obj:FindFirstAncestorOfClass("Model") or vals.TeleportToDoorLock or (obj:FindFirstAncestorOfClass("Model"):GetPivot().Position - plr.Character:GetPivot().Position).Magnitude <= 15
+
+				local oldPosition = plr.Character:GetPivot()
+				if vals.TeleportToDoorLock then
+					plr.Character:PivotTo(obj:FindFirstAncestorOfClass("Model"):GetPivot())
+					renderWait(0.025)
 				end
-					
-				if obj and obj.Parent and waitUntil(obj, "AutoInputCode") and obj ~= nil and obj.Parent ~= nil and not closed then -- double check because after waitUntil object state might change
-					print("inputting the code")
-					obj:InvokeServer(roomCodes[getRoom(obj)])
+
+				if obj and obj.Parent and not closed and vals.BruteforceCode then
+					for i=0, 9999 do
+						task.spawn(obj.InvokeServer, obj, string.format("%04d", i))
+						if i % 100 == 0 then
+							task.wait(0.01)
+						end
+					end
+				end
+
+				if vals.TeleportToDoorLock then
+					plr.Character:PivotTo(oldPosition)
+					renderWait(0.025)
 				end
 			end
 		end
@@ -115,11 +121,11 @@ local window = lib:MakeWindow({Title = "NullFire - Pressure", CloseCallback = fu
 	for i, v in defaults do
 		vals[i] = v
 	end
-	
+
 	getGlobalTable().FireHubLoaded = false
 	closed = true
 	render(3)
-	
+
 	for i, v in cons do
 		if v.Connected then
 			v:Disconnect()
@@ -133,11 +139,12 @@ page:AddLabel({Caption = "At this moment script being fully rewrited"})
 page:AddLabel({Caption = "Expect more features to be added"})
 
 local page = window:AddPage({Title = "Interact"})
-page:AddToggle({Caption = "Auto input door code", Default = false, Callback = function(b)
-	vals.AutoInputCode = b
+page:AddToggle({Caption = "Bruteforce door code", Default = false, Callback = function(b)
+	vals.BruteforceCode = b
 end})
-page:AddLabel({Caption = "THE FUNCTION WAS NOT TESTED CUZ OF MY FUCKING LUCK"})
-page:AddLabel({Caption = "(I never got doors with paper code)"})
+page:AddToggle({Caption = "Teleport to enter code", Default = false, Callback = function(b)
+	vals.TeleportToDoorLock = b
+end})
 
 
 local page = window:AddPage({Title = "Visual"})
