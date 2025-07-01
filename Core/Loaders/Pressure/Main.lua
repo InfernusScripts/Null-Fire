@@ -96,11 +96,16 @@ local function object(obj)
 					tped = true
 					plr.Character:PivotTo(obj:FindFirstAncestorOfClass("Model"):GetPivot())
 					renderWait(0.025)
-					plr.Character.HumanoidRootPart.Anchored = true
 				end
+
+				plr.Character.HumanoidRootPart.Anchored = true
 
 				if obj and obj.Parent and not closed then
 					for i=0, string.rep("9", (obj:FindFirstAncestorOfClass("Model"):GetAttribute("MaxIndex") or 4)) do
+						if obj.Parent.KeycardUnlocking.Playing or obj.Parent.KeycardUnlock.Playing then
+							break
+						end
+						
 						task.spawn(obj.InvokeServer, obj, string.format("%04d", i))
 						
 						if i % 75 == 0 then
@@ -108,10 +113,11 @@ local function object(obj)
 						end
 					end
 				end
+				
+				renderWait(2.5)
+				plr.Character.HumanoidRootPart.Anchored = false
 
 				if tped then
-					renderWait(2.5)
-					plr.Character.HumanoidRootPart.Anchored = false
 					render()
 					plr.Character:PivotTo(oldPosition)
 				end
