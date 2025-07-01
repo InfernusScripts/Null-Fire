@@ -6,7 +6,9 @@ local defaults = {
 	TeleportToDoorLock = false,
 	
 	NoLocalDamage = false,
-	GodMode = false
+	GodMode = false,
+	
+	AntiSearchlights = false
 }
 
 local vals = table.clone(defaults)
@@ -81,36 +83,46 @@ local function parentUpdate(a, b)
 end
 
 local blockedEvents = { }
+local copies = { }
+
 local function blockInstance(object, condition, reversed, dontCreateClone)
 	local oldParent = object.Parent
-	local copy
-	
-	if (object:IsA("RemoteEvent") or object:IsA("RemoteFunction") or object:IsA("UnreliableRemoteEvent")) then
+	local copy = nil
+
+	if object:IsA("RemoteEvent") or object:IsA("RemoteFunction") or object:IsA("UnreliableRemoteEvent") then
 		if not dontCreateClone then
 			copy = object:Clone()
+			copies[copy] = object
 		end
-		
+
 		blockedEvents[object.Name] = object
 	end
-	
+
 	while not closed do
-		if not pcall(parentUpdate, object, (not reversed and not condition or reversed and condition) and oldParent or (not reversed and condition or reversed and not condition) and nil) then return end
-		
-		if copy then	
-			copy.Parent = not object.Parent and oldParent or nil
+		if not pcall(parentUpdate, object, ((not reversed and (not vals[condition])) or (reversed and vals[condition])) and oldParent or nil) then
+			break
 		end
-		
+
+		if copy then
+			copy.Parent = not object.Parent and oldParent or nil
+			print(copy.Parent)
+		end
+
 		changedEvent.Event:Wait()
+
 		if not object then return end
 	end
-	
-	copy:Destroy()
-	
+
+	if copy then
+		copy:Destroy()
+	end
+
 	pcall(parentUpdate, object, oldParent)
 end
 
 local function fireBlockedEvent(eventName, ...)
-	local event = blockedEvents[eventName]
+	local event = typeof(eventName) == "string" and blockedEvents[eventName] or copies[eventName] or eventName
+	
 	if event then
 		if not event.Parent then
 			event.Parent = game:GetService("TestService")
@@ -129,7 +141,10 @@ end
 local oldValues = table.clone(vals)
 
 task.spawn(function()
+	local idx = 0
 	while task.wait(0.1) and not closed do
+		idx = (idx + 1) % 149
+		
 		for i, v in vals do
 			if oldValues[i] ~= v then
 				changedEvent:Fire()
@@ -139,6 +154,10 @@ task.spawn(function()
 
 		for i, v in vals do
 			oldValues[i] = v
+		end
+		
+		if idx == 0 then
+			changedEvent:Fire()
 		end
 	end
 end)
@@ -150,14 +169,20 @@ task.spawn(blockInstance, events.LocalDamage, "NoLocalDamage")
 task.spawn(blockInstance, events.ResetStatus, "GodMode")
 
 local lockers = { }
+local searchlights = { }
 
 local function object(obj)
 	if obj and obj.Parent then
 		if obj:IsA("Model") then
 
+		elseif obj:IsA("RemoteEvent") then
+			if obj.Parent and obj.Parent:IsA("Part") and obj.Name == "RemoteEvent" and obj.Parent.Name:lower():match("searchlight") then
+				task.spawn(blockInstance, obj, "AntiSearchlights")
+				searchlights[#searchlights + 1] = obj
+			end
 		elseif obj:IsA("RemoteFunction") then
 			if obj.Name == "Enter" and obj.Parent and obj.Parent:IsA("Folder") and obj.Parent.Parent and obj.Parent.Parent.Name == "Locker" then
-				
+				lockers[#lockers + 1] = obj.Parent.Parent
 			elseif obj:FindFirstAncestorOfClass("Model") and obj:FindFirstAncestorOfClass("Model").Name == "Lock" then
 				if not waitUntil(obj, "AutoInputCode") then return end
 
@@ -212,6 +237,30 @@ end
 
 cons[#cons + 1] = workspace.DescendantAdded:Connect(object)
 
+local time = 0
+rs.RenderStepped:Connect(function(dt)
+	time += dt
+	if time > 1 then
+		time %= 1
+		
+		if vals.SpamSearchlights then
+			for _, event in searchlights do
+				if event and event.Parent then
+					local part = event.Parent.Eyes:FindFirstChildWhichIsA("BasePart")
+					
+					if part then
+						fireBlockedEvent(event, part, true)
+						renderWait(0.1)
+						fireBlockedEvent(event, part, false)
+					end
+				end
+			end
+		end
+	else
+		
+	end
+end)
+
 local window = lib:MakeWindow({Title = "NullFire - Pressure", CloseCallback = function()
 	for i, v in defaults.ESP do
 		espLib.ESPValues[i] = v
@@ -237,19 +286,20 @@ page:AddLabel({Caption = "Because pressure has been updated, NullFire got patche
 page:AddLabel({Caption = "At this moment script being fully rewrited"})
 page:AddLabel({Caption = "Expect more features to be added"})
 
-local page = window:AddPage({Title = "Character"})
-page:AddToggle({Caption = "God Mode", Default = false, Callback = function(b)
+local page = window:AddPage({Title = "Bypasses"})
+local gm; gm = page:AddToggle({Caption = "God Mode", Default = false, Callback = function(b)
 	vals.GodMode = b
 	fireBlockedEvent("ResetState")
 	
 	if b then
 		for _, v in lockers do
-			if v and v.Parent and v:FindFirstChild("Folder") and v.Folder:FindFirstChild("Enter") and not v.PlayerIn.Value then
+			if v and v.Parent and v:FindFirstChild("Folder") and v.Folder:FindFirstChild("Enter") and not v.Folder.PlayerIn.Value then
 				local oldPos = plr.Character:GetPivot()
 				
 				plr.Character:PivotTo(v:GetPivot())
 				renderWait(0.025)
 				plr.Character.HumanoidRootPart.Anchored = true
+				renderWait(0.025)
 				
 				v.Folder.Enter:InvokeServer(true)
 				
@@ -258,13 +308,20 @@ page:AddToggle({Caption = "God Mode", Default = false, Callback = function(b)
 				render()
 				plr.Character:PivotTo(oldPos)
 				
-				break
+				return
 			end
 		end
+
+		gm:Set(false)
+		lib.Notifications:Notification({Title = "God Mode", Text = "Failed to turn on the god mode:\nNo available lockers"})
 	end
 end})
-page:AddToggle({Caption = "No damage (I hope it works)", Default = false, Callback = function(b)
+page:AddToggle({Caption = "No damage", Default = false, Callback = function(b)
 	vals.NoLocalDamage = b
+end})
+page:AddSeparator()
+page:AddToggle({Caption = "Anti searchlights", Default = false, Callback = function(b)
+	vals.AntiSearchlights = b
 end})
 
 local page = window:AddPage({Title = "Interact"})
@@ -274,7 +331,6 @@ end})
 page:AddToggle({Caption = "Teleport to enter code", Default = false, Callback = function(b)
 	vals.TeleportToDoorLock = b
 end})
-
 
 local page = window:AddPage({Title = "Visual"})
 
@@ -291,3 +347,8 @@ for i, v in vals.ESP do
 		espLib.ESPValues[i] = b
 	end})
 end
+
+local page = window:AddPage({Title = "Trolling"})
+page:AddToggle({Caption = "Spam searchlights", Default = false, Callback = function(b)
+	vals.SpamSearchlights = b
+end})
