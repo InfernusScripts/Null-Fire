@@ -185,7 +185,7 @@ local function hitNote(note, scrollSpeed, key)
         local time = 0
         for _, v in note:GetChildren() do
                 if v and v.Size ~= UDim2.fromScale(1, 1) then
-                        time = v.Size.Y.Scale / (scrollSpeed / 1.5)
+                        time = v.Size.Y.Scale / (scrollSpeed / 4)
                         break
                 end
         end
@@ -361,11 +361,6 @@ page:AddToggle({Caption = "Autoplay", Callback = function(bool)
         vals.Autoplay = bool
 end, Default = false})
 
-local methods = {"Calculate [ Least laggy + Accurate ]", "Rapid checks [ The golden middle ]", "Hybrid [ Calculate + Rapid; The most accurate with FPS price ]"}
-page:AddDropdown({Caption = "Autoplay method", Rows = methods, Callback = function(val)
-        vals.AutoplayMethod = val
-end, Default = 1})
-
 for _, chance in chances do
         page:AddSlider({Caption = chance[1] .. " chance", Min = 0, Max = 100, Step = 1, Default = chance[2], Callback = function(val)
                 chance[2] = val
@@ -422,6 +417,11 @@ end, CustomTextDisplay = function(val)
 end})
 
 page:AddSeparator()
+
+local methods = {"Calculate [ Least laggy + Only accurate at 4x scroll speed ]", "Rapid checks [ The golden middle ]", "Hybrid [ Calculate + Rapid; The most accurate with FPS price ]"}
+page:AddDropdown({Caption = "Autoplay method", Rows = methods, Callback = function(val)
+        vals.AutoplayMethod = val
+end, Default = 2})
 
 page:AddToggle({Caption = "Perfect sick [ Sick hits way closer to 0ms ]", Callback = function(bool)
         vals.PerfectSick = bool
