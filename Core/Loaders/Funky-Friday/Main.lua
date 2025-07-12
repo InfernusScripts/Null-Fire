@@ -1,14 +1,14 @@
 local defaults = {
         Autoplay = false,
         AutoplayMethod = 1,
-        Limit = 25,
+        Limit = 50,
 
-        CalculateRenders = 3,
+        CalculateRenders = 5,
         RapidRenders = 1,
 
         HoldDuration = 0,
         RandomAdd = 0,
-        PerfectSick = false
+        PerfectSick = true
 }
 
 local vals = table.clone(defaults)
@@ -151,22 +151,26 @@ local binds = {
 
 local vim = game:GetService("VirtualInputManager")
 local keys = { }
+local downKeys = { }
 
 local keypress = getfenv().keypress
 local keyrelease = getfenv().keyrelesae
 
 local sendEvent = keypress and keyrelease and (function(key, isDown)
-        keys[key] = isDown;
+        downKeys[key] = isDown;
         (isDown and keypress or keyrelease)(key)
 end) or (function(key, isDown)
-        keys[key] = isDown
+        downKeys[key] = isDown
         vim:SendKeyEvent(isDown, key, false, game)
 end)
 
 local function pressKey(key, duration)
-        if keys[key] then
+        if downKeys[key] then
                 sendEvent(key, false)
         end
+
+	local myId = (keys[key] or 0) + 1
+	keys[key] = myId
 
         sendEvent(key, true)
 
@@ -174,7 +178,9 @@ local function pressKey(key, duration)
                 task.wait(duration)
         end
 
-        sendEvent(key, false)
+	if keys[key] == myId then
+        	sendEvent(key, false)
+	end
 end
 
 local hit = { }
@@ -185,7 +191,7 @@ local function hitNote(note, scrollSpeed, key)
         local time = 0
         for _, v in note:GetChildren() do
                 if v and v.Size ~= UDim2.fromScale(1, 1) then
-                        time = v.Size.Y.Scale / (scrollSpeed / 4)
+                        time = (v.Size.Y.Scale / (scrollSpeed / 4)) + 0.125
                         break
                 end
         end
@@ -418,14 +424,14 @@ end})
 
 page:AddSeparator()
 
-local methods = {"Calculate [ Least laggy + Only accurate at 4x scroll speed ]", "Rapid checks [ The golden middle ]", "Hybrid [ Calculate + Rapid; The most accurate with FPS price ]"}
+local methods = {"Calculate [ Least laggy + Only accurate at 2+ scroll speed ]", "Rapid checks [ The golden middle ]", "Hybrid [ Calculate + Rapid; The most accurate with FPS price ]"}
 page:AddDropdown({Caption = "Autoplay method", Rows = methods, Callback = function(val)
         vals.AutoplayMethod = val
 end, Default = 2})
 
 page:AddToggle({Caption = "Perfect sick [ Sick hits way closer to 0ms ]", Callback = function(bool)
         vals.PerfectSick = bool
-end, Default = false})
+end, Default = vals.PerfectSick})
 
 local page = window:AddPage({Title = "Info"})
 page:AddLabel({Caption = "Autoplay method \"Calculate\":"})
