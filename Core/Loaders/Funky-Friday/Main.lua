@@ -191,7 +191,7 @@ local function hitNote(note, scrollSpeed, key)
         local time = 0
         for _, v in note:GetChildren() do
                 if v and v.Size ~= UDim2.fromScale(1, 1) then
-                        time = (v.Size.Y.Scale / (scrollSpeed / 4)) + 0.125
+                        time = math.abs(v.Size.Y.Scale / scrollSpeed) + 0.25
                         break
                 end
         end
