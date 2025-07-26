@@ -205,11 +205,11 @@ local function hitNote(note, scrollSpeed, key)
 	end
 
 	task.spawn(pressKey, key, time > 0 and time)
-	task.wait(0.15)
+	--[[task.wait(0.15)
 
 	if note and note.Parent then
 		hit[note] = false
-	end
+	end]]
 end
 
 local offsets = {
