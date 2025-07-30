@@ -1,17 +1,21 @@
 local defaults = {
 	ESP = {
+		DoorESP = false,
+		CurrencyESP = false,
+		ItemESP = false,
+		MonsterESP = false,
 	},
 
 	AutoInputCode = false,
 	TeleportToDoorLock = false,
 
 	NoLocalDamage = false,
-	GodMode = false,
 
 	AntiSearchlights = false,
 
 	ExtraPrompt = 0,
 	InstantInteract = false,
+	NotifyMonsters = false,
 	BetterDoors = false
 }
 
@@ -31,6 +35,18 @@ local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/Infer
 
 local fireproximityprompt = function(...)
 	return network.Other:FireProximityPrompt(...)
+end
+
+local deleted = not not getGlobalTable().deleted
+if not deleted and getfenv().getnilinstances then
+	for _, v in getfenv().getnilinstances() do
+		if v:IsA("RemoteFunction") then
+			pcall(v.Destroy, v)
+			deleted = true
+		end
+	end
+
+	getGlobalTable().deleted = deleted
 end
 
 espLib.Values = vals.ESP
@@ -100,6 +116,10 @@ local function blockInstance(object, condition, reversed, dontCreateClone)
 	local copy = nil
 
 	if object:IsA("RemoteEvent") or object:IsA("RemoteFunction") or object:IsA("UnreliableRemoteEvent") then
+		if not deleted and object.Parent.Name == "Events" then
+			return
+		end
+		
 		if not dontCreateClone then
 			copy = object:Clone()
 			copies[copy] = object
@@ -175,12 +195,6 @@ local plr = game:GetService("Players").LocalPlayer
 local events = game:GetService("ReplicatedStorage").Events
 
 task.spawn(blockInstance, events.LocalDamage, "NoLocalDamage")
-task.spawn(blockInstance, events.ResetStatus, "GodMode")
-
-local lockers = { }
-local searchlights = { }
-local doors = { }
-local doorCodes = { }
 
 local function bruteforce(obj, dontTP)
 	local tped = false
@@ -199,6 +213,10 @@ local function bruteforce(obj, dontTP)
 			if obj.Parent.KeycardUnlocking.Playing or obj.Parent.KeycardUnlock.Playing or obj:FindFirstAncestorOfClass("Model").Parent:FindFirstChild("OpenValue", math.huge).Value then
 				atStart = i < 75
 				break
+			end
+			
+			if tped then
+				plr.Character:PivotTo(obj:FindFirstAncestorOfClass("Model"):GetPivot())
 			end
 
 			task.spawn(obj.InvokeServer, obj, string.format("%04d", i))
@@ -221,28 +239,92 @@ local function bruteforce(obj, dontTP)
 	end
 end
 
+local function insertCum(str)
+	local new = str:gsub("(%u)", " %1")
+	if new:sub(1, 1) == " " then
+		new = new:sub(2)
+	end
+
+	return new:gsub("  ", " "):gsub("_", "") .. ""
+end
+
+local lockers = { }
+local searchlights = { }
+local doors = { }
+local doorCodes = { }
+
+local function isLightSource(obj)
+	local n = obj.Name:lower()
+	return n:match("light") or n:match("flash") or n:match("lantern")
+end
+
+local function getColor(obj)
+	local money = obj:GetAttribute("Amount")
+	if money then
+		return money <= 100 and Color3.fromRGB(85, 170, 127):Lerp(Color3.fromRGB(170, 170, 255), money / 100) or Color3.fromRGB(170, 170, 255):Lerp(Color3.fromRGB(255, 85, 0), (money - 100) / 400)
+	elseif isLightSource(obj) then
+		return obj.Name == "Blacklight" and Color3.fromRGB(170, 0, 255) or obj.Name == "Gummylight" and Color3.fromRGB(85, 255, 127) or obj.Name == "Splorglight" and Color3.fromRGB(170, 170, 255) or Color3.fromRGB(255, 200, 112)
+	elseif obj.Name == "SPRINT" or obj.Name == "BlueToyRemote" then
+		return Color3.fromRGB(0, 170, 255)
+	elseif obj.Name == "HealthBoost" then
+		return Color3.fromRGB(255, 100, 100)
+	elseif obj.Name == "Medkit" then
+		return Color3.fromRGB(200, 255, 170)
+	elseif obj.Name == "CodeBreacher" or obj.Name == "ToyRemote" then
+		return Color3.fromRGB(125, 0, 0)
+	end
+	
+	return Color3.new(0.8, 0.8, 0.8)
+end
+
+local function getText(obj)
+	local money = obj:GetAttribute("Amount")
+	if money then
+		return "$" .. money
+	elseif obj.Name == "SPRINT" then
+		return "Sprint"
+	end
+	
+	return insertCum(obj.Name)
+end
+
 local function object(obj)
 	if obj and obj.Parent then
 		if obj:IsA("Model") then
-
+			if obj.Parent.Name == "Entrances" then
+				local roomNum = obj.Parent.Parent:WaitForChild("Lights", 1)
+				if roomNum then
+					roomNum = roomNum:WaitForChild("Sign", 1)
+					if roomNum then
+						roomNum = roomNum.SurfaceGui.TextLabel.Text
+						if tonumber(roomNum) then
+							roomNum = tonumber(roomNum) - 1
+						end
+					end
+				end
+				
+				esp(obj:WaitForChild("Door", 1) or obj, {HighlightEnabled = true, Color = obj:FindFirstChild("Lock", math.huge) and Color3.fromRGB(100, 175, 255) or Color3.fromRGB(0, 255, 100), Text = "Room" .. (roomNum and " " .. roomNum or "") .. (obj:FindFirstChild("Lock", math.huge) and "\n[ Locked ]" or ""), ESPName = "DoorESP"})
+			end
 		elseif obj:IsA("ProximityPrompt") then
 			originalDistances[obj] = obj.MaxActivationDistance
 			obj.MaxActivationDistance *= (vals.ExtraPrompt / 100) + 1
 
 			if obj.Parent.Name == "Root" and obj.Parent.Parent:IsA("Model") then
 				doors[#doors + 1] = obj
+			elseif obj.Parent.Name == "ProxyPart" and obj.Parent.Parent:IsA("Model") then
+				esp(obj.Parent.Parent, {HighlightEnabled = false, Color = getColor(obj.Parent.Parent), Text = getText(obj.Parent.Parent), ESPName = (obj.Parent.Parent:GetAttribute("Amount") and "Currency" or "Item") .. "ESP"})
 			end
 		elseif obj:IsA("RemoteEvent") then
-			if obj.Parent and obj.Parent:IsA("Part") and obj.Name == "RemoteEvent" and obj.Parent.Name:lower():match("searchlight") then
+			if obj.Parent:IsA("Part") and obj.Name == "RemoteEvent" and obj.Parent.Name:lower():match("searchlight") then
 				task.spawn(blockInstance, obj, "AntiSearchlights")
 				searchlights[#searchlights + 1] = obj
 			end
 		elseif obj:IsA("RemoteFunction") then
-			if obj.Parent and obj.Parent.Name == "Main" and obj.Name == "RemoteFunction" and obj.Parent.Parent and obj.Parent.Parent:FindFirstChild("Keypad0") then
+			if obj.Parent.Name == "Main" and obj.Name == "RemoteFunction" and obj.Parent.Parent and obj.Parent.Parent:FindFirstChild("Keypad0") then
 				doorCodes[#doorCodes + 1] = obj
 			end
 			
-			if obj.Name == "Enter" and obj.Parent and obj.Parent:IsA("Folder") and obj.Parent.Parent and obj.Parent.Parent.Name == "Locker" then
+			if obj.Name == "Enter" and obj.Parent:IsA("Folder") and obj.Parent.Parent and obj.Parent.Parent.Name == "Locker" then
 				lockers[#lockers + 1] = obj.Parent.Parent
 			elseif obj:FindFirstAncestorOfClass("Model") and obj:FindFirstAncestorOfClass("Model").Name == "Lock" then
 				if not waitUntil(obj, "AutoInputCode") then return end
@@ -277,6 +359,13 @@ local function object(obj)
 					plr.Character:PivotTo(oldPosition)
 				end
 			end
+		elseif obj:IsA("Beam") then
+			if obj.Name == obj.Parent.Name then
+				esp(obj.Parent, {HighlightEnabled = false, Color = Color3.fromRGB(255, 0, 0), Text = insertCum(obj.Name), ESPName = "MonsterESP"})
+				if vals.NotifyMonsters then
+					lib.Notifications:Notification({Title = "Monster spawned", Text = "Hide from " .. insertCum(obj.Name) .. " ig" })
+				end
+			end
 		end
 	end
 end
@@ -307,21 +396,7 @@ cons[#cons + 1] = rs.RenderStepped:Connect(function(dt)
 end)
 
 task.spawn(function()
-	local state = false
 	while task.wait(1) and not closed do
-		state = not state
-		
-		if vals.SpamSearchlights then
-			for _, event in searchlights do
-				if event and event.Parent then
-					local part = event.Parent.Eyes:FindFirstChildWhichIsA("BasePart")
-
-					if part then
-						fireBlockedEvent(event, part, state)
-					end
-				end
-			end
-		end
 	end
 end)
 
@@ -363,35 +438,11 @@ page:AddLabel({Caption = "At this moment script being fully rewrited"})
 page:AddLabel({Caption = "Expect more features to be added"})
 
 local page = window:AddPage({Title = "Bypasses"})
-local gm; gm = page:AddToggle({Caption = "God Mode", Default = false, Callback = function(b)
-	vals.GodMode = b
-	fireBlockedEvent("ResetStatus")
-
-	if b then
-		for _, v in lockers do
-			if v and v.Parent and v:FindFirstChild("Folder") and v.Folder:FindFirstChild("Enter") and not v.Folder.PlayerIn.Value then
-				local oldPos = plr.Character:GetPivot()
-
-				repeat
-					plr.Character:PivotTo(v:GetPivot())
-					v.Folder.Enter:InvokeServer(true)
-				until v.Folder.PlayerIn.Value or closed -- wont crash because invokeserver yields
-
-				render()
-				plr.Character:PivotTo(oldPos)
-
-				return
-			end
-		end
-
-		gm:Set(false)
-		lib.Notifications:Notification({Title = "God Mode", Text = "Failed to turn on the god mode:\nNo available lockers"})
-	end
-end})
-
-page:AddToggle({Caption = "No damage", Default = false, Callback = function(b)
-	vals.NoLocalDamage = b
-end})
+if deleted then
+	page:AddToggle({Caption = "No damage", Default = false, Callback = function(b)
+		vals.NoLocalDamage = b
+	end})
+end
 
 page:AddSeparator()
 
@@ -402,6 +453,9 @@ end})
 local page = window:AddPage({Title = "Interact"})
 page:AddToggle({Caption = "Instant proximity prompt interact", Default = false, Callback = function(b)
 	vals.InstantInteract = b
+end})
+page:AddToggle({Caption = "Notify monsters", Default = false, Callback = function(b)
+	vals.NotifyMonsters = b
 end})
 page:AddSlider({Caption = "Extra proximity prompt activation range", Default = 0, Min = 0, Max = 100, Step = 0.25, Callback = function(b)
 	vals.ExtraPrompt = b
@@ -450,20 +504,3 @@ for i, v in vals.ESP do
 end
 
 local page = window:AddPage({Title = "Trolling"})
-page:AddToggle({Caption = "Spam searchlights", Default = false, Callback = function(b)
-	vals.SpamSearchlights = b
-	
-	if not b then
-		renderWait(0.25)
-		
-		for _, event in searchlights do
-			if event and event.Parent then
-				for _, part in event.Parent.Eyes:GetChildren() do
-					if part and part:IsA("BasePart") then
-						fireBlockedEvent(event, part, false)
-					end
-				end
-			end
-		end
-	end
-end})
