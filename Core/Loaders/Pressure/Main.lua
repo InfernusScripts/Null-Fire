@@ -42,7 +42,7 @@ local fireproximityprompt = function(...)
 	return network.Other:FireProximityPrompt(...)
 end
 
-local deleted = not not getGlobalTable().deleted
+local deleted = getGlobalTable().pressureBanReal
 if deleted == nil and getfenv().getnilinstances then
 	for _, v in getfenv().getnilinstances() do
 		if v:IsA("RemoteFunction") then
@@ -51,7 +51,7 @@ if deleted == nil and getfenv().getnilinstances then
 		end
 	end
 
-	getGlobalTable().deleted = deleted
+	getGlobalTable().pressureBanReal = deleted
 end
 
 espLib.Values = vals.ESP
