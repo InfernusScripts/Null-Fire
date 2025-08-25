@@ -312,22 +312,26 @@ local function onMonster(obj)
 	if obj:IsA("Part") then -- is node monster
 		table.insert(monsters, obj)
 	end
+
+	esp(obj, { HighlightEnabled = obj.Name == "Eyefestation", Color = Color3.fromRGB(255, 0, 0), Text = insertCum(obj.Name), ESPName = "MonsterESP" })
+
+	if vals.NotifyMonsters then
+		task.spawn(lib.Notifications.Notification, lib.Notifications, { Title = "Monster spawned", Text = insertCum(obj.Name) })
+	end
 	
-	if obj.Name == "Eyefestation" and vals.AntiEyefestation then
-		obj:WaitForChild("Active", 9e9).Value = false
-		render(5)
-		obj:WaitForChild("Active", 9e9).Value = false
+	if (obj.Name:lower():match("eyefestation") or obj.Parent.Name:lower():match("eyefestation")) and vals.AntiEyefestation then
+		local active = obj:WaitForChild("Active", 9e9)
+		repeat task.wait() until active.Value
+		active.Value = false
+		renderWait(1)
+		active.Value = false
 		
 		local eyes = obj:WaitForChild("NonAnimated", 9e9):WaitForChild("Eyes", 9e9)
 		eyes.Changed:Connect(function()
 			esp(obj, { HighlightEnabled = false, Color = eyes.Color, Text = insertCum(obj.Name), ESPName = "MonsterESP" })
 		end)
-	end
-	
-	esp(obj, { HighlightEnabled = obj.Name == "Eyefestation", Color = Color3.fromRGB(255, 0, 0), Text = insertCum(obj.Name), ESPName = "MonsterESP" })
-
-	if vals.NotifyMonsters then
-		task.spawn(lib.Notifications.Notification, lib.Notifications, { Title = "Monster spawned", Text = insertCum(obj.Name) })
+		
+		esp(obj, { HighlightEnabled = false, Color = eyes.Color, Text = insertCum(obj.Name), ESPName = "MonsterESP" })
 	end
 end
 
