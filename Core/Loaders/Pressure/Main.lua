@@ -10,12 +10,16 @@ local defaults = {
 	TeleportToDoorLock = false,
 
 	NoLocalDamage = false,
+	AutoHide = false,
 
 	AntiSearchlights = false,
+	AntiEyefestation = false,
 
 	ExtraPrompt = 0,
 	InstantInteract = false,
+	AutoGrabCurrency = false,
 	NotifyMonsters = false,
+	SpectateEntity = false,
 	BetterDoors = false
 }
 
@@ -26,6 +30,7 @@ local function getGlobalTable()
 	return typeof(getfenv().getgenv) == "function" and typeof(getfenv().getgenv()) == "table" and getfenv().getgenv() or _G
 end
 
+getGlobalTable().GameName = "true"
 getGlobalTable().FireHubLoaded = true
 
 local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Fire-Lib/Main.lua", true))()
@@ -38,7 +43,7 @@ local fireproximityprompt = function(...)
 end
 
 local deleted = not not getGlobalTable().deleted
-if not deleted and getfenv().getnilinstances then
+if deleted == nil and getfenv().getnilinstances then
 	for _, v in getfenv().getnilinstances() do
 		if v:IsA("RemoteFunction") then
 			pcall(v.Destroy, v)
@@ -60,6 +65,9 @@ local function render(times)
 	end
 	return dt / times
 end
+
+local spectateObject = nil
+local viewOffset = Vector3.new()
 
 local function renderWait(time)
 	local start = tick()
@@ -129,7 +137,8 @@ local function blockInstance(object, condition, reversed, dontCreateClone)
 	end
 
 	while not closed do
-		if not pcall(parentUpdate, object, ((not reversed and (not vals[condition])) or (reversed and vals[condition])) and oldParent or nil) then
+		local targetParent = ((not reversed and (not vals[condition])) or (reversed and vals[condition])) and oldParent or nil
+		if not pcall(parentUpdate, object, targetParent) or object.Parent ~= targetParent then
 			break
 		end
 
@@ -149,24 +158,6 @@ local function blockInstance(object, condition, reversed, dontCreateClone)
 	pcall(parentUpdate, object, oldParent)
 end
 
-local function fireBlockedEvent(eventName, ...)
-	local event = blockedEvents[eventName] or copies[eventName] or eventName
-
-	if event then
-		if not event.Parent then
-			event.Parent = game:GetService("TestService")
-		end
-
-		task.delay(0, changedEvent.Fire, changedEvent)
-
-		if event:IsA("RemoteEvent") or event:IsA("UnreliableRemoteEvent") then
-			return event:FireServer(...)
-		else
-			return event:InvokeServer(...)
-		end
-	end
-end
-
 local oldValues = table.clone(vals)
 
 task.spawn(function()
@@ -177,12 +168,13 @@ task.spawn(function()
 		for i, v in vals do
 			if oldValues[i] ~= v then
 				changedEvent:Fire()
+				
+				for id, va in vals do
+					oldValues[id] = va
+				end
+				
 				break
 			end
-		end
-
-		for i, v in vals do
-			oldValues[i] = v
 		end
 
 		if idx == 0 then
@@ -195,8 +187,15 @@ local plr = game:GetService("Players").LocalPlayer
 local events = game:GetService("ReplicatedStorage").Events
 
 task.spawn(blockInstance, events.LocalDamage, "NoLocalDamage")
+local monsters = { }
+
+local function waitUntilSafe()
+	while #monsters ~= 0 do renderWait(0) end
+end
 
 local function bruteforce(obj, dontTP)
+	waitUntilSafe()
+	
 	local tped = false
 	local oldPosition = plr.Character:GetPivot()
 	if vals.TeleportToDoorLock and not dontTP then
@@ -209,7 +208,7 @@ local function bruteforce(obj, dontTP)
 
 	local atStart = false
 	if obj and obj.Parent and not closed then
-		for i=0, string.rep("9", (obj:FindFirstAncestorOfClass("Model"):GetAttribute("MaxIndex") or 4)) do
+		for i=0, string.rep("9", ((obj:FindFirstAncestorOfClass("Model") or obj):GetAttribute("MaxIndex") or 4)) do
 			if obj.Parent.KeycardUnlocking.Playing or obj.Parent.KeycardUnlock.Playing or obj:FindFirstAncestorOfClass("Model").Parent:FindFirstChild("OpenValue", math.huge).Value then
 				atStart = i < 75
 				break
@@ -272,6 +271,14 @@ local function getColor(obj)
 		return Color3.fromRGB(200, 255, 170)
 	elseif obj.Name == "CodeBreacher" or obj.Name == "ToyRemote" then
 		return Color3.fromRGB(125, 0, 0)
+	elseif obj.Name == "HighLight" then
+		return Color3.fromRGB(170, 85, 255)
+	elseif obj.Name == "Defib" then
+		return Color3.fromRGB(85, 255, 255)
+	elseif obj.Name:lower():match("crate") then
+		return Color3.fromRGB(0, 170, 127)
+	elseif obj.Name:lower():match("battery") then
+		return Color3.fromRGB(170, 85, 0)
 	end
 	
 	return Color3.new(0.8, 0.8, 0.8)
@@ -283,28 +290,66 @@ local function getText(obj)
 		return "$" .. money
 	elseif obj.Name == "SPRINT" then
 		return "Sprint"
+	elseif obj.Name == "HighLight" then
+		return "Highlight"
+	elseif obj.Name == "Defib" then
+		return "Defibrillator"
+	elseif obj.Name:lower():match("crate") then
+		return "Crate"
+	elseif obj.Name:lower():match("battery") then
+		return "Battery"
 	end
 	
-	return insertCum(obj.Name)
+	return insertCum(obj.Name):gsub("Crate ", ""):gsub("Big ", ""):gsub("Large ", ""):gsub("Small ", "")
 end
 
+local notified = { }
+
+local function onMonster(obj)
+	if notified[obj] then return end
+	notified[obj] = true
+	
+	if obj:IsA("Part") then -- is node monster
+		table.insert(monsters, obj)
+	end
+	
+	if obj.Name == "Eyefestation" and vals.AntiEyefestation then
+		obj:WaitForChild("Active", 9e9).Value = false
+		render(5)
+		obj:WaitForChild("Active", 9e9).Value = false
+		
+		local eyes = obj:WaitForChild("NonAnimated", 9e9):WaitForChild("Eyes", 9e9)
+		eyes.Changed:Connect(function()
+			esp(obj, { HighlightEnabled = false, Color = eyes.Color, Text = insertCum(obj.Name), ESPName = "MonsterESP" })
+		end)
+	end
+	
+	esp(obj, { HighlightEnabled = obj.Name == "Eyefestation", Color = Color3.fromRGB(255, 0, 0), Text = insertCum(obj.Name), ESPName = "MonsterESP" })
+
+	if vals.NotifyMonsters then
+		task.spawn(lib.Notifications.Notification, lib.Notifications, { Title = "Monster spawned", Text = insertCum(obj.Name) })
+	end
+end
+
+local e = game:GetService("ReplicatedStorage").Events.CurrentRoomNumber
+local cr = e:InvokeServer()
+task.spawn(function()
+	while not closed do
+		cr = e:InvokeServer()
+	end
+end)
+
+local money = { }
 local function object(obj)
 	if obj and obj.Parent then
 		if obj:IsA("Model") then
 			if obj.Parent.Name == "Entrances" then
-				local roomNum = obj.Parent.Parent:WaitForChild("Lights", 1)
-				if roomNum then
-					roomNum = roomNum:WaitForChild("Sign", 1)
-					if roomNum then
-						roomNum = roomNum.SurfaceGui.TextLabel.Text
-						if tonumber(roomNum) then
-							roomNum = tonumber(roomNum) - 1
-						end
-					end
-				end
-				
-				esp(obj:WaitForChild("Door", 1) or obj, {HighlightEnabled = true, Color = obj:FindFirstChild("Lock", math.huge) and Color3.fromRGB(100, 175, 255) or Color3.fromRGB(0, 255, 100), Text = "Room" .. (roomNum and " " .. roomNum or "") .. (obj:FindFirstChild("Lock", math.huge) and "\n[ Locked ]" or ""), ESPName = "DoorESP"})
+				esp(obj:WaitForChild("Door", 2.5) or obj, { HighlightEnabled = true, Color = obj:FindFirstChild("Lock", math.huge) and Color3.fromRGB(100, 175, 255) or Color3.fromRGB(0, 255, 100), Text = "Room " .. (cr + 1) .. (obj:FindFirstChild("Lock", math.huge) and "\n[ Locked ]" or ""), ESPName = "DoorESP" })
+			elseif obj.Parent == workspace.GameplayFolder.Monsters or obj.Name == "Eyefestation" then
+				onMonster(obj)
 			end
+		elseif obj:IsA("Sound") and obj.Parent:IsA("BasePart") and not obj.Parent.Name:lower():match("ambience") and obj.Parent.Name ~= "Part" and obj.Parent.Name ~= "Vent" and (obj.Parent.Parent == workspace or obj.Parent.Parent == workspace.GameplayFolder.Monsters) then
+			onMonster(obj.Parent)
 		elseif obj:IsA("ProximityPrompt") then
 			originalDistances[obj] = obj.MaxActivationDistance
 			obj.MaxActivationDistance *= (vals.ExtraPrompt / 100) + 1
@@ -312,7 +357,12 @@ local function object(obj)
 			if obj.Parent.Name == "Root" and obj.Parent.Parent:IsA("Model") then
 				doors[#doors + 1] = obj
 			elseif obj.Parent.Name == "ProxyPart" and obj.Parent.Parent:IsA("Model") then
-				esp(obj.Parent.Parent, {HighlightEnabled = false, Color = getColor(obj.Parent.Parent), Text = getText(obj.Parent.Parent), ESPName = (obj.Parent.Parent:GetAttribute("Amount") and "Currency" or "Item") .. "ESP"})
+				local currency = obj.Parent.Parent:GetAttribute("Amount")
+				if currency then
+					table.insert(money, obj)
+				end
+				
+				esp(obj.Parent.Parent, {HighlightEnabled = false, Color = getColor(obj.Parent.Parent), Text = getText(obj.Parent.Parent), ESPName = (currency and "Currency" or "Item") .. "ESP"})
 			end
 		elseif obj:IsA("RemoteEvent") then
 			if obj.Parent:IsA("Part") and obj.Name == "RemoteEvent" and obj.Parent.Name:lower():match("searchlight") then
@@ -359,13 +409,6 @@ local function object(obj)
 					plr.Character:PivotTo(oldPosition)
 				end
 			end
-		elseif obj:IsA("Beam") then
-			if obj.Name == obj.Parent.Name then
-				esp(obj.Parent, {HighlightEnabled = false, Color = Color3.fromRGB(255, 0, 0), Text = insertCum(obj.Name), ESPName = "MonsterESP"})
-				if vals.NotifyMonsters then
-					lib.Notifications:Notification({Title = "Monster spawned", Text = "Hide from " .. insertCum(obj.Name) .. " ig" })
-				end
-			end
 		end
 	end
 end
@@ -378,10 +421,12 @@ cons[#cons + 1] = workspace.DescendantAdded:Connect(object)
 cons[#cons + 1] = game:GetService("ProximityPromptService").PromptButtonHoldBegan:Connect(function(prompt)
 	if vals.InstantInteract then
 		prompt:InputHoldEnd()
+		task.wait()
 		fireproximityprompt(prompt)
 	end
 end)
 
+local oldPos
 cons[#cons + 1] = rs.RenderStepped:Connect(function(dt)
 	if vals.BetterDoors then
 		for idx, doorPrompt in doors do
@@ -393,10 +438,45 @@ cons[#cons + 1] = rs.RenderStepped:Connect(function(dt)
 			end
 		end
 	end
-end)
-
-task.spawn(function()
-	while task.wait(1) and not closed do
+	
+	if vals.AutoGrabCurrency then
+		for i, v in money do
+			if not v or not v.Parent then
+				table.remove(money, i)
+				break
+			else
+				fireproximityprompt(v, false)
+			end
+		end
+	end
+	
+	for i, v in monsters do
+		if not v or not v.Parent then
+			table.remove(monsters, i)
+			break
+		end
+	end
+	
+	if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+		if vals.AutoHide then
+			if #monsters > 0 then
+				oldPos = oldPos or plr.Character:GetPivot()
+				plr.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new()
+				plr.Character:PivotTo(oldPos + Vector3.new(0, 250))
+				
+				spectateObject = vals.SpectateEntity and monsters[1] or nil
+				viewOffset = Vector3.new(0, 5)
+			elseif oldPos then
+				plr.Character:PivotTo(oldPos)
+				oldPos = nil
+			end
+		end
+	end
+	
+	if workspace.CurrentCamera and spectateObject and spectateObject.Parent then
+		workspace.CurrentCamera.CFrame = CFrame.lookAt(spectateObject:GetPivot().Position + viewOffset - (workspace.CurrentCamera.CFrame.LookVector * 15), spectateObject:GetPivot().Position + viewOffset)
+	else
+		spectateObject = nil
 	end
 end)
 
@@ -442,15 +522,33 @@ if deleted then
 	page:AddToggle({Caption = "No damage", Default = false, Callback = function(b)
 		vals.NoLocalDamage = b
 	end})
+	page:AddLabel({Caption = "NOTE: If your executor is bad (Solara, Xeno), better DON'T USE No Damage"})
+	page:AddLabel({Caption = "Using No damage on a bad executor will have high risk of getting banned"})
+
+	page:AddSeparator()
 end
+
+page:AddToggle({Caption = "Auto hide", Default = false, Callback = function(b)
+	vals.AutoHide = b
+end})
+page:AddToggle({Caption = "Spectate entity while auto hiding", Default = false, Callback = function(b)
+	vals.SpectateEntity = b
+end})
 
 page:AddSeparator()
 
-page:AddToggle({Caption = "Anti searchlights", Default = false, Callback = function(b)
+page:AddToggle({Caption = "Anti Searchlights", Default = false, Callback = function(b)
 	vals.AntiSearchlights = b
+end})
+page:AddToggle({Caption = "Anti Eyefestation", Default = false, Callback = function(b)
+	vals.AntiEyefestation = b
 end})
 
 local page = window:AddPage({Title = "Interact"})
+page:AddToggle({Caption = "Auto loot currency", Default = false, Callback = function(b)
+	vals.AutoGrabCurrency = b
+end})
+page:AddSeparator()
 page:AddToggle({Caption = "Instant proximity prompt interact", Default = false, Callback = function(b)
 	vals.InstantInteract = b
 end})
