@@ -125,7 +125,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
 					v.CanCollide = oldCanCollide[v]
 				end
 			else
-				print("removed", i)
+				print("removed part #", i)
 				table.remove(tornado._PartList, i)
 			end
 		end
