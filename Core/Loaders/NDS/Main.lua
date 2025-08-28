@@ -26,7 +26,8 @@ local defaults = {
 	FixBalloon = true,
 	PA = false,
 	PAR = 25,
-	PAP = 10
+	PAP = 10,
+	ClickLocation = false
 }
 local vals = table.clone(defaults)
 
@@ -60,6 +61,7 @@ end)
 
 local closed = false
 local cons = {}
+
 fakeChar = Instance.new("Model")
 fakeChar.Name = plr.Name.."_FAKE"
 local fakeHrp = Instance.new("Part", fakeChar)
@@ -176,6 +178,17 @@ local d = 3
 local td = 128
 local none = {Name = "None"}
 
+local mouse = plr:GetMouse()
+local last = 0
+
+cons[#cons + 1] = mouse.Button1Down:Connect(function()
+	if (tick() - last) < 0.65 and vals.ClickLocation then
+		tornado.Properties.TargetLocation = not tornado.Properties.TargetLocation and mouse.Hit.Position or nil
+	end
+	
+	last = tick()
+end)
+
 cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function(delta)
 	delta = --(1 / delta) / 60
 		1
@@ -205,6 +218,8 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function(del
 	if realCharacter then
 		if realCharacter:FindFirstChild("Humanoid") then
 			fakeHum.HipHeight = realCharacter.Humanoid.HipHeight
+			fakeHum.RigType = realCharacter.Humanoid.RigType
+			
 			realCharacter:FindFirstChild("Humanoid").WalkSpeed = vals.ws / delta
 			realCharacter:FindFirstChild("Humanoid").JumpPower = vals.jp / delta
 		end
@@ -596,6 +611,10 @@ end})
 page:AddSeparator()
 page:AddToggle({Caption = "Reverse layers", Default = tornado.Properties.Enabled, Callback = function(b)
 	tornado.Properties.ReverseLayers = b
+end})
+page:AddToggle({Caption = "Double click to navigate parts", Default = tornado.Properties.Enabled, Callback = function(b)
+	vals.ClickLocation = b
+	tornado.Properties.TargetLocation = nil
 end})
 page:AddSeparator()
 page:AddLabel({Caption = "Push aura"})
