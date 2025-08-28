@@ -94,7 +94,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
 		local center = plr.Character:GetPivot().Position
 		local i = 1
 		while i <= #tornado._PartList do
-			local v = tornado._PartList[i
+			local v = tornado._PartList[i]
 			if v and v.Parent and v:IsDescendantOf(workspace) then
 				i += 1
 				if tornado.Properties.Enabled and not v:IsGrounded() and network:IsNetworkOwner(v) and oldCanCollide[v] ~= nil then -- i have no clue if my tornado works
