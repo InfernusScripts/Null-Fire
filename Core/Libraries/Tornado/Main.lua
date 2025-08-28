@@ -93,7 +93,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
 	if plr.Character then
 		local center = plr.Character:GetPivot().Position
 		for i, v in tornado._PartList do
-			if v and v.Parent then
+			if v and v.Parent and v:IsDescendantOf(workspace) then
 				if tornado.Properties.Enabled and not v:IsGrounded() and network:IsNetworkOwner(v) and oldCanCollide[v] ~= nil then -- i have no clue if my tornado works
 					rotationPowers[v] = rotationPowers[v] or vec(math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100))
 					v.CanCollide = false
@@ -114,7 +114,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
 							center.Z + math.sin(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * tornado.Properties.LayerModifier, 1))
 							) - v.Position).Unit * ((tornado.Properties.Speed * tornado.Properties.Radius) * (math.max(layer, 2) / 2))
 					else
-						v.AssemblyLinearVelocity = CFrame.lookAt(v.Position, tornado.Properties.TargetLocation).LookVector * tornado.Properties.Speed
+						v.AssemblyLinearVelocity = CFrame.lookAt(v.Position, tornado.Properties.TargetLocation).LookVector * (tornado.Properties.Speed * 10)
 					end
 
 					v.AssemblyAngularVelocity += rotationPowers[v] / 10
@@ -122,7 +122,8 @@ game:GetService("RunService").RenderStepped:Connect(function()
 					v.CanCollide = oldCanCollide[v]
 				end
 			else
-				pcall(table.remove, tornado._PartList, table.find(tornado._PartList, v))
+				table.remove(tornado._PartList, i)
+				break
 			end
 		end
 	end
