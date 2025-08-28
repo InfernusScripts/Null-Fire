@@ -123,6 +123,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
 				end
 			else
 				table.remove(tornado._PartList, i)
+				print("removed", i)
 				break
 			end
 		end
