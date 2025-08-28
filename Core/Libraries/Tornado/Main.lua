@@ -6,11 +6,12 @@ if getGlobalTable().TornadoFE then
 	return getGlobalTable().TornadoFE
 end
 
-local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Network/Main.lua"))()
+local network = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Tornado/NetworkModule.lua"))()
 local plr = game:GetService("Players").LocalPlayer
 
 local vec = vector and vector.create or Vector3.new
 local oldCanCollide = {}
+local rotationPowers = {}
 
 local tornado = {
 	Tornado = function(self, part)
@@ -57,9 +58,11 @@ local tornado = {
 		Speed = 10,
 		Enabled = false,
 		Layers = 5,
+		RandomRotationPower = 30,
 		ReverseLayers = false,
 		LayerModifier = 1.05,
-		HeightLayerModifier = 2
+		HeightLayerModifier = 2,
+		TargetLocation = nil,
 	},
 
 	Network = network,
@@ -89,27 +92,32 @@ local tornado = {
 game:GetService("RunService").RenderStepped:Connect(function()
 	if plr.Character then
 		local center = plr.Character:GetPivot().Position
-		for i,v in tornado._PartList do
+		for i, v in tornado._PartList do
 			if v and v.Parent then
 				if tornado.Properties.Enabled and not v:IsGrounded() and network:IsNetworkOwner(v) and oldCanCollide[v] ~= nil then -- i have no clue if my tornado works
+					rotationPowers[v] = rotationPowers[v] or vec(math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100))
 					v.CanCollide = false
+					
+					if not tornado.Properties.TargetLocation then
+						local layer = math.min(math.floor((v.Size.Magnitude / 15) * tornado.Properties.Layers), tornado.Properties.Layers) - 1
+						if tornado.Properties.ReverseLayers then
+							layer = tornado.Properties.Layers - layer + 1
+						end
 
-					local layer = math.min(math.floor((v.Size.Magnitude / 15) * tornado.Properties.Layers), tornado.Properties.Layers) - 1
-					if tornado.Properties.ReverseLayers then
-						layer = tornado.Properties.Layers - layer + 1
+						local pos = v.Position
+						local distance = (vec(pos.X, center.Y, pos.Z) - center).Magnitude
+						local newAngle = math.atan2(pos.Z - center.Z, pos.X - center.X) + math.rad(tornado.Properties.Speed)
+
+						v.AssemblyLinearVelocity = (vec(
+							center.X + math.cos(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * tornado.Properties.LayerModifier, 1)),
+							center.Y + math.abs(math.sin(pos.Y - center.Y + (layer * tornado.Properties.HeightLayerModifier))),
+							center.Z + math.sin(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * tornado.Properties.LayerModifier, 1))
+							) - v.Position).Unit * ((tornado.Properties.Speed * tornado.Properties.Radius) * (math.max(layer, 2) / 2))
+					else
+						v.AssemblyLinearVelocity = CFrame.lookAt(v.Position, tornado.Properties.TargetLocation).LookVector * tornado.Properties.Speed
 					end
 
-					local pos = v.Position
-					local distance = (vec(pos.X, center.Y, pos.Z) - center).Magnitude
-					local newAngle = math.atan2(pos.Z - center.Z, pos.X - center.X) + math.rad(tornado.Properties.Speed)
-
-					v.AssemblyLinearVelocity = (vec(
-						center.X + math.cos(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * tornado.Properties.LayerModifier, 1)),
-						center.Y + math.abs(math.sin(pos.Y - center.Y + (layer * tornado.Properties.HeightLayerModifier))),
-						center.Z + math.sin(newAngle) * (math.min(tornado.Properties.Radius, distance) * math.max(layer * tornado.Properties.LayerModifier, 1))
-						) - v.Position).Unit * ((tornado.Properties.Speed * tornado.Properties.Radius) * (math.max(layer, 2) / 2))
-					
-					v.AssemblyAngularVelocity = vec(12, 23, 34)
+					v.AssemblyAngularVelocity += rotationPowers[v] / 10
 				else
 					v.CanCollide = oldCanCollide[v]
 				end
