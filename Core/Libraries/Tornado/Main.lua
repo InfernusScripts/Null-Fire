@@ -92,8 +92,11 @@ local tornado = {
 game:GetService("RunService").RenderStepped:Connect(function()
 	if plr.Character then
 		local center = plr.Character:GetPivot().Position
-		for i, v in tornado._PartList do
+		local i = 1
+		while i <= #tornado._PartList do
+			local v = tornado._PartList[i
 			if v and v.Parent and v:IsDescendantOf(workspace) then
+				i += 1
 				if tornado.Properties.Enabled and not v:IsGrounded() and network:IsNetworkOwner(v) and oldCanCollide[v] ~= nil then -- i have no clue if my tornado works
 					rotationPowers[v] = rotationPowers[v] or vec(math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100), math.random(-(tornado.Properties.RandomRotationPower * 100), tornado.Properties.RandomRotationPower * 100))
 					v.CanCollide = false
@@ -122,9 +125,8 @@ game:GetService("RunService").RenderStepped:Connect(function()
 					v.CanCollide = oldCanCollide[v]
 				end
 			else
-				table.remove(tornado._PartList, i)
 				print("removed", i)
-				break
+				table.remove(tornado._PartList, i)
 			end
 		end
 	end
