@@ -39,7 +39,7 @@ getGlobalTable().FireHubLoaded = true
 
 local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Fire-Lib/Main.lua"))()
 local txtf = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/main/Core/Libraries/Side-Text/Main.lua"))()
-local tornado = loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Tornado/Main.lua"))()
+local tornado = getGlobalTable().TornadoFE or loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Null-Fire/refs/heads/main/Core/Libraries/Tornado/Main.lua"))()
 
 local plr = game:GetService("Players").LocalPlayer
 local realCharacter = plr.Character or plr.CharacterAdded:Wait()
@@ -333,10 +333,10 @@ cons[#cons+1] = game:GetService("RunService").RenderStepped:Connect(function(del
 				end
 			end
 		end
-		if v ~= plr and v.Character:FindFirstChild("HumanoidRootPart") and not vals.AntiFling2 then
+		if v ~= plr and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and not vals.AntiFling2 then
 			v.Character.HumanoidRootPart.CanCollide = true
 		end
-		if v.Character:FindFirstChild("SurvivalTag") and v.Character.SurvivalTag.Value ~= "" then
+		if v and v.Character and v.Character:FindFirstChild("SurvivalTag") and v.Character.SurvivalTag.Value ~= "" then
 			disaster = v.Character.SurvivalTag.Value
 		end
 	end
