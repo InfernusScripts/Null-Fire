@@ -39,6 +39,9 @@ local syntaxColors = { -- optional, if you won't pass it in codeBox:new or codeB
 	WidthDivider = 2
 }
 
+-- theres some premade themes you can find in `codeBox.Themes`
+-- default theme can be found at `codeBox.SyntaxColors`
+
 local highlightFunctions = { -- if not defined, it will use Luau's environment
     ["print"] = true,
     ["error"] = true,
