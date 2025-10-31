@@ -90,7 +90,7 @@ local themes = table.freeze({
 		WidthDivider = 2
 	}),
 	["Light"] = table.freeze({
-		Text = Color3.fromRGB(0, 0, 0),
+		Text = Color3.fromRGB(20, 15, 26),
 		Background = Color3.fromRGB(255, 255, 255),
 		SelectedText = Color3.fromRGB(255, 255, 255),
 		SelectionBack = Color3.fromRGB(0, 120, 215),
@@ -1390,7 +1390,7 @@ Lib.CodeFrame = (function()
 			obj.GuiElems.Cursor.Visible = obj.Autocompleting
 		end)
 
-		editBox:GetPropertyChangedSignal("CursorPosition"):Connect(function()
+		editBox.Changed:Connect(function()
 			if editBox.CursorPosition ~= -1 then
 				editBox.CursorPosition = math.max(2, editBox.CursorPosition)
 			end
@@ -1429,13 +1429,15 @@ Lib.CodeFrame = (function()
 				local cursorShiftX = 0
 				local cursorShiftY = 0
 
-				local ri = table.find(repeatIgnores, nextSymbol)
-				if ri then
-					local ri2 = table.find(repeatIgnores, text)
-					if ri2 then
-						if ri == ri2 then
-							text = ""
-							cursorShiftX = 1
+				if obj.AutoFill then
+					local ri = table.find(repeatIgnores, nextSymbol)
+					if ri then
+						local ri2 = table.find(repeatIgnores, text)
+						if ri2 then
+							if ri == ri2 then
+								text = ""
+								cursorShiftX = 1
+							end
 						end
 					end
 				end
@@ -1468,19 +1470,64 @@ Lib.CodeFrame = (function()
 				if text:sub(-1) == "\n" and oldLine then
 					resetAutocomplete(obj)
 
-					local indent = ""
+					if obj.AutoFill then
+						local indent = ""
 
-					for i = 1, #oldLine do
-						local sub = oldLine:sub(i,i)
+						for i = 1, #oldLine do
+							local sub = oldLine:sub(i,i)
 
-						if sub == " " or sub == "\t" then
-							indent ..= sub
-						else
-							break
+							if sub == " " or sub == "\t" then
+								indent ..= sub
+							else
+								break
+							end
+						end
+
+						if indent == "" then
+							local cursorText = table.concat(obj.Lines, "\n", 1, obj.CursorY + 1)
+							local indentRep = 0
+
+							for _, v in indentAdd do
+								indentRep += simpleCount(cursorText, v)
+							end
+
+							for _, v in indentRemove do
+								indentRep -= simpleCount(cursorText, v)
+							end
+
+							indent = string.rep(tabReplace, indentRep)
+						end
+
+						text ..= indent
+					end
+				end
+
+				local trimmed = oldLine:gsub("^[ \t]*(.-)[ \t]*$", "%1")
+				local last = trimmed:split(" ")
+				last = last[#last]
+
+				if obj.AutoFill then
+					local autocomplete = autocompletes[trimmed] or autocompletes[text] or autocompletes[last]
+					if not autocomplete then
+						local text = table.concat(obj.Lines, "\n")
+						local indentRep = 0
+
+						for _, v in indentAdd do
+							indentRep += simpleCount(text, v)
+						end
+
+						for _, v in indentRemove do
+							indentRep -= simpleCount(text, v)
+						end
+						
+						if indentRep > 0 then
+							autocomplete = "%s\n%send"
 						end
 					end
+					
+					local hasNewline = autocomplete and autocomplete:find("\n", 1, true) ~= nil
 
-					if indent == "" then
+					if autocomplete and (hasNewline and originalText:sub(-1) == "\n" or not hasNewline) then
 						local cursorText = table.concat(obj.Lines, "\n", 1, obj.CursorY + 1)
 						local indentRep = 0
 
@@ -1492,52 +1539,11 @@ Lib.CodeFrame = (function()
 							indentRep -= simpleCount(cursorText, v)
 						end
 
-						indent = string.rep(tabReplace, indentRep)
+						cursorShiftY = hasNewline and -1 or  0
+						cursorShiftX = hasNewline and  1 or -1
+
+						text ..= autocomplete:format(string.rep(tabReplace, indentRep - 1), string.rep(tabReplace, indentRep - 1))
 					end
-
-					text ..= indent
-				end
-
-				local trimmed = oldLine:gsub("^[ \t]*(.-)[ \t]*$", "%1")
-				local last = trimmed:split(" ")
-				last = last[#last]
-
-				local autocomplete = autocompletes[trimmed] or autocompletes[text] or autocompletes[last]
-				if not autocomplete then
-					local text = table.concat(obj.Lines, "\n")
-					local indentRep = 0
-
-					for _, v in indentAdd do
-						indentRep += simpleCount(text, v)
-					end
-
-					for _, v in indentRemove do
-						indentRep -= simpleCount(text, v)
-					end
-					
-					if indentRep > 0 then
-						autocomplete = "%s\n%send"
-					end
-				end
-				
-				local hasNewline = autocomplete and autocomplete:find("\n", 1, true) ~= nil
-
-				if autocomplete and (hasNewline and originalText:sub(-1) == "\n" or not hasNewline) then
-					local cursorText = table.concat(obj.Lines, "\n", 1, obj.CursorY + 1)
-					local indentRep = 0
-
-					for _, v in indentAdd do
-						indentRep += simpleCount(cursorText, v)
-					end
-
-					for _, v in indentRemove do
-						indentRep -= simpleCount(cursorText, v)
-					end
-
-					cursorShiftY = hasNewline and -1 or  0
-					cursorShiftX = hasNewline and  1 or -1
-
-					text ..= autocomplete:format(string.rep(tabReplace, indentRep - 1), string.rep(tabReplace, indentRep - 1))
 				end
 
 				obj:AppendText(text)
@@ -1681,6 +1687,10 @@ Lib.CodeFrame = (function()
 	end
 
 	local function makeFrame(obj)
+		obj.SyntaxHighlight = true
+		obj.PreviousSyntaxHighlight = obj.SyntaxHighlight
+		obj.AutoFill = true
+		
 		local frame = create({
 			{1,"TextButton",{AutoButtonColor=false,Name="CodeBox",Text="",BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400)}},
 		})
@@ -2670,6 +2680,11 @@ Lib.CodeFrame = (function()
 	end
 
 	funcs.Refresh = function(self)
+		if self.PreviousSyntaxHighlight ~= self.SyntaxHighlight then
+			self.PreviousSyntaxHighlight = self.SyntaxHighlight
+			self:MakeRichTemplates()
+		end
+		
 		local start = tick()
 
 		local linesFrame = self.Frame.Lines
@@ -2907,12 +2922,16 @@ Lib.CodeFrame = (function()
 
 		for name,color in self.Colors do
 			if typeof(color) == "Color3" then
-				local rich = ('<font color="rgb(%s,%s,%s)">'):format(floor(color.r*255),floor(color.g*255),floor(color.b*255))
-				if table.find(bold, name) then
-					rich = "<b>" .. rich
-				end
+				if self.SyntaxHighlight then
+					local rich = ('<font color="rgb(%s,%s,%s)">'):format(floor(color.r*255),floor(color.g*255),floor(color.b*255))
+					if table.find(bold, name) then
+						rich = "<b>" .. rich
+					end
 
-				templates[name] = rich
+					templates[name] = rich
+				else
+					templates[name] = ""
+				end
 			end
 		end
 
@@ -3010,6 +3029,10 @@ local metaNew = function(...)
 		__index = function(self, index)
 			if index == "Text" then
 				return new:GetText()
+			elseif index == "TextEditorMode" then
+				return not new.AutocompleteEnabled and not new.SyntaxHighlight and not new.AutoFill
+			elseif index == "CodeEditorMode" then
+				return not self.TextEditorMode
 			end
 
 			local r = new[index]
@@ -3018,6 +3041,17 @@ local metaNew = function(...)
 		__newindex = function(self, index, value)
 			if index == "Text" then
 				return new:SetText(value)
+			elseif index == "SyntaxHighlight" then
+				new[index] = value
+				return new:Refresh()
+			elseif index == "TextEditorMode" then
+				self.AutocompleteEnabled = not value
+				self.SyntaxHighlight = not value
+				self.AutoFill = not value
+				return
+			elseif index == "CodeEditorMode" then
+				self.TextEditorMode = not value
+				return
 			end
 
 			if pcall(get, new.Frame, index) then
