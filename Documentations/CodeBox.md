@@ -57,7 +57,7 @@ local editor = codeBox:fromTextBox(myTextBox, syntaxColors, highlightFunctions)
 ### Functions
 ```lua
 editor.Text = "Hi!!"
-editor:ApplyTheme()
+editor:ApplyTheme(syntaxColors)
 editor:MoveCursor(cursorX, cursorY) -- indexes start from 0, not 1
 editor:JumpToCursor() -- scrolls contents until mouse is visible
 editor.CursorX, editor.CursorY
