@@ -1,35 +1,300 @@
 -- Credits to DEX EXPLORER script for syntax highlight!
 -- Made by @cherry_peashooter on discord
 
-local syntaxColors = { -- beautiful blue-purple theme
-	Text = Color3.fromRGB(204, 204, 204),
-	Background = Color3.fromRGB(18, 18, 25),
-	Selection = Color3.fromRGB(255, 255, 255),
-	SelectionBack = Color3.fromRGB(66, 0, 50),
-	Operator = Color3.fromRGB(204, 204, 204),
-	Number = Color3.fromRGB(170, 170, 255),
-	String = Color3.fromRGB(255, 85, 255),
-	Comment = Color3.fromRGB(102,102,102),
-	Keyword = Color3.fromRGB(200, 0, 255),
-	Error = Color3.fromRGB(255, 0, 0),
-	FindBackground = Color3.fromRGB(255, 170, 0),
-	MatchingWord = Color3.fromRGB(85, 85, 85),
-	BuiltIn = Color3.fromRGB(170, 85, 255),
-	CurrentLine = Color3.fromRGB(45, 50, 65),
-	LocalMethod = Color3.fromRGB(255, 170, 255),
-	LocalProperty = Color3.fromRGB(255, 170, 255),
-	Nil = Color3.fromRGB(255, 100, 175),
-	Bool = Color3.fromRGB(255, 100, 175),
-	Function = Color3.fromRGB(255, 0, 127),
-	Local = Color3.fromRGB(255, 0, 127),
-	Self = Color3.fromRGB(255, 0, 127),
-	FunctionName = Color3.fromRGB(255, 170, 255),
-	Bracket = Color3.fromRGB(204, 204, 204),
+local themes = table.freeze({
+	["Galaxy"] = table.freeze({
+		Text = Color3.fromRGB(204, 204, 204),
+		Background = Color3.fromRGB(18, 18, 25),
+		SelectedText = Color3.fromRGB(255, 255, 255),
+		SelectionBack = Color3.fromRGB(66, 0, 50),
+		Operator = Color3.fromRGB(204, 204, 204),
+		Number = Color3.fromRGB(170, 170, 255),
+		String = Color3.fromRGB(255, 85, 255),
+		Comment = Color3.fromRGB(102,102,102),
+		Keyword = Color3.fromRGB(200, 0, 255),
+		Error = Color3.fromRGB(255, 0, 0),
+		FindBackground = Color3.fromRGB(255, 170, 0),
+		MatchingWord = Color3.fromRGB(85, 85, 85),
+		BuiltIn = Color3.fromRGB(170, 85, 255),
+		CurrentLine = Color3.fromRGB(45, 50, 65),
+		LocalMethod = Color3.fromRGB(255, 170, 255),
+		LocalProperty = Color3.fromRGB(255, 170, 255),
+		Nil = Color3.fromRGB(255, 100, 175),
+		Bool = Color3.fromRGB(255, 100, 175),
+		Function = Color3.fromRGB(255, 0, 127),
+		Local = Color3.fromRGB(255, 0, 127),
+		Self = Color3.fromRGB(255, 0, 127),
+		FunctionName = Color3.fromRGB(255, 170, 255),
+		Bracket = Color3.fromRGB(204, 204, 204),
 
-	Transparency = 0,
-	Font = Enum.Font.Code,
-	WidthDivider = 2
-}
+		Transparency = 0,
+		Font = Enum.Font.Code,
+		WidthDivider = 2
+	}),
+	["VSCode"] = table.freeze({
+		Text = Color3.fromRGB(212, 212, 212),
+		Background = Color3.fromRGB(31, 31, 31),
+		SelectedText = Color3.fromRGB(200, 200, 255),
+		SelectionBack = Color3.fromRGB(45, 50, 65),
+		Operator = Color3.fromRGB(212, 212, 212),
+		Number = Color3.fromRGB(181, 206, 168),
+		String = Color3.fromRGB(206, 145, 120),
+		Comment = Color3.fromRGB(106, 153, 85),
+		Keyword = Color3.fromRGB(170, 104, 176),
+		Error = Color3.fromRGB(255, 0, 0),
+		FindBackground = Color3.fromRGB(255, 190, 110),
+		MatchingWord = Color3.fromRGB(100, 80, 100),
+		BuiltIn = Color3.fromRGB(142, 220, 254),
+		CurrentLine = Color3.fromRGB(45, 45, 45),
+		LocalMethod = Color3.fromRGB(220, 220, 170),
+		LocalProperty = Color3.fromRGB(158, 220, 254),
+		Nil = Color3.fromRGB(86, 156, 214),
+		Bool = Color3.fromRGB(86, 156, 214),
+		Function = Color3.fromRGB(170, 104, 176),
+		Local = Color3.fromRGB(86, 156, 214),
+		Self = Color3.fromRGB(86, 156, 214),
+		FunctionName = Color3.fromRGB(220, 220, 170),
+		Bracket = Color3.fromRGB(255, 220, 22),
+
+		Transparency = 0,
+		Font = Enum.Font.Code,
+		WidthDivider = 2
+	}),
+	["RobloxStudio"] = table.freeze({
+		Text = Color3.fromRGB(188, 190, 200),
+		Background = Color3.fromRGB(32, 34, 39),
+		SelectedText = Color3.fromRGB(255, 255, 255),
+		SelectionBack = Color3.fromRGB(19, 35, 93),
+		Operator = Color3.fromRGB(188, 190, 200),
+		Number = Color3.fromRGB(242, 186, 42),
+		String = Color3.fromRGB(142, 233, 182),
+		Comment = Color3.fromRGB(106, 111, 129),
+		Keyword = Color3.fromRGB(235, 121, 115),
+		Error = Color3.fromRGB(255, 0, 0),
+		FindBackground = Color3.fromRGB(151, 108, 0),
+		MatchingWord = Color3.fromRGB(73, 77, 90),
+		BuiltIn = Color3.fromRGB(143, 180, 255),
+		CurrentLine = Color3.fromRGB(53, 55, 65),
+		LocalMethod = Color3.fromRGB(250, 228, 170),
+		LocalProperty = Color3.fromRGB(112, 160, 255),
+		Nil = Color3.fromRGB(242, 186, 42),
+		Bool = Color3.fromRGB(242, 186, 42),
+		Function = Color3.fromRGB(235, 121, 115),
+		Local = Color3.fromRGB(235, 121, 115),
+		Self = Color3.fromRGB(235, 121, 115),
+		FunctionName = Color3.fromRGB(250, 228, 170),
+		Bracket = Color3.fromRGB(188, 190, 200),
+
+		Transparency = 0,
+		Font = Enum.Font.Code,
+		WidthDivider = 2
+	}),
+	["Light"] = table.freeze({
+		Text = Color3.fromRGB(0, 0, 0),
+		Background = Color3.fromRGB(255, 255, 255),
+		SelectedText = Color3.fromRGB(255, 255, 255),
+		SelectionBack = Color3.fromRGB(0, 120, 215),
+		Operator = Color3.fromRGB(0, 0, 0),
+		Number = Color3.fromRGB(0, 0, 255),
+		String = Color3.fromRGB(163, 21, 21),
+		Comment = Color3.fromRGB(0, 128, 0),
+		Keyword = Color3.fromRGB(0, 0, 139),
+		Error = Color3.fromRGB(255, 0, 0),
+		FindBackground = Color3.fromRGB(255, 255, 0),
+		MatchingWord = Color3.fromRGB(200, 200, 200),
+		BuiltIn = Color3.fromRGB(0, 0, 139),
+		CurrentLine = Color3.fromRGB(245, 245, 245),
+		LocalMethod = Color3.fromRGB(139, 69, 19),
+		LocalProperty = Color3.fromRGB(139, 69, 19),
+		Nil = Color3.fromRGB(128, 0, 128),
+		Bool = Color3.fromRGB(128, 0, 128),
+		Function = Color3.fromRGB(139, 0, 0),
+		Local = Color3.fromRGB(0, 0, 139),
+		Self = Color3.fromRGB(0, 0, 139),
+		FunctionName = Color3.fromRGB(139, 69, 19),
+		Bracket = Color3.fromRGB(0, 0, 0),
+
+		Transparency = 0,
+		Font = Enum.Font.Code,
+		WidthDivider = 2
+	}),
+	["Neon"] = table.freeze({
+		Text = Color3.fromRGB(0, 255, 255),
+		Background = Color3.fromRGB(0, 0, 0),
+		SelectedText = Color3.fromRGB(255, 255, 255),
+		SelectionBack = Color3.fromRGB(0, 255, 0),
+		Operator = Color3.fromRGB(255, 255, 255),
+		Number = Color3.fromRGB(255, 0, 255),
+		String = Color3.fromRGB(255, 255, 0),
+		Comment = Color3.fromRGB(0, 255, 0),
+		Keyword = Color3.fromRGB(255, 0, 0),
+		Error = Color3.fromRGB(255, 0, 0),
+		FindBackground = Color3.fromRGB(255, 255, 255),
+		MatchingWord = Color3.fromRGB(50, 50, 50),
+		BuiltIn = Color3.fromRGB(0, 255, 255),
+		CurrentLine = Color3.fromRGB(20, 20, 20),
+		LocalMethod = Color3.fromRGB(255, 165, 0),
+		LocalProperty = Color3.fromRGB(255, 165, 0),
+		Nil = Color3.fromRGB(255, 20, 147),
+		Bool = Color3.fromRGB(255, 20, 147),
+		Function = Color3.fromRGB(255, 255, 0),
+		Local = Color3.fromRGB(0, 255, 255),
+		Self = Color3.fromRGB(0, 255, 255),
+		FunctionName = Color3.fromRGB(255, 165, 0),
+		Bracket = Color3.fromRGB(255, 0, 255),
+
+		Transparency = 0,
+		Font = Enum.Font.Code,
+		WidthDivider = 2
+	}),
+	["Monokai"] = table.freeze({
+		Text = Color3.fromRGB(248, 248, 242),
+		Background = Color3.fromRGB(39, 40, 34),
+		SelectedText = Color3.fromRGB(255, 255, 255),
+		SelectionBack = Color3.fromRGB(73, 72, 62),
+		Operator = Color3.fromRGB(248, 248, 242),
+		Number = Color3.fromRGB(255, 121, 198),
+		String = Color3.fromRGB(230, 219, 116),
+		Comment = Color3.fromRGB(117, 113, 94),
+		Keyword = Color3.fromRGB(102, 217, 239),
+		Error = Color3.fromRGB(249, 38, 114),
+		FindBackground = Color3.fromRGB(255, 184, 108),
+		MatchingWord = Color3.fromRGB(85, 85, 85),
+		BuiltIn = Color3.fromRGB(166, 226, 46),
+		CurrentLine = Color3.fromRGB(62, 61, 50),
+		LocalMethod = Color3.fromRGB(253, 151, 31),
+		LocalProperty = Color3.fromRGB(253, 151, 31),
+		Nil = Color3.fromRGB(102, 217, 239),
+		Bool = Color3.fromRGB(102, 217, 239),
+		Function = Color3.fromRGB(253, 151, 31),
+		Local = Color3.fromRGB(102, 217, 239),
+		Self = Color3.fromRGB(102, 217, 239),
+		FunctionName = Color3.fromRGB(166, 226, 46),
+		Bracket = Color3.fromRGB(248, 248, 242),
+
+		Transparency = 0,
+		Font = Enum.Font.Code,
+		WidthDivider = 2
+	}),
+	["Retro"] = table.freeze({
+		Text = Color3.fromRGB(0, 0, 0),
+		Background = Color3.fromRGB(255, 253, 208),
+		SelectedText = Color3.fromRGB(255, 255, 255),
+		SelectionBack = Color3.fromRGB(255, 0, 255),
+		Operator = Color3.fromRGB(0, 0, 0),
+		Number = Color3.fromRGB(255, 0, 255),
+		String = Color3.fromRGB(255, 0, 0),
+		Comment = Color3.fromRGB(0, 128, 0),
+		Keyword = Color3.fromRGB(0, 0, 255),
+		Error = Color3.fromRGB(255, 0, 0),
+		FindBackground = Color3.fromRGB(255, 255, 0),
+		MatchingWord = Color3.fromRGB(200, 200, 200),
+		BuiltIn = Color3.fromRGB(128, 0, 128),
+		CurrentLine = Color3.fromRGB(245, 245, 220),
+		LocalMethod = Color3.fromRGB(255, 165, 0),
+		LocalProperty = Color3.fromRGB(255, 165, 0),
+		Nil = Color3.fromRGB(255, 20, 147),
+		Bool = Color3.fromRGB(255, 20, 147),
+		Function = Color3.fromRGB(0, 128, 0),
+		Local = Color3.fromRGB(0, 0, 255),
+		Self = Color3.fromRGB(0, 0, 255),
+		FunctionName = Color3.fromRGB(255, 165, 0),
+		Bracket = Color3.fromRGB(0, 0, 0),
+
+		Transparency = 0,
+		Font = Enum.Font.Code,
+		WidthDivider = 2
+	}),
+	["Dracula"] = table.freeze({
+		Text = Color3.fromRGB(248, 248, 242),
+		Background = Color3.fromRGB(40, 42, 54),
+		SelectedText = Color3.fromRGB(255, 255, 255),
+		SelectionBack = Color3.fromRGB(68, 71, 90),
+		Operator = Color3.fromRGB(248, 248, 242),
+		Number = Color3.fromRGB(189, 147, 249),
+		String = Color3.fromRGB(255, 184, 108),
+		Comment = Color3.fromRGB(98, 114, 164),
+		Keyword = Color3.fromRGB(139, 233, 253),
+		Error = Color3.fromRGB(255, 85, 85),
+		FindBackground = Color3.fromRGB(255, 184, 108),
+		MatchingWord = Color3.fromRGB(85, 85, 85),
+		BuiltIn = Color3.fromRGB(80, 250, 123),
+		CurrentLine = Color3.fromRGB(68, 71, 90),
+		LocalMethod = Color3.fromRGB(255, 184, 108),
+		LocalProperty = Color3.fromRGB(255, 184, 108),
+		Nil = Color3.fromRGB(189, 147, 249),
+		Bool = Color3.fromRGB(189, 147, 249),
+		Function = Color3.fromRGB(139, 233, 253),
+		Local = Color3.fromRGB(189, 147, 249),
+		Self = Color3.fromRGB(189, 147, 249),
+		FunctionName = Color3.fromRGB(80, 250, 123),
+		Bracket = Color3.fromRGB(248, 248, 242),
+
+		Transparency = 0,
+		Font = Enum.Font.Code,
+		WidthDivider = 2
+	}),
+	["GitHub"] = table.freeze({
+		Text = Color3.fromRGB(201, 209, 217),
+		Background = Color3.fromRGB(13, 17, 23),
+		SelectedText = Color3.fromRGB(255, 255, 255),
+		SelectionBack = Color3.fromRGB(60, 65, 82),
+		Operator = Color3.fromRGB(201, 209, 217),
+		Number = Color3.fromRGB(209, 154, 102),
+		String = Color3.fromRGB(222, 184, 135),
+		Comment = Color3.fromRGB(110, 119, 129),
+		Keyword = Color3.fromRGB(136, 192, 208),
+		Error = Color3.fromRGB(240, 113, 120),
+		FindBackground = Color3.fromRGB(255, 223, 116),
+		MatchingWord = Color3.fromRGB(85, 85, 85),
+		BuiltIn = Color3.fromRGB(209, 154, 102),
+		CurrentLine = Color3.fromRGB(30, 35, 46),
+		LocalMethod = Color3.fromRGB(255, 223, 116),
+		LocalProperty = Color3.fromRGB(255, 223, 116),
+		Nil = Color3.fromRGB(136, 192, 208),
+		Bool = Color3.fromRGB(136, 192, 208),
+		Function = Color3.fromRGB(129, 189, 167),
+		Local = Color3.fromRGB(136, 192, 208),
+		Self = Color3.fromRGB(136, 192, 208),
+		FunctionName = Color3.fromRGB(255, 223, 116),
+		Bracket = Color3.fromRGB(201, 209, 217),
+
+		Transparency = 0,
+		Font = Enum.Font.Code,
+		WidthDivider = 2
+	}),
+	["Nord"] = table.freeze({
+		Text = Color3.fromRGB(216, 222, 233),
+		Background = Color3.fromRGB(29, 32, 40),
+		SelectedText = Color3.fromRGB(255, 255, 255),
+		SelectionBack = Color3.fromRGB(59, 66, 82),
+		Operator = Color3.fromRGB(216, 222, 233),
+		Number = Color3.fromRGB(180, 142, 173),
+		String = Color3.fromRGB(163, 190, 140),
+		Comment = Color3.fromRGB(76, 86, 106),
+		Keyword = Color3.fromRGB(129, 161, 193),
+		Error = Color3.fromRGB(191, 97, 106),
+		FindBackground = Color3.fromRGB(255, 184, 108),
+		MatchingWord = Color3.fromRGB(85, 85, 85),
+		BuiltIn = Color3.fromRGB(180, 142, 173),
+		CurrentLine = Color3.fromRGB(59, 66, 82),
+		LocalMethod = Color3.fromRGB(235, 203, 139),
+		LocalProperty = Color3.fromRGB(235, 203, 139),
+		Nil = Color3.fromRGB(129, 161, 193),
+		Bool = Color3.fromRGB(129, 161, 193),
+		Function = Color3.fromRGB(129, 161, 193),
+		Local = Color3.fromRGB(129, 161, 193),
+		Self = Color3.fromRGB(129, 161, 193),
+		FunctionName = Color3.fromRGB(235, 203, 139),
+		Bracket = Color3.fromRGB(216, 222, 233),
+
+		Transparency = 0,
+		Font = Enum.Font.Code,
+		WidthDivider = 2
+	})
+})
+
+local syntaxColors = themes.Galaxy -- beautiful blue-purple theme
 
 local bold = {
 	"Error", "MatchingWord", "Nil", "Bool", "Function", "Local", "Self", "Keyword", "Bracket"
@@ -210,6 +475,7 @@ local create = function(data)
 	end
 	return insts[1]
 end
+
 local createSimple = function(class,props)
 	local inst = Instance.new(class)
 	for i,v in props do
@@ -220,11 +486,13 @@ end
 
 local function signalWait(s)return s:Wait()end
 local renderStepped = cloneref(game:GetService("RunService")).RenderStepped
+
 Lib.FastWait = function(s)
 	if not s then return signalWait(renderStepped) end
 	local start = tick()
 	while tick() - start < s do signalWait(renderStepped) end
 end
+
 Lib.CheckMouseInGui = function(gui)
 	if gui == nil then return false end
 	Main.Mouse = Main.Mouse or plr and plr:GetMouse()
@@ -234,6 +502,7 @@ Lib.CheckMouseInGui = function(gui)
 
 	return mouse.X >= guiPosition.X and mouse.X < guiPosition.X + guiSize.X and mouse.Y >= guiPosition.Y and mouse.Y < guiPosition.Y + guiSize.Y
 end
+
 Lib.CreateArrow = function(size,num,dir)
 	local max = num
 	local arrowFrame = createSimple("Frame",{
@@ -295,6 +564,7 @@ Lib.CreateArrow = function(size,num,dir)
 		return arrowFrame
 	end
 end
+
 Lib.Signal = (function()
 	local funcs = { }
 
@@ -335,6 +605,7 @@ Lib.Signal = (function()
 
 	return {new = new}
 end)()
+
 Lib.ScrollBar = (function()
 	local funcs = { }
 	local user = uis
@@ -554,9 +825,11 @@ Lib.ScrollBar = (function()
 				end
 			end)
 		end)
+		
 		scrollThumb.InputEnded:Connect(function(input)
 			if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and not thumbPress then scrollThumb.BackgroundTransparency = 0 scrollThumb.BackgroundColor3 = self.ThumbColor end
 		end)
+		
 		scrollThumbFrame.InputBegan:Connect(function(input)
 			if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch or checkMouseInGui(scrollThumb) then return end
 
@@ -585,10 +858,12 @@ Lib.ScrollBar = (function()
 				releaseEvent:Disconnect()
 				thumbFramePress = false
 			end)
+			
 			while thumbFramePress do
 				if tick() - thumbFrameTick >= 0.3 and checkMouseInGui(scrollThumbFrame) then
 					doTick()
 				end
+				
 				wait()
 			end
 		end)
@@ -939,32 +1214,6 @@ Lib.CodeFrame = (function()
 					frame.Type.Image = v[2]
 					frame.Visible = true
 					frame.Parent = obj.Autocomplete.List
-					frame.MouseButton1Click:Connect(function()
-						local oldPos = Vector2.new(obj.CursorX, obj.CursorY)
-						updateAutocompletes(obj)
-						repeat task.wait() until not obj.Editing and task.wait()
-						updateAutocompletes(obj)
-						obj:SetEditing(true, { Position = oldPos })
-						repeat task.wait() until obj.Editing and task.wait()
-						updateAutocompletes(obj)
-
-						local myIndex
-						for i, v in autocompletes do
-							if v[1] == frame.Name then
-								myIndex = i
-								break
-							end
-						end
-
-						if myIndex ~= autocompleteIndex then
-							myIndex = autocompleteIndex
-							updateAutocompletes(obj)
-						else
-							repeat task.wait() until not obj.EditSkip
-
-							obj.GuiElems.EditBox.Text ..= "\n"
-						end
-					end)
 				end
 
 				frame.BackgroundTransparency = i == autocompleteIndex and 0.75 or 1
@@ -1148,17 +1397,18 @@ Lib.CodeFrame = (function()
 		end)
 
 		editBox:GetPropertyChangedSignal("Text"):Connect(function()
-			local originalText: string = editBox.Text:sub(2)
-
 			if obj.EditSkip then
 				obj.EditSkip = false
 				return
 			end
+			
+			if editBox.Text == emptyChar then return end
+			
+			local originalText: string = editBox.Text:sub(2)
 
 			if not obj.TextEditable then return editBox:ReleaseFocus() end
 			if obj.EditBoxCopying then return end
 
-			obj.EditSkip = true
 			editBox.Text = emptyChar
 			editBox.CursorPosition = 2
 
@@ -1291,6 +1541,9 @@ Lib.CodeFrame = (function()
 				end
 
 				obj:AppendText(text)
+				if simpleCount(text, "\n") > 2 then
+					task.defer(obj.AppendText, obj, "")
+				end
 
 				if originalText:sub(-1) ~= "\n" then
 					autocompleteStep(obj, obj.Lines[obj.CursorY + 1], obj.CursorX, text)
@@ -1429,8 +1682,12 @@ Lib.CodeFrame = (function()
 
 	local function makeFrame(obj)
 		local frame = create({
-			{1,"TextButton",{AutoButtonColor=false,Text="",BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400)}},
+			{1,"TextButton",{AutoButtonColor=false,Name="CodeBox",Text="",BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400)}},
 		})
+
+		obj.TextChanged = Instance.new("BindableEvent", frame)
+		obj.TextChanged.Name = "TextChanged"
+		
 		local elems = { }
 
 		local linesFrame = Instance.new("Frame")
@@ -1988,7 +2245,7 @@ Lib.CodeFrame = (function()
 		end
 	end
 
-	funcs.AppendText = function(self,text)
+	funcs.AppendText = function(self, text)
 		self:DeleteRange(nil,true,true)
 		
 		local lines,cursorX,cursorY = self.Lines,self.CursorX,self.CursorY
@@ -1997,7 +2254,7 @@ Lib.CodeFrame = (function()
 		local after = line:sub(cursorX+1)
 
 		text = text:gsub("\r\n","\n")
-		text = self:ConvertText(text,true) -- Tab Convert
+		text = self:ConvertText(text, true)
 
 		local textLines = text:split("\n")
 		local insert = table.insert
@@ -2052,7 +2309,6 @@ Lib.CodeFrame = (function()
 
 		if on and self.TextEditable then
 			if self.Editable then
-				self.EditSkip = true
 				self.GuiElems.EditBox.Text = emptyChar
 				self.GuiElems.EditBox:CaptureFocus()
 				self.GuiElems.EditBox.CursorPosition = 2
@@ -2133,7 +2389,6 @@ Lib.CodeFrame = (function()
 
 		cursorX = cursorX + self:TabAdjust(cursorX,cursorY)
 
-		-- Update modified
 		self.CursorX = cursorX
 		self.CursorY = cursorY
 
@@ -2253,15 +2508,13 @@ Lib.CodeFrame = (function()
 
 			while pos > lineEnd do
 				curLine = curLine + 1
-				--lineTableCount = 1
 				lineEnd = newLines[curLine] or textLen+1
 			end
 			while true do
 				local lineTable = foundHighlights[curLine]
 				if not lineTable then lineTable = { } foundHighlights[curLine] = lineTable end
 				lineTable[pos] = {typ,ending}
-				--lineTableCount = lineTableCount + 1
-
+				
 				if ending > lineEnd then
 					curLine = curLine + 1
 					lineEnd = newLines[curLine] or textLen+1
@@ -2471,11 +2724,10 @@ Lib.CodeFrame = (function()
 
 			local richTemplates = self.RichTemplates
 			local textTemplate = richTemplates.Text
-			local selectionTemplate = richTemplates.Selection
+			local selectionTemplate = richTemplates.SelectedText
 			local curType = highlights[colStart]
 			local curTemplate = richTemplates[typeMap[curType]] or textTemplate
 
-			-- Selection Highlight
 			local selectionRange = self.SelectionRange
 			local selPos1 = selectionRange[1]
 			local selPos2 = selectionRange[2]
@@ -2495,19 +2747,17 @@ Lib.CodeFrame = (function()
 				lineFrame.SelectionHighlight.Visible = false
 			end
 
-			-- Selection Text Color for first char
 			local inSelection = selRelaY >= selRow and selRelaY <= sel2Row and (selRelaY == selRow and viewX >= selColumn or selRelaY ~= selRow) and (selRelaY == sel2Row and viewX < sel2Column or selRelaY ~= sel2Row)
 			if inSelection then
 				curType = -999
 				curTemplate = selectionTemplate
 			end
 
-			for col = 2,maxCols do
+			for col = 2, maxCols do
 				local relaX = viewX + col
 				local selRelaX = relaX-1
 				local posType = highlights[relaX]
 
-				-- Selection Text Color
 				local inSelection = selRelaY >= selRow and selRelaY <= sel2Row and (selRelaY == selRow and selRelaX >= selColumn or selRelaY ~= selRow) and (selRelaY == sel2Row and selRelaX < sel2Column or selRelaY ~= sel2Row)
 				if inSelection then
 					posType = -999
@@ -2533,6 +2783,10 @@ Lib.CodeFrame = (function()
 
 			if self.Lines[relaY] then
 				lineNumberStr = lineNumberStr .. (relaY == self.CursorY+1 and ("<b>"..relaY.."</b>\n") or relaY .. "\n")
+			end
+			
+			if simpleCount(resText, "<b>") > simpleCount(resText, "</b>") then
+				resText = resText .. "</b>"
 			end
 
 			lineFrame.Label.Text = resText
@@ -2613,7 +2867,7 @@ Lib.CodeFrame = (function()
 		self:MapNewLines()
 		self:PreHighlight()
 		self:Refresh()
-		--self.TextChanged:Fire()
+		self.TextChanged:Fire(self:GetText())
 	end
 
 	funcs.ConvertText = function(self,text,toEditor)
@@ -2644,7 +2898,6 @@ Lib.CodeFrame = (function()
 			lines[count - 1] = nil
 		end
 
-		self.EditSkip = false
 		self:ProcessTextChange()
 	end
 
@@ -2739,8 +2992,6 @@ Lib.CodeFrame = (function()
 			obj:Refresh()
 		end)
 
-		obj.Frame.Name = "CodeBox"
-
 		return obj
 	end
 
@@ -2786,6 +3037,8 @@ return table.freeze({
 	end,
 
 	fromTextBox = function(self, textBox, syntaxColors, env)
+		syntaxColors = table.clone(typeof(syntaxColors) == "table" and syntaxColors or themes.Galaxy)
+		
 		local new = self:new(syntaxColors, env)
 		local colors = new.Colors
 
@@ -2812,5 +3065,6 @@ return table.freeze({
 		return new
 	end,
 
-	SyntaxColors = table.clone(syntaxColors)
+	SyntaxColors = table.clone(syntaxColors),
+	Themes = themes
 })
