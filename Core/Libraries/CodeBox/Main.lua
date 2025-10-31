@@ -1455,13 +1455,11 @@ Lib.CodeFrame = (function()
 		lineNumbersLabel.RichText = true
 		lineNumbersLabel.Parent = frame
 
-		local cursor = Instance.new("TextButton")
+		local cursor = Instance.new("Frame")
 		cursor.Name = "Cursor"
 		cursor.BackgroundColor3 = Color3.fromRGB(220,220,220)
 		cursor.BorderSizePixel = 0
 		cursor.Parent = frame
-		cursor.Text = ""
-		cursor.AutoButtonColor = false
 		cursor.Visible = false
 
 		local editBox = Instance.new("TextBox")
@@ -2079,8 +2077,8 @@ Lib.CodeFrame = (function()
 		if cursorVisible then
 			local offX = (cursorX - viewX)
 			local offY = (cursorY - viewY)
-			cursor:TweenPosition(UDim2.new(0,linesOffset + offX*math.ceil(self.FontSize/self.Colors.WidthDivider) - 1,0,offY*self.FontSize), Enum.EasingDirection.Out, Enum.EasingStyle.Sine, 0.2, true)
-			cursor.Size = UDim2.new(0,1,0,self.FontSize+2)
+			cursor:TweenPosition(UDim2.new(0, 1 + linesOffset + offX * math.ceil(self.FontSize / self.Colors.WidthDivider) - 1, 0, offY * self.FontSize), Enum.EasingDirection.Out, Enum.EasingStyle.Sine, 0.2, true)
+			cursor.Size = UDim2.new(0,2,0,self.FontSize+2)
 			cursor.Visible = self.Editing or self.Autocompleting
 			self:CursorAnim(true)
 		else
@@ -2212,7 +2210,7 @@ Lib.CodeFrame = (function()
 		end
 		self.PreHighlights = foundHighlights
 	end
-	
+
 	local brackets = {
 		["("] = true,
 		[")"] = true,
