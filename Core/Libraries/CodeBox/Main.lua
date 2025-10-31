@@ -1,6 +1,6 @@
 local syntaxColors = {
 	Text = Color3.fromRGB(204, 204, 204),
-	Background = Color3.fromRGB(31, 31, 31),
+	Background = Color3.fromRGB(18, 18, 25),
 	Selection = Color3.fromRGB(255, 255, 255),
 	SelectionBack = Color3.fromRGB(66, 0, 50),
 	Operator = Color3.fromRGB(204, 204, 204),
@@ -354,7 +354,11 @@ Lib.ScrollBar = (function()
 			end
 			local fs = scrollThumbFrame.AbsoluteSize.X
 			local bs = scrollThumb.AbsoluteSize.X
-			scrollThumb.Position = UDim2.new(self:GetScrollPercent()*(fs-bs)/fs,0,0,0)
+			
+			local pos = UDim2.new(self:GetScrollPercent()*(fs-bs)/fs,0,0,0)
+			if not pcall(scrollThumb.TweenPosition, scrollThumb, pos, Enum.EasingDirection.Out, Enum.EasingStyle.Quint, 0.3, true) then
+				scrollThumb.Position = pos
+			end
 		else
 			scrollThumb.Size = UDim2.new(1,0,visible/total,0)
 			if scrollThumb.AbsoluteSize.Y < 16 then
@@ -362,7 +366,11 @@ Lib.ScrollBar = (function()
 			end
 			local fs = scrollThumbFrame.AbsoluteSize.Y
 			local bs = scrollThumb.AbsoluteSize.Y
-			scrollThumb.Position = UDim2.new(0,0,self:GetScrollPercent()*(fs-bs)/fs,0)
+			
+			local pos = UDim2.new(0,0,self:GetScrollPercent()*(fs-bs)/fs,0)
+			if not pcall(scrollThumb.TweenPosition, scrollThumb, pos, Enum.EasingDirection.Out, Enum.EasingStyle.Quint, 0.3, true) then
+				scrollThumb.Position = pos
+			end
 		end
 	end
 
@@ -815,7 +823,7 @@ Lib.CodeFrame = (function()
 		[">"] = "&gt;",
 		["&"] = "&amp;"
 	}
-	
+
 	local notDeprecatedTypes = {
 		"Enums", "table"
 	}
@@ -973,22 +981,22 @@ Lib.CodeFrame = (function()
 			end
 		end
 	end
-	
+
 	local function fuzzyMatch(str1, str2)
 		str1 = str1:lower()
 		str2 = str2:lower()
-		
+
 		if #str2 <= #str1 then
 			local c = str1
 
 			str1 = str2
 			str2 = c
 		end
-		
+
 		if str2:sub(1, #str1) == str1 then
 			return true, (str1 == str2 and 1.01 or 1)
 		end
-		
+
 		local len1, len2 = #str1, #str2
 		if len1 == 0 then return len2 end
 		if len2 == 0 then return len1 end
@@ -1011,10 +1019,10 @@ Lib.CodeFrame = (function()
 
 		local max_len = math.max(#str1, #str2)
 		local similarity = max_len > 0 and (1 - matrix[len1][len2] / max_len) or 1
-		
+
 		return similarity > 0.4, similarity
 	end
-	
+
 	local function sort(a, b)
 		return a[1] > b[1]
 	end
@@ -1070,13 +1078,13 @@ Lib.CodeFrame = (function()
 				end
 			end
 			]]--
-			
+
 			local list = { }
 			for cat = 0, maxCat do
 				for i, item in autocompleteList[cat] do
 					if not quickExist[item] then
 						local match, similarity = fuzzyMatch(currentWord, item)
-						
+
 						if match then
 							quickExist[item] = true
 
@@ -1084,7 +1092,7 @@ Lib.CodeFrame = (function()
 							if isDeprecated and table.find(notDeprecatedTypes, typeof(ENV[item])) then
 								isDeprecated = false
 							end
-							
+
 							if not isDeprecated then
 								table.insert(list, { similarity, item, autocompleteTypes[cat], false })
 							else
@@ -1313,13 +1321,13 @@ Lib.CodeFrame = (function()
 				if not startRange then
 					local line = obj.Lines[obj.CursorY+1] or ""
 					obj.CursorX = obj.CursorX - 1 - (line:sub(obj.CursorX-3,obj.CursorX) == tabReplacement and 3 or 0)
-					
+
 					if obj.CursorX < 0 then
 						obj.CursorY = obj.CursorY - 1
 						local line2 = obj.Lines[obj.CursorY+1] or ""
 						obj.CursorX = #line2
 					end
-					
+
 					obj.FloatCursorX = obj.CursorX
 					obj:UpdateCursor()
 
@@ -2071,7 +2079,7 @@ Lib.CodeFrame = (function()
 		if cursorVisible then
 			local offX = (cursorX - viewX)
 			local offY = (cursorY - viewY)
-			cursor:TweenPosition(UDim2.new(0,linesOffset + offX*math.ceil(self.FontSize/self.Colors.WidthDivider) - 1,0,offY*self.FontSize), Enum.EasingDirection.Out, Enum.EasingStyle.Sine, 0.15, true)
+			cursor:TweenPosition(UDim2.new(0,linesOffset + offX*math.ceil(self.FontSize/self.Colors.WidthDivider) - 1,0,offY*self.FontSize), Enum.EasingDirection.Out, Enum.EasingStyle.Sine, 0.2, true)
 			cursor.Size = UDim2.new(0,1,0,self.FontSize+2)
 			cursor.Visible = self.Editing or self.Autocompleting
 			self:CursorAnim(true)
@@ -2657,6 +2665,8 @@ Lib.CodeFrame = (function()
 			obj:UpdateView()
 			obj:Refresh()
 		end)
+		
+		obj.Frame.Name = "CodeBox"
 
 		return obj
 	end
@@ -2718,6 +2728,7 @@ return table.freeze({
 		new.LayoutOrder = textBox.LayoutOrder
 		new.ZIndex = textBox.ZIndex
 		new.Visible = textBox.Visible
+		new.Name = textBox.Name
 
 		for _, v in textBox:GetChildren() do
 			v.Parent = new.Frame
