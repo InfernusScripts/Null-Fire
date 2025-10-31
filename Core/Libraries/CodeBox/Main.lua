@@ -3066,8 +3066,22 @@ end
 local oldEnv = table.clone(ENV)
 return table.freeze({
 	new = function(self, syntaxColors, env)
+		local gui = Instance.new("ScreenGui", getfenv().gethui and getfenv().gethui() or game:GetService("CoreGui") or game:GetService("Players").LocalPlayer.PlayerGui)
+		gui.Name = "CodeEditor"
+		
 		ENV = env or oldEnv
-		return metaNew(syntaxColors)
+		
+		local newMeta = metaNew(syntaxColors)
+		newMeta.Parent = gui
+		newMeta.Size = UDim2.fromScale(0.75, 0.75)
+		newMeta.Position = UDim2.fromScale(0.125, 0.125)
+		
+		local con; con = newMeta.Frame:GetPropertyChangedSignal("Parent"):Connect(function()
+			con:Disconnect()
+			gui:Destroy()
+		end)
+		
+		return newMeta
 	end,
 
 	fromTextBox = function(self, textBox, syntaxColors, env)
