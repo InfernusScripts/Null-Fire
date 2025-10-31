@@ -72,4 +72,8 @@ editor.TextEditable
 editor.Autocompleting -- true if autocomplete box is visible
 editor.EditBoxCopying -- true if any text is selected
 editor.AutocompleteEnabled -- if false, autocomplete box will be never visible
+editor.SyntaxHighlight -- if false, all the text will be the same color with no fancy highlights
+editor.AutoFill -- if false, auto indent will be disabled, typing "(", "[" or "{" will not summon another ")", "]" or "}" and also typing ")" or other ones when its already placed will actually place it
+editor.CodeEditorMode -- sets values of all "AutocompleteEnabled", "SyntaxHighlight" and "AutoFill" at the same time
+editor.TextEditorMode -- reverse of editor.CodeEditorMode
 ```
