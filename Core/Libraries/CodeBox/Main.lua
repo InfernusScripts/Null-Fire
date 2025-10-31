@@ -1,4 +1,7 @@
-local syntaxColors = {
+-- Credits to DEX EXPLORER script for syntax highlight!
+-- Made by @cherry_peashooter on discord
+
+local syntaxColors = { -- beautiful blue-purple theme
 	Text = Color3.fromRGB(204, 204, 204),
 	Background = Color3.fromRGB(18, 18, 25),
 	Selection = Color3.fromRGB(255, 255, 255),
@@ -32,18 +35,18 @@ local bold = {
 	"Error", "MatchingWord", "Nil", "Bool", "Function", "Local", "Self", "Keyword", "Bracket"
 }
 
-local Lib = {}
+local Lib = { }
 local ENV = {
 	wait = wait,
 	workspace = workspace,
 	warn = warn,
-	Wait = Wait,
+	Wait = getfenv().Wait, -- is deprecated, getfenv to remove orange warning in Roblox Studio
 	Workspace = workspace,
 
 	error = error,
 	Enum = Enum,
-	ElapsedTime = ElapsedTime,
-	elapsedTime = elapsedTime,
+	ElapsedTime = getfenv().ElapsedTime,
+	elapsedTime = getfenv().elapsedTime,
 
 	require = require,
 	Random = Random,
@@ -68,7 +71,7 @@ local ENV = {
 	time = time,
 	tick = tick,
 
-	ypcall = ypcall,
+	ypcall = getfenv().ypcall,
 
 	UDim2 = UDim2,
 	unpack = unpack,
@@ -88,7 +91,7 @@ local ENV = {
 	PhysicalProperties = PhysicalProperties,
 	PathWaypoint = PathWaypoint,
 	Path2DControlPoint = Path2DControlPoint,
-	printidentity = printidentity,
+	printidentity = getfenv().printidentity,
 
 	assert = assert,
 	Axes = Axes,
@@ -104,15 +107,15 @@ local ENV = {
 	Secret = Secret,
 	SharedTable = SharedTable,
 	SecurityCapabilities = SecurityCapabilities,
-	Spawn = Spawn,
-	stats = stats,
-	Stats = Stats,
+	Spawn = getfenv().Spawn,
+	stats = getfenv().stats,
+	Stats = getfenv().Stats,
 
 	debug = debug,
 	DateTime = DateTime,
 	delay = delay,
 	DockWidgetPluginGuiInfo = DockWidgetPluginGuiInfo,
-	Delay = Delay,
+	Delay = getfenv().Delay,
 
 	Font = Font,
 	File = File,
@@ -136,15 +139,16 @@ local ENV = {
 	ColorSequenceKeypoint = ColorSequenceKeypoint,
 	ColorSequence = ColorSequence,
 	CatalogSearchParams = CatalogSearchParams,
-	collectgarbage = collectgarbage,
+	collectgarbage = getfenv().collectgarbage,
 
 	Vector3 = Vector3,
 	Vector2 = Vector2,
 	vector = vector,
 	Vector2int16 = Vector2int16,
 	Vector3int16 = Vector3int16,
-	Version = Version,
-	version = version,
+	Version = getfenv().Version,
+	version = getfenv().version,
+	ValueCurveKey = ValueCurveKey,
 
 	BrickColor = BrickColor,
 	buffer = buffer,
@@ -159,10 +163,14 @@ local ENV = {
 	math = math,
 
 	_G = _G,
-	_VERSION = _VERSION
+	_VERSION = _VERSION,
 }
 
-local function simpleCount(str, a)
+local function isValidString(str)
+	return str:match("^[a-zA-Z0-9_]+$") ~= nil
+end
+
+local function simpleCount(str: string, a)
 	local amount, pointer = 0, 1
 
 	while pointer <= #str do
@@ -176,20 +184,20 @@ local function simpleCount(str, a)
 	return amount
 end
 
-local Main = {}
-local plr = game:GetService("Players").LocalPlayer
-Main.Mouse = plr and plr:GetMouse()
-local service = setmetatable({},{
+local Main = { }
+local cloneref = getfenv().cloneref or function(...)return...end
+local plr = cloneref(cloneref(game:GetService("Players")).LocalPlayer)
+Main.Mouse = plr:GetMouse()
+local service = setmetatable({ },{
 	__index = function(self,name)
-		return game:FindFirstChild(name) or game:GetService(name)
+		return cloneref(game:GetService(name) or game:FindFirstChild(name))
 	end,
 })
 
 local uis = service.UserInputService
-local cloneref = function(...)return...end
 local clonerefs = cloneref
 local create = function(data)
-	local insts = {}
+	local insts = { }
 	for i,v in data do insts[v[1]] = Instance.new(v[2]) end
 	for _,v in data do
 		for prop,val in v[3] do
@@ -211,7 +219,7 @@ local createSimple = function(class,props)
 end
 
 local function signalWait(s)return s:Wait()end
-local renderStepped = game:GetService("RunService").RenderStepped
+local renderStepped = cloneref(game:GetService("RunService")).RenderStepped
 Lib.FastWait = function(s)
 	if not s then return signalWait(renderStepped) end
 	local start = tick()
@@ -288,7 +296,7 @@ Lib.CreateArrow = function(size,num,dir)
 	end
 end
 Lib.Signal = (function()
-	local funcs = {}
+	local funcs = { }
 
 	local disconnect = function(con)
 		local pos = table.find(con.Signal.Connections,con)
@@ -319,8 +327,8 @@ Lib.Signal = (function()
 	}
 
 	local function new()
-		local obj = {}
-		obj.Connections = {}
+		local obj = { }
+		obj.Connections = { }
 
 		return setmetatable(obj,mt)
 	end
@@ -328,7 +336,7 @@ Lib.Signal = (function()
 	return {new = new}
 end)()
 Lib.ScrollBar = (function()
-	local funcs = {}
+	local funcs = { }
 	local user = uis
 	local mouse = Main.Mouse or plr and plr:GetMouse()
 	local checkMouseInGui = Lib.CheckMouseInGui
@@ -454,10 +462,8 @@ Lib.ScrollBar = (function()
 		local thumbPress = false
 		local thumbFramePress = false
 
-		--local thumbColor = Color3.new(120/255,120/255,120/255)
-		--local thumbSelectColor = Color3.new(140/255,140/255,140/255)
 		button1.InputBegan:Connect(function(input)
-			if (input.UserInputType == Enum.UserInputType.MouseMovement --[[or input.UserInputType == Enum.UserInputType.Touch]]) and not buttonPress and self:CanScrollUp() then button1.BackgroundTransparency = 0.8 end
+			if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and not buttonPress and self:CanScrollUp() then button1.BackgroundTransparency = 0.8 end
 			if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch or not self:CanScrollUp() then return end
 			buttonPress = true
 			button1.BackgroundTransparency = 0.5
@@ -479,10 +485,10 @@ Lib.ScrollBar = (function()
 			end
 		end)
 		button1.InputEnded:Connect(function(input)
-			if (input.UserInputType == Enum.UserInputType.MouseMovement --[[or input.UserInputType == Enum.UserInputType.Touch]]) and not buttonPress then button1.BackgroundTransparency = 1 end
+			if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and not buttonPress then button1.BackgroundTransparency = 1 end
 		end)
 		button2.InputBegan:Connect(function(input)
-			if (input.UserInputType == Enum.UserInputType.MouseMovement --[[or input.UserInputType == Enum.UserInputType.Touch]]) and not buttonPress and self:CanScrollDown() then button2.BackgroundTransparency = 0.8 end
+			if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and not buttonPress and self:CanScrollDown() then button2.BackgroundTransparency = 0.8 end
 			if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch or not self:CanScrollDown() then return end
 			buttonPress = true
 			button2.BackgroundTransparency = 0.5
@@ -504,11 +510,11 @@ Lib.ScrollBar = (function()
 			end
 		end)
 		button2.InputEnded:Connect(function(input)
-			if (input.UserInputType == Enum.UserInputType.MouseMovement --[[or input.UserInputType == Enum.UserInputType.Touch]]) and not buttonPress then button2.BackgroundTransparency = 1 end
+			if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and not buttonPress then button2.BackgroundTransparency = 1 end
 		end)
 
 		scrollThumb.InputBegan:Connect(function(input)
-			if (input.UserInputType == Enum.UserInputType.MouseMovement --[[or input.UserInputType == Enum.UserInputType.Touch]]) and not thumbPress then scrollThumb.BackgroundTransparency = 0.2 scrollThumb.BackgroundColor3 = self.ThumbSelectColor end
+			if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and not thumbPress then scrollThumb.BackgroundTransparency = 0.2 scrollThumb.BackgroundColor3 = self.ThumbSelectColor end
 			if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then return end
 
 			local dir = self.Horizontal and "X" or "Y"
@@ -532,7 +538,7 @@ Lib.ScrollBar = (function()
 			self:Update()
 
 			mouseEvent = user.InputChanged:Connect(function(input)
-				if (input.UserInputType == Enum.UserInputType.MouseMovement --[[or input.UserInputType == Enum.UserInputType.Touch]]) and thumbPress and releaseEvent.Connected then
+				if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and thumbPress and releaseEvent.Connected then
 					local thumbFrameSize = scrollThumbFrame.AbsoluteSize[dir]-scrollThumb.AbsoluteSize[dir]
 					local pos = mouse[dir] - scrollThumbFrame.AbsolutePosition[dir] - mouseOffset
 					if pos > thumbFrameSize then
@@ -549,7 +555,7 @@ Lib.ScrollBar = (function()
 			end)
 		end)
 		scrollThumb.InputEnded:Connect(function(input)
-			if (input.UserInputType == Enum.UserInputType.MouseMovement --[[or input.UserInputType == Enum.UserInputType.Touch]]) and not thumbPress then scrollThumb.BackgroundTransparency = 0 scrollThumb.BackgroundColor3 = self.ThumbColor end
+			if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and not thumbPress then scrollThumb.BackgroundTransparency = 0 scrollThumb.BackgroundColor3 = self.ThumbColor end
 		end)
 		scrollThumbFrame.InputBegan:Connect(function(input)
 			if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch or checkMouseInGui(scrollThumb) then return end
@@ -717,7 +723,7 @@ Lib.ScrollBar = (function()
 		self.ScrollDownEvent = frame.MouseWheelBackward:Connect(function() self:ScrollTo(self.Index + self.WheelIncrement) end)
 	end
 
-	local mt = {}
+	local mt = { }
 	mt.__index = funcs
 
 	local function new(hor)
@@ -727,8 +733,8 @@ Lib.ScrollBar = (function()
 			TotalSpace = 0,
 			Increment = 1,
 			WheelIncrement = 1,
-			Markers = {},
-			GuiElems = {},
+			Markers = { },
+			GuiElems = { },
 			Horizontal = hor,
 			LastTotalSpace = 0,
 			Scrolled = Lib.Signal.new()
@@ -748,7 +754,7 @@ Lib.ScrollBar = (function()
 end)()
 
 Lib.CodeFrame = (function()
-	local funcs = {}
+	local funcs = { }
 
 	local typeMap = {
 		[0] = "String",
@@ -876,7 +882,7 @@ Lib.CodeFrame = (function()
 			end
 		end
 
-		local enumEntries = {}
+		local enumEntries = { }
 		local enums = Enum:GetEnums()
 		for i = 1,#enums do
 			enumEntries[tostring(enums[i])] = true
@@ -891,7 +897,7 @@ Lib.CodeFrame = (function()
 		end
 
 		for i in env do
-			if not i:match("%.") and not i:match("-") and not i:match("@") then
+			if isValidString(i) then
 				table.insert(autocompleteList[typeof(env[i]) == "function" and 1 or 2], i)
 			end
 		end
@@ -994,7 +1000,7 @@ Lib.CodeFrame = (function()
 		end
 
 		if str2:sub(1, #str1) == str1 then
-			return true, (str1 == str2 and 1.01 or 1)
+			return str1 == str2 and 1.01 or 1
 		end
 
 		local len1, len2 = #str1, #str2
@@ -1018,20 +1024,18 @@ Lib.CodeFrame = (function()
 		end
 
 		local max_len = math.max(#str1, #str2)
-		local similarity = max_len > 0 and (1 - matrix[len1][len2] / max_len) or 1
-
-		return similarity > 0.4, similarity
+		return max_len > 0 and 1 - matrix[len1][len2] / max_len or 1
 	end
 
 	local function sort(a, b)
-		return a[1] > b[1]
+		return a[1] > b[1] or a[1] == b[1] and #a[2] < #b[2]
 	end
 
 	local function autocompleteStep(obj, currentLine, cursorX, input)
 		table.clear(autocompletes)
 		table.clear(quickExist)
 
-		if not obj.AutocompleteEnabled or not uis.KeyboardEnabled or input:gsub("[\0\t \f\r]", "") == "" then
+		if not obj.AutocompleteEnabled or not uis.KeyboardEnabled or not isValidString(input) then
 			return updateAutocompletes(obj)
 		end
 
@@ -1050,42 +1054,14 @@ Lib.CodeFrame = (function()
 
 		if #currentWord > 0 then
 			local deprecated = { }
-
-			--[[ -- old autocomplete, need to use new sorting
-			for cat = 0, maxCat do
-				for _, item in autocompleteList[cat] do
-					if not quickExist[item] and fuzzyMatch(currentWord, item) then
-						quickExist[item] = true
-						
-						local isDeprecated = item:sub(1, 1):upper() == item:sub(1, 1)
-						if isDeprecated and table.find(notDeprecatedTypes, typeof(ENV[item])) then
-							isDeprecated = false
-						end
-							
-						if not isDeprecated then
-							table.insert(autocompletes, { item, autocompleteTypes[cat], false })
-						else
-							deprecated[cat] = deprecated[cat] or { }
-							table.insert(deprecated[cat], { item, autocompleteTypes[cat], true })
-						end
-					end
-				end
-			end
-			
-			for _, list in deprecated do
-				for _, value in list do
-					table.insert(autocompletes, value)
-				end
-			end
-			]]--
-
 			local list = { }
+			
 			for cat = 0, maxCat do
 				for i, item in autocompleteList[cat] do
 					if not quickExist[item] then
-						local match, similarity = fuzzyMatch(currentWord, item)
+						local similarity = fuzzyMatch(currentWord, item)
 
-						if match then
+						if similarity > 0.4 then
 							quickExist[item] = true
 
 							local isDeprecated = item:sub(1, 1):upper() == item:sub(1, 1)
@@ -1277,6 +1253,23 @@ Lib.CodeFrame = (function()
 				last = last[#last]
 
 				local autocomplete = autocompletes[trimmed] or autocompletes[text] or autocompletes[last]
+				if not autocomplete then
+					local text = table.concat(obj.Lines, "\n")
+					local indentRep = 0
+
+					for _, v in indentAdd do
+						indentRep += simpleCount(text, v)
+					end
+
+					for _, v in indentRemove do
+						indentRep -= simpleCount(text, v)
+					end
+					
+					if indentRep > 0 then
+						autocomplete = "%s\n%send"
+					end
+				end
+				
 				local hasNewline = autocomplete and autocomplete:find("\n", 1, true) ~= nil
 
 				if autocomplete and (hasNewline and originalText:sub(-1) == "\n" or not hasNewline) then
@@ -1336,7 +1329,7 @@ Lib.CodeFrame = (function()
 
 				obj:DeleteRange({startRange, endRange},false,true)
 				obj:ResetSelection(true)
-				obj:JumpToCursor()
+				obj:Refresh()
 
 				resetAutocomplete(obj)
 			end
@@ -1366,6 +1359,8 @@ Lib.CodeFrame = (function()
 				obj:MoveCursor(selX,selY)
 				obj.FloatCursorX = selX
 
+				if input.UserInputType == Enum.UserInputType.Touch then return end
+				
 				local function updateSelection()
 					local relX = mouse.X - codeFrame.AbsolutePosition.X
 					local relY = mouse.Y - codeFrame.AbsolutePosition.Y
@@ -1436,12 +1431,12 @@ Lib.CodeFrame = (function()
 		local frame = create({
 			{1,"TextButton",{AutoButtonColor=false,Text="",BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400)}},
 		})
-		local elems = {}
+		local elems = { }
 
 		local linesFrame = Instance.new("Frame")
 		linesFrame.Name = "Lines"
 		linesFrame.BackgroundTransparency = 1
-		linesFrame.Size = UDim2.new(1,0,1,0)
+		linesFrame.Size = UDim2.new(1,-16,1,-16)
 		linesFrame.ClipsDescendants = true
 		linesFrame.Parent = frame
 
@@ -1481,7 +1476,7 @@ Lib.CodeFrame = (function()
 		elems.ScrollCorner.Parent = frame
 		linesFrame.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				obj:SetEditing(true,input)
+				obj:SetEditing(true, input)
 			end
 		end)
 
@@ -1752,10 +1747,87 @@ Lib.CodeFrame = (function()
 		editBox.SelectionStart = 2
 		editBox.CursorPosition = #editBox.Text + 1
 	end
+	
+	funcs.Shift = function(self,dir,upd,reset)
+		if reset == true then
+			self:ResetSelection(true)
+		elseif reset == false then
+			if self.SelectionRange[1][1] == -1 then
+				self.SelectionRange[1][1] = self.CursorX
+			end
+			if self.SelectionRange[1][2] == -1 then
+				self.SelectionRange[1][2] = self.CursorY
+			end
+		end
+		
+		if dir == "Left" then
+			local line = self.Lines[self.CursorY+1] or ""
+			self.CursorX = self.CursorX - 1 - (line:sub(self.CursorX-3,self.CursorX) == tabReplacement and 3 or 0)
+			
+			if self.CursorX < 0 then
+				self.CursorY = self.CursorY - 1
+				if self.CursorY == -1 then
+					self.CursorY = 0
+				else
+					self.CursorX = #(self.Lines[self.CursorY + 1] or "")
+				end
+			end
+			
+			self.FloatCursorX = self.CursorX
+		elseif dir == "Right" then
+			local line = self.Lines[self.CursorY+1] or ""
+			self.CursorX = self.CursorX + 1 + (line:sub(self.CursorX+1,self.CursorX+4) == tabReplacement and 3 or 0)
+			if self.CursorX > #line then
+				if self.CursorY + 1 < #self.Lines then
+					self.CursorY = self.CursorY + 1
+					self.CursorX = 0
+				else
+					self.CursorX = #line
+				end
+			end
+			
+			self.FloatCursorX = self.CursorX
+		elseif dir == "Up" then
+			if self.CursorY - 1 ~= -1 then
+				self.CursorX = self.FloatCursorX
+				self.CursorY = self.CursorY - 1
+			end
+		elseif dir == "Down" then
+			if self.CursorY + 1 < #self.Lines then
+				self.CursorX = self.FloatCursorX
+				self.CursorY = self.CursorY + 1
+			end
+		end
+
+		if reset == false then
+			self.SelectionRange[2][1] = self.CursorX
+			self.SelectionRange[2][2] = self.CursorY
+
+			--if self.SelectionRange[2][2] < self.SelectionRange[1][2] then
+			--	local c = self.SelectionRange[1]
+				
+			--	self.SelectionRange[1] = self.SelectionRange[2]
+			--	self.SelectionRange[2] = c
+			--end
+		end
+		
+		if upd then
+			self:UpdateCursor()
+			self:Refresh()
+		end
+	end
+	
+	funcs.GetSymbolAtCursor = function(self, back)
+		return self.Lines[self.CursorY + 1]:sub(self.CursorX + (back and 0 or 1), self.CursorX + (back and 0 or 1))
+	end
 
 	funcs.ConnectEditBoxEvent = function(self)
 		if self.EditBoxEvent then
 			self.EditBoxEvent:Disconnect()
+		end
+		
+		local function isDown(key)
+			return uis:IsKeyDown(Enum.KeyCode["Left" .. key]) or uis:IsKeyDown(Enum.KeyCode["Right" .. key])
 		end
 
 		self.EditBoxEvent = uis.InputBegan:Connect(function(input)
@@ -1767,7 +1839,7 @@ Lib.CodeFrame = (function()
 			local function setupMove(key,func,isCtrl)
 				local endCon,finished
 				endCon = uis.InputEnded:Connect(function(input)
-					if input.KeyCode ~= key and (isCtrl and (uis:IsKeyDown(Enum.KeyCode.LeftControl) or uis:IsKeyDown(Enum.KeyCode.LeftControl)) or not isCtrl) then return end
+					if input.KeyCode ~= key and (isCtrl and isDown("Control") or not isCtrl) then return end
 					endCon:Disconnect()
 					finished = true
 				end)
@@ -1779,56 +1851,47 @@ Lib.CodeFrame = (function()
 			if keycode == keycodes.Down then
 				setupMove(keycodes.Down,function()
 					if not self.Autocompleting then
-						self.CursorX = self.FloatCursorX
-						self.CursorY = self.CursorY + 1
-						self:UpdateCursor()
-						self:JumpToCursor()
-						self:ResetSelection(true)
+						self:Shift("Down", true, not isDown("Shift"))
 					else
 						autocompleteIndex += 1
 						updateAutocompletes(self)
 					end
 				end)
+				
+				self:SetCopyableSelection()
 			elseif keycode == keycodes.Up then
 				setupMove(keycodes.Up,function()
 					if not self.Autocompleting then
-						self.CursorX = self.FloatCursorX
-						self.CursorY = self.CursorY - 1
-						self:UpdateCursor()
-						self:JumpToCursor()
-						self:ResetSelection(true)
+						self:Shift("Up", true, not isDown("Shift"))
 					else
 						autocompleteIndex -= 1
 						updateAutocompletes(self)
 					end
 				end)
+
+				self:SetCopyableSelection()
 			elseif keycode == keycodes.Left then
 				setupMove(keycodes.Left,function()
-					local line = self.Lines[self.CursorY+1] or ""
-					self.CursorX = self.CursorX - 1 - (line:sub(self.CursorX-3,self.CursorX) == tabReplacement and 3 or 0)
-					if self.CursorX < 0 then
-						self.CursorY = self.CursorY - 1
-						local line2 = self.Lines[self.CursorY+1] or ""
-						self.CursorX = #line2
-					end
-					self.FloatCursorX = self.CursorX
+					repeat
+						self:Shift("Left", not isDown("Control"), not isDown("Shift"))
+					until not isDown("Control") or not isValidString(self:GetSymbolAtCursor(true))
+
 					self:UpdateCursor()
-					self:JumpToCursor()
-					self:ResetSelection(true)
+					self:Refresh()
 				end)
+
+				self:SetCopyableSelection()
 			elseif keycode == keycodes.Right then
 				setupMove(keycodes.Right,function()
-					local line = self.Lines[self.CursorY+1] or ""
-					self.CursorX = self.CursorX + 1 + (line:sub(self.CursorX+1,self.CursorX+4) == tabReplacement and 3 or 0)
-					if self.CursorX > #line then
-						self.CursorY = self.CursorY + 1
-						self.CursorX = 0
-					end
-					self.FloatCursorX = self.CursorX
+					repeat
+						self:Shift("Right", not isDown("Control"), not isDown("Shift"))
+					until not isDown("Control") or not isValidString(self:GetSymbolAtCursor(false))
+
 					self:UpdateCursor()
-					self:JumpToCursor()
-					self:ResetSelection(true)
+					self:Refresh()
 				end)
+
+				self:SetCopyableSelection()
 			elseif keycode == keycodes.Delete then
 				setupMove(keycodes.Delete,function()
 					local startRange,endRange
@@ -1854,7 +1917,7 @@ Lib.CodeFrame = (function()
 
 					self:DeleteRange({startRange,endRange},false,true)
 					self:ResetSelection(true)
-					self:JumpToCursor()
+					self:Refresh()
 				end)
 			elseif (uis:IsKeyDown(Enum.KeyCode.LeftControl) or uis:IsKeyDown(Enum.KeyCode.RightControl)) then
 				if keycode == keycodes.A then
@@ -1927,6 +1990,7 @@ Lib.CodeFrame = (function()
 
 	funcs.AppendText = function(self,text)
 		self:DeleteRange(nil,true,true)
+		
 		local lines,cursorX,cursorY = self.Lines,self.CursorX,self.CursorY
 		local line = lines[cursorY+1]
 		local before = line:sub(1,cursorX)
@@ -2026,7 +2090,7 @@ Lib.CodeFrame = (function()
 		self.CursorX = x
 		self.CursorY = y
 		self:UpdateCursor()
-		self:JumpToCursor()
+		self:Refresh()
 	end
 
 	funcs.JumpToCursor = function(self)
@@ -2077,8 +2141,8 @@ Lib.CodeFrame = (function()
 		if cursorVisible then
 			local offX = (cursorX - viewX)
 			local offY = (cursorY - viewY)
-			cursor:TweenPosition(UDim2.new(0, 1 + linesOffset + offX * math.ceil(self.FontSize / self.Colors.WidthDivider) - 1, 0, offY * self.FontSize), Enum.EasingDirection.Out, Enum.EasingStyle.Sine, 0.2, true)
-			cursor.Size = UDim2.new(0,2,0,self.FontSize+2)
+			cursor:TweenPosition(UDim2.new(0, linesOffset + offX * math.ceil(self.FontSize / self.Colors.WidthDivider), 0, offY * self.FontSize), Enum.EasingDirection.Out, Enum.EasingStyle.Sine, 0.1, true)
+			cursor.Size = UDim2.new(0, 2, 0, self.FontSize+2)
 			cursor.Visible = self.Editing or self.Autocompleting
 			self:CursorAnim(true)
 		else
@@ -2089,7 +2153,7 @@ Lib.CodeFrame = (function()
 	end
 
 	funcs.MapNewLines = function(self)
-		local newLines = {}
+		local newLines = { }
 		local count = 1
 		local text = self.Text
 		local find = string.find
@@ -2110,12 +2174,12 @@ Lib.CodeFrame = (function()
 		local start = tick()
 		local text = self.Text:gsub("\\\\","  ")
 		local textLen = #text
-		local found = {}
-		local foundMap = {}
-		local extras = {}
+		local found = { }
+		local foundMap = { }
+		local extras = { }
 		local find = string.find
 		local sub = string.sub
-		self.ColoredLines = {}
+		self.ColoredLines = { }
 
 		local function findAll(str,pattern,typ,raw)
 			local count = #found+1
@@ -2147,7 +2211,7 @@ Lib.CodeFrame = (function()
 		local lineStart = 0
 		local lineEnd = 0
 		local lastEnding = 0
-		local foundHighlights = {}
+		local foundHighlights = { }
 
 		for i = 1,#found do
 			local pos = found[i]
@@ -2194,7 +2258,7 @@ Lib.CodeFrame = (function()
 			end
 			while true do
 				local lineTable = foundHighlights[curLine]
-				if not lineTable then lineTable = {} foundHighlights[curLine] = lineTable end
+				if not lineTable then lineTable = { } foundHighlights[curLine] = lineTable end
 				lineTable[pos] = {typ,ending}
 				--lineTableCount = lineTableCount + 1
 
@@ -2210,7 +2274,7 @@ Lib.CodeFrame = (function()
 		end
 		self.PreHighlights = foundHighlights
 	end
-
+	
 	local brackets = {
 		["("] = true,
 		[")"] = true,
@@ -2227,8 +2291,8 @@ Lib.CodeFrame = (function()
 		local sub = string.sub
 		local find = string.find
 		local match = string.match
-		local highlights = {}
-		local preHighlights = self.PreHighlights[line] or {}
+		local highlights = { }
+		local preHighlights = self.PreHighlights[line] or { }
 		local lineText = self.Lines[line] or ""
 		local lineLen = #lineText
 		local lastEnding = 0
@@ -2238,7 +2302,7 @@ Lib.CodeFrame = (function()
 		local funcStatus = 0
 		local lineStart = self.NewLines[line-1] or 0
 
-		local preHighlightMap = {}
+		local preHighlightMap = { }
 		for pos,data in preHighlights do
 			local relativePos = pos-lineStart
 			if relativePos < 1 then
@@ -2586,7 +2650,7 @@ Lib.CodeFrame = (function()
 
 	funcs.MakeRichTemplates = function(self)
 		local floor = math.floor
-		local templates = {}
+		local templates = { }
 
 		for name,color in self.Colors do
 			if typeof(color) == "Color3" then
@@ -2627,18 +2691,18 @@ Lib.CodeFrame = (function()
 			ViewX = 0,
 			ViewY = 0,
 			Colors = syntaxColor or table.clone(syntaxColors),
-			ColoredLines = {},
+			ColoredLines = { },
 			Lines = {""},
-			LineFrames = {},
+			LineFrames = { },
 			Editable = true,
 			Editing = false,
 			CursorX = 0,
 			CursorY = 0,
 			FloatCursorX = 0,
 			Text = "",
-			PreHighlights = {},
+			PreHighlights = { },
 			SelectionRange = {{-1,-1},{-1,-1}},
-			NewLines = {},
+			NewLines = { },
 			FrameOffsets = Vector2.new(0,0),
 			MaxTextCols = 0,
 			ScrollV = scrollV,
