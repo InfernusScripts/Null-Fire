@@ -59,6 +59,7 @@ local editor = codeBox:fromTextBox(myTextBox, syntaxColors, highlightFunctions)
 editor.Text = "Hi!!"
 editor:ApplyTheme()
 editor:MoveCursor(cursorX, cursorY) -- indexes start from 0, not 1
+editor:JumpToCursor() -- scrolls contents until mouse is visible
 editor.CursorX, editor.CursorY
 editor.Editing -- true if focused into the CodeBox
 editor:SetEditing(true or false)
