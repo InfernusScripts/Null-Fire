@@ -1140,8 +1140,10 @@ Lib.CodeFrame = (function()
 
 	local tabSub = "\205"
 	local emptyChar = " "
-	local tabReplace = "    "
 	local tabReplacement = (" %s%s "):format(tabSub, tabSub)
+	local tabReplace = "    "
+	
+	tabReplacement = tabReplace
 
 	local tabJumps = {
 		[("[^%s] %s"):format(tabSub, tabSub)] = 0,
@@ -1423,6 +1425,10 @@ Lib.CodeFrame = (function()
 			if editBox.CursorPosition ~= -1 then
 				editBox.CursorPosition = #editBox.Text + 1
 			end
+			
+			if editBox.Text == "" then
+				editBox.Text = emptyChar
+			end
 		end)
 
 		editBox:GetPropertyChangedSignal("Text"):Connect(function()
@@ -1445,9 +1451,8 @@ Lib.CodeFrame = (function()
 				table.remove(obj.History, 1)
 			end
 
-			local text = originalText
-			if #text > 0 then
-				text = text:gsub("\t", tabReplace)
+			if #originalText > 0 then
+				local text = originalText:gsub("\t", tabReplace)
 
 				local oldLine = obj.Lines[obj.CursorY + 1]
 
@@ -1589,18 +1594,18 @@ Lib.CodeFrame = (function()
 					obj:MoveCursor(obj.CursorX + cursorShiftX, obj.CursorY + cursorShiftY)
 				end
 			else
-				local startRange,endRange
+				local startRange, endRange
 
 				if obj:IsValidRange() then
 					startRange = obj.SelectionRange[1]
 					endRange = obj.SelectionRange[2]
 				else
-					endRange = {obj.CursorX, obj.CursorY}
+					endRange = { obj.CursorX, obj.CursorY }
 				end
 
 				if not startRange then
 					local line = obj.Lines[obj.CursorY+1] or ""
-					obj.CursorX = obj.CursorX - 1 - (line:sub(obj.CursorX-3,obj.CursorX) == tabReplacement and 3 or 0)
+					obj.CursorX = obj.CursorX - 1 - (line:sub(obj.CursorX - 3,obj.CursorX) == tabReplacement and 3 or 0)
 
 					if obj.CursorX < 0 then
 						obj.CursorY = obj.CursorY - 1
@@ -3103,11 +3108,14 @@ local metaNew = function(...)
 	})
 end
 
+local Gui
 local oldEnv = table.clone(ENV)
 return table.freeze({
 	new = function(self, syntaxColors, env)
-		local gui = Instance.new("ScreenGui", getfenv().gethui and getfenv().gethui() or game:GetService("CoreGui") or game:GetService("Players").LocalPlayer.PlayerGui)
+		local gui = Gui and Gui.Parent or Instance.new("ScreenGui", getfenv().gethui and getfenv().gethui() or game:GetService("CoreGui") or game:GetService("Players").LocalPlayer.PlayerGui)
 		gui.Name = "CodeEditor"
+		gui.ResetOnSpawn = false
+		Gui = gui
 		
 		ENV = env or oldEnv
 		
@@ -3117,6 +3125,8 @@ return table.freeze({
 		newMeta.Position = UDim2.fromScale(0.125, 0.125)
 		
 		local con; con = newMeta.Frame:GetPropertyChangedSignal("Parent"):Connect(function()
+			if #gui:GetChildren() ~= 0 then return end
+			
 			con:Disconnect()
 			gui:Destroy()
 		end)
