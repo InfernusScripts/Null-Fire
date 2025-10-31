@@ -1425,22 +1425,19 @@ Lib.CodeFrame = (function()
 			if editBox.CursorPosition ~= -1 then
 				editBox.CursorPosition = #editBox.Text + 1
 			end
-			
-			if editBox.Text == "" then
-				editBox.Text = emptyChar
-			end
 		end)
 
 		editBox:GetPropertyChangedSignal("Text"):Connect(function()
 			if obj.EditSkip then
+				editBox.Text = emptyChar
 				obj.EditSkip = false
 				return
 			end
 
 			if not obj.TextEditable then return editBox:ReleaseFocus() end
-			if obj.EditBoxCopying then return end
+			if obj.EditBoxCopying or editBox.Text == emptyChar then return end
 
-			local originalText: string = editBox.Text:sub(2)
+			local originalText: string = editBox.Text
 			
 			obj.EditSkip = true
 			editBox.Text = emptyChar
@@ -1452,6 +1449,7 @@ Lib.CodeFrame = (function()
 			end
 
 			if #originalText > 1 then
+				originalText = originalText:sub(2)
 				local text = originalText:gsub("\t", tabReplace)
 
 				local oldLine = obj.Lines[obj.CursorY + 1]
@@ -1731,8 +1729,20 @@ Lib.CodeFrame = (function()
 			{1,"TextButton",{AutoButtonColor=false,Name="CodeBox",Text="",BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400)}},
 		})
 
-		obj.TextChanged = Instance.new("BindableEvent", frame)
+		local holder = Instance.new("Frame", frame)
+		holder.Name = "Holder"
+		holder.Size = UDim2.new(1, 0, 1, -10)
+
+		local footer = Instance.new("Frame", frame)
+		footer.Name = "Footer"
+		footer.Size = UDim2.new(1, 0, 0, 10)
+		footer.Position = UDim2.new(0, 0, 1, -10)
+
+		obj.TextChanged = Instance.new("BindableEvent", holder)
 		obj.TextChanged.Name = "TextChanged"
+		obj.TextChanged.Event:Connect(function()
+			
+		end)
 		
 		local elems = { }
 
@@ -1741,7 +1751,7 @@ Lib.CodeFrame = (function()
 		linesFrame.BackgroundTransparency = 1
 		linesFrame.Size = UDim2.new(1,-16,1,-16)
 		linesFrame.ClipsDescendants = true
-		linesFrame.Parent = frame
+		linesFrame.Parent = holder
 
 		local lineNumbersLabel = Instance.new("TextLabel")
 		lineNumbersLabel.Name = "LineNumbers"
@@ -1751,20 +1761,20 @@ Lib.CodeFrame = (function()
 		lineNumbersLabel.TextYAlignment = Enum.TextYAlignment.Top
 		lineNumbersLabel.ClipsDescendants = true
 		lineNumbersLabel.RichText = true
-		lineNumbersLabel.Parent = frame
+		lineNumbersLabel.Parent = holder
 
 		local cursor = Instance.new("Frame")
 		cursor.Name = "Cursor"
 		cursor.BackgroundColor3 = Color3.fromRGB(220,220,220)
 		cursor.BorderSizePixel = 0
-		cursor.Parent = frame
+		cursor.Parent = holder
 		cursor.Visible = false
 
 		local editBox = Instance.new("TextBox")
 		editBox.Name = "EditBox"
 		editBox.MultiLine = true
 		editBox.Visible = false
-		editBox.Parent = frame
+		editBox.Parent = holder
 		editBox.Text = emptyChar
 
 		lineTweens.Invis = tweenService:Create(cursor,TweenInfo.new(0.4,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{BackgroundTransparency = 1})
@@ -1776,16 +1786,18 @@ Lib.CodeFrame = (function()
 		elems.EditBox = editBox
 		elems.ScrollCorner = create({{1,"TextButton",{BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel=0,Name="ScrollCorner",Position=UDim2.new(1,-16,1,-16),Size=UDim2.new(0,16,0,16),Visible=false,Text="",AutoButtonColor=false}}})
 
-		elems.ScrollCorner.Parent = frame
+		elems.ScrollCorner.Parent = holder
 		linesFrame.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				obj:SetEditing(true, input)
 			end
 		end)
 
-		obj.Frame = frame
+		obj.Frame = holder
 		obj.Gui = frame
 		obj.GuiElems = elems
+		obj.Footer = footer
+		obj.Holder = holder
 		obj.TextEditable = true
 		obj.History = { }
 
@@ -2927,7 +2939,7 @@ Lib.CodeFrame = (function()
 		self:MapNewLines()
 		self:PreHighlight()
 		self:Refresh()
-		self.TextChanged:Fire(self:GetText())
+		self.TextChanged:Fire(self.Text)
 	end
 
 	funcs.ConvertText = function(self,text,toEditor)
@@ -2991,6 +3003,8 @@ Lib.CodeFrame = (function()
 		self.Frame.LineNumbers.TextColor3 = colors.Text
 		self.Frame.BackgroundColor3 = colors.Background
 		self.Frame.BackgroundTransparency = colors.Transparency
+		self.Holder.Size = UDim2.new(1, 0, 1, self.ShowFooter and -10 or 0)
+		self.Footer.Visible = self.ShowFooter
 
 		self:MakeRichTemplates()
 	end
@@ -3081,7 +3095,7 @@ local metaNew = function(...)
 			end
 
 			local r = new[index]
-			return r ~= nil and r or r == nil and new.Frame[index]
+			return r ~= nil and r or r == nil and new.Gui[index]
 		end,
 		__newindex = function(self, index, value)
 			if index == "Text" then
@@ -3099,8 +3113,8 @@ local metaNew = function(...)
 				return
 			end
 
-			if pcall(get, new.Frame, index) then
-				new.Frame[index] = value
+			if pcall(get, new.Gui, index) then
+				new.Gui[index] = value
 			else
 				new[index] = value
 			end
@@ -3155,7 +3169,7 @@ return table.freeze({
 		new.Name = textBox.Name
 
 		for _, v in textBox:GetChildren() do
-			v.Parent = new.Frame
+			v.Parent = new.Gui
 		end
 
 		textBox:Destroy()
