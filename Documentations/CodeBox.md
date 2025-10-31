@@ -1,6 +1,6 @@
 # CodeBox📜 library documentation
 - [Q] What does it do?
-- [A] It is an LSP (or Code Editor) written on pure lua!
+- [A] It is a Code Editor written on pure lua!
 
 ### Getting the library
 ```lua
