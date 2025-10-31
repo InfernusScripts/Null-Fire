@@ -291,6 +291,35 @@ local themes = table.freeze({
 		Transparency = 0,
 		Font = Enum.Font.Code,
 		WidthDivider = 2
+	}),
+	["Electro"] = table.freeze({
+		Text = Color3.fromRGB(220, 220, 220),
+		Background = Color3.fromRGB(25, 0, 30),
+		Selection = Color3.fromRGB(255, 255, 255),
+		SelectionBack = Color3.fromRGB(70, 30, 80),
+		Operator = Color3.fromRGB(220, 220, 220),
+		Number = Color3.fromRGB(170, 180, 255),
+		String = Color3.fromRGB(255, 140, 180),
+		Comment = Color3.fromRGB(120, 120, 140),
+		Keyword = Color3.fromRGB(220, 80, 130),
+		Error = Color3.fromRGB(255, 70, 70),
+		FindBackground = Color3.fromRGB(255, 190, 110),
+		MatchingWord = Color3.fromRGB(100, 80, 100),
+		BuiltIn = Color3.fromRGB(190, 130, 240),
+		CurrentLine = Color3.fromRGB(50, 45, 60),
+		LocalMethod = Color3.fromRGB(240, 130, 170),
+		LocalProperty = Color3.fromRGB(240, 130, 170),
+		Nil = Color3.fromRGB(230, 80, 120),
+		Bool = Color3.fromRGB(230, 80, 120),
+		Function = Color3.fromRGB(220, 70, 120),
+		Local = Color3.fromRGB(220, 70, 120),
+		Self = Color3.fromRGB(220, 70, 120),
+		FunctionName = Color3.fromRGB(240, 130, 170),
+		Bracket = Color3.fromRGB(220, 220, 220),
+
+		Transparency = 1,
+		Font = Enum.Font.Code,
+		WidthDivider = 2
 	})
 })
 
