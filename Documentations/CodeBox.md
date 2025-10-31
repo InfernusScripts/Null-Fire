@@ -42,6 +42,7 @@ local syntaxColors = { -- optional, if you won't pass it in codeBox:new or codeB
 -- theres some premade themes you can find in `codeBox.Themes`
 -- default theme can be found at `codeBox.SyntaxColors`
 
+syntaxColors = codeBox.Themes.VSCode
 local highlightFunctions = { -- if not defined, it will use Luau's environment
     ["print"] = true,
     ["error"] = true,
@@ -49,11 +50,19 @@ local highlightFunctions = { -- if not defined, it will use Luau's environment
 }
 
 local editor = codeBox:new(syntaxColors, highlightFunctions) -- creates a new CodeBox with theme from Visual Studio Code!!!!
-editor.Parent = ...
 
 --
 
-local editor = codeBox:fromTextBox(myTextBox, syntaxColors, highlightFunctions)
+local editor = codeBox:new("Electro") -- creates new editor with "Electro" theme
+editor.Parent = ... -- parent it somewhere in your UI
+
+--
+
+local editor = codeBox:new() -- default code editor
+
+--
+
+local editor = codeBox:fromTextBox(myTextBox, syntaxColors, highlightFunctions) -- same rules applies here as in :new() method, but first argument is TextBox
 -- NOTE: myTextBox will be deleted and replaced with editor instead
 ```
 
