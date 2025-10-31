@@ -1426,8 +1426,6 @@ Lib.CodeFrame = (function()
 		end)
 
 		editBox:GetPropertyChangedSignal("Text"):Connect(function()
-			print("edit")
-			
 			if obj.EditSkip then
 				obj.EditSkip = false
 				return
