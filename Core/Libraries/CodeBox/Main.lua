@@ -1139,7 +1139,7 @@ Lib.CodeFrame = (function()
 	}
 
 	local tabSub = "\205"
-	local emptyChar = " "
+	local emptyChar = "@"
 	local tabReplacement = (" %s%s "):format(tabSub, tabSub)
 	local tabReplace = "    "
 	
@@ -1436,12 +1436,12 @@ Lib.CodeFrame = (function()
 				obj.EditSkip = false
 				return
 			end
-			
+
 			if not obj.TextEditable then return editBox:ReleaseFocus() end
 			if obj.EditBoxCopying then return end
-			
-			local originalText: string = editBox.Text:sub(2)
 
+			local originalText: string = editBox.Text:sub(2)
+			
 			obj.EditSkip = true
 			editBox.Text = emptyChar
 			editBox.CursorPosition = 2
@@ -1451,7 +1451,7 @@ Lib.CodeFrame = (function()
 				table.remove(obj.History, 1)
 			end
 
-			if #originalText > 0 then
+			if #originalText > 1 then
 				local text = originalText:gsub("\t", tabReplace)
 
 				local oldLine = obj.Lines[obj.CursorY + 1]
@@ -2932,9 +2932,9 @@ Lib.CodeFrame = (function()
 
 	funcs.ConvertText = function(self,text,toEditor)
 		if toEditor then
-			return text:gsub("\t",(" %s%s "):format(tabSub, tabSub))
+			return text:gsub("\t",(tabReplacement):format(tabSub, tabSub))
 		else
-			return text:gsub((" %s%s "):format(tabSub, tabSub),"\t")
+			return text:gsub((tabReplacement):format(tabSub, tabSub), "\t")
 		end
 	end
 
