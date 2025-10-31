@@ -317,7 +317,7 @@ local themes = table.freeze({
 		FunctionName = Color3.fromRGB(240, 130, 170),
 		Bracket = Color3.fromRGB(220, 220, 220),
 
-		Transparency = 1,
+		Transparency = 0,
 		Font = Enum.Font.Code,
 		WidthDivider = 2
 	})
