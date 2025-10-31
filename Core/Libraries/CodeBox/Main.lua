@@ -1323,7 +1323,7 @@ Lib.CodeFrame = (function()
 
 		for i = #textBeforeCursor, 0, -1 do
 			local char = textBeforeCursor:sub(i, i)
-			if char:gsub("[\0\t \f\r]", "") ~= "" then
+			if isValidString(char) then
 				currentWord = char .. currentWord
 			else
 				break
@@ -1478,7 +1478,7 @@ Lib.CodeFrame = (function()
 
 					local skips = 0
 					local textWithoutWord = ""
-					while textBeforeCursor:sub(-1):gsub("[\0\t \f\r]", "") ~= "" do
+					while isValidString(textBeforeCursor:sub(-1)) do
 						skips += 1
 						textBeforeCursor = textBeforeCursor:sub(1, -2)
 					end
