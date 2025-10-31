@@ -1402,18 +1402,17 @@ Lib.CodeFrame = (function()
 				return
 			end
 			
-			if editBox.Text == emptyChar then return end
+			if not obj.TextEditable then return editBox:ReleaseFocus() end
+			if obj.EditBoxCopying then return end
 			
 			local originalText: string = editBox.Text:sub(2)
 
-			if not obj.TextEditable then return editBox:ReleaseFocus() end
-			if obj.EditBoxCopying then return end
-
+			obj.EditSkip = true
 			editBox.Text = emptyChar
 			editBox.CursorPosition = 2
 
 			table.insert(obj.History, (obj:GetText()))
-			if #obj.History > 100 then
+			if #obj.History > obj.MaxHistory then
 				table.remove(obj.History, 1)
 			end
 
@@ -1561,6 +1560,7 @@ Lib.CodeFrame = (function()
 					obj:MoveCursor(obj.CursorX + cursorShiftX, obj.CursorY + cursorShiftY)
 				end
 			else
+				print("erase")
 				local startRange,endRange
 
 				if obj:IsValidRange() then
@@ -1602,6 +1602,7 @@ Lib.CodeFrame = (function()
 
 		codeFrame.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				local start = tick()
 				local fontSizeX,fontSizeY = math.ceil(obj.FontSize/obj.Colors.WidthDivider),obj.FontSize
 
 				local relX = mouse.X - codeFrame.AbsolutePosition.X
@@ -1646,13 +1647,14 @@ Lib.CodeFrame = (function()
 						releaseEvent:Disconnect()
 						mouseEvent:Disconnect()
 						scrollEvent:Disconnect()
+						if tick() - start < 0.25 then return end
 						updateSelection()
 						obj:SetCopyableSelection()
 					end
 				end)
 
 				mouseEvent = uis.InputChanged:Connect(function(input)
-					if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+					if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and tick() - start > (uis.KeyboardEnabled and 0.25 or 1) then
 						local upDelta = mouse.Y - codeFrame.AbsolutePosition.Y
 						local downDelta = mouse.Y - codeFrame.AbsolutePosition.Y - codeFrame.AbsoluteSize.Y
 						local leftDelta = mouse.X - codeFrame.AbsolutePosition.X
@@ -1690,6 +1692,7 @@ Lib.CodeFrame = (function()
 		obj.SyntaxHighlight = true
 		obj.PreviousSyntaxHighlight = obj.SyntaxHighlight
 		obj.AutoFill = true
+		obj.MaxHistory = 1
 		
 		local frame = create({
 			{1,"TextButton",{AutoButtonColor=false,Name="CodeBox",Text="",BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400)}},
@@ -2313,12 +2316,19 @@ Lib.CodeFrame = (function()
 		end
 		return 0
 	end
+	
+	funcs.SafeFocus = function(self)
+		self.EditBoxCopying = true
+		repeat task.wait() until self.Editing
+		self.EditBoxCopying = false
+	end
 
-	funcs.SetEditing = function(self,on,input)			
+	funcs.SetEditing = function(self,on,input)
 		self:UpdateCursor(input)
 
-		if on and self.TextEditable then
-			if self.Editable then
+		if on and self.TextEditable then	
+			if self.Editable and not self.Editing then
+				task.spawn(self.SafeFocus, self)
 				self.GuiElems.EditBox.Text = emptyChar
 				self.GuiElems.EditBox:CaptureFocus()
 				self.GuiElems.EditBox.CursorPosition = 2
