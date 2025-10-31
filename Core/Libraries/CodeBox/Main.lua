@@ -29,7 +29,7 @@ local syntaxColors = {
 }
 
 local bold = {
-	"Error", "MatchingWord", "Nil", "Bool", "Function", "Local", "Self", "Keyword"
+	"Error", "MatchingWord", "Nil", "Bool", "Function", "Local", "Self", "Keyword", "Bracket"
 }
 
 local Lib = {}
@@ -354,7 +354,7 @@ Lib.ScrollBar = (function()
 			end
 			local fs = scrollThumbFrame.AbsoluteSize.X
 			local bs = scrollThumb.AbsoluteSize.X
-			
+
 			local pos = UDim2.new(self:GetScrollPercent()*(fs-bs)/fs,0,0,0)
 			if not pcall(scrollThumb.TweenPosition, scrollThumb, pos, Enum.EasingDirection.Out, Enum.EasingStyle.Quint, 0.3, true) then
 				scrollThumb.Position = pos
@@ -366,7 +366,7 @@ Lib.ScrollBar = (function()
 			end
 			local fs = scrollThumbFrame.AbsoluteSize.Y
 			local bs = scrollThumb.AbsoluteSize.Y
-			
+
 			local pos = UDim2.new(0,0,self:GetScrollPercent()*(fs-bs)/fs,0)
 			if not pcall(scrollThumb.TweenPosition, scrollThumb, pos, Enum.EasingDirection.Out, Enum.EasingStyle.Quint, 0.3, true) then
 				scrollThumb.Position = pos
@@ -2212,6 +2212,15 @@ Lib.CodeFrame = (function()
 		end
 		self.PreHighlights = foundHighlights
 	end
+	
+	local brackets = {
+		["("] = true,
+		[")"] = true,
+		["{"] = true,
+		["}"] = true,
+		["["] = true,
+		["]"] = true
+	}
 
 	funcs.HighlightLine = function(self,line)
 		local cached = self.ColoredLines[line]
@@ -2255,7 +2264,9 @@ Lib.CodeFrame = (function()
 				funcStatus = 0
 			else
 				local char = sub(lineText,col,col)
-				if find(char,"[%a_]") then
+				if brackets[char] then
+					highlights[col] = 17
+				elseif find(char,"[%a_]") then
 					local word = match(lineText,"[%a%d_]+",col)
 					local wordType = (keywords[word] and 7) or (builtIns[word] and 8)
 
@@ -2665,7 +2676,7 @@ Lib.CodeFrame = (function()
 			obj:UpdateView()
 			obj:Refresh()
 		end)
-		
+
 		obj.Frame.Name = "CodeBox"
 
 		return obj
