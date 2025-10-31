@@ -1421,11 +1421,13 @@ Lib.CodeFrame = (function()
 
 		editBox.Changed:Connect(function()
 			if editBox.CursorPosition ~= -1 then
-				editBox.CursorPosition = math.max(2, editBox.CursorPosition)
+				editBox.CursorPosition = #editBox.Text + 1
 			end
 		end)
 
 		editBox:GetPropertyChangedSignal("Text"):Connect(function()
+			print("edit")
+			
 			if obj.EditSkip then
 				obj.EditSkip = false
 				return
@@ -1589,7 +1591,6 @@ Lib.CodeFrame = (function()
 					obj:MoveCursor(obj.CursorX + cursorShiftX, obj.CursorY + cursorShiftY)
 				end
 			else
-				print("erase")
 				local startRange,endRange
 
 				if obj:IsValidRange() then
@@ -2350,6 +2351,8 @@ Lib.CodeFrame = (function()
 		self.EditBoxCopying = true
 		repeat task.wait() until self.Editing
 		self.EditBoxCopying = false
+		self.EditSkip = true
+		self.GuiElems.EditBox.Text = emptyChar
 	end
 
 	funcs.SetEditing = function(self,on,input)
