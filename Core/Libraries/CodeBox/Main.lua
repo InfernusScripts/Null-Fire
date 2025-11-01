@@ -854,11 +854,11 @@ Lib.ScrollBar = (function()
 				end
 			end)
 		end)
-		
+
 		scrollThumb.InputEnded:Connect(function(input)
 			if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and not thumbPress then scrollThumb.BackgroundTransparency = 0 scrollThumb.BackgroundColor3 = self.ThumbColor end
 		end)
-		
+
 		scrollThumbFrame.InputBegan:Connect(function(input)
 			if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch or checkMouseInGui(scrollThumb) then return end
 
@@ -887,12 +887,12 @@ Lib.ScrollBar = (function()
 				releaseEvent:Disconnect()
 				thumbFramePress = false
 			end)
-			
+
 			while thumbFramePress do
 				if tick() - thumbFrameTick >= 0.3 and checkMouseInGui(scrollThumbFrame) then
 					doTick()
 				end
-				
+
 				wait()
 			end
 		end)
@@ -1142,7 +1142,7 @@ Lib.CodeFrame = (function()
 	local emptyChar = "@"
 	local tabReplacement = (" %s%s "):format(tabSub, tabSub)
 	local tabReplace = "    "
-	
+
 	tabReplacement = tabReplace
 
 	local tabJumps = {
@@ -1335,7 +1335,7 @@ Lib.CodeFrame = (function()
 		if #currentWord > 0 then
 			local deprecated = { }
 			local list = { }
-			
+
 			for cat = 0, maxCat do
 				for i, item in autocompleteList[cat] do
 					if not quickExist[item] then
@@ -1433,7 +1433,7 @@ Lib.CodeFrame = (function()
 				obj.EditSkip = false
 				return
 			end
-			
+
 			if obj.EditSkip then
 				editBox.Text = emptyChar
 				obj.EditSkip = false
@@ -1443,7 +1443,7 @@ Lib.CodeFrame = (function()
 			if not obj.TextEditable then return editBox:ReleaseFocus() end
 
 			local originalText: string = editBox.Text
-			
+
 			obj.EditSkip = true
 			editBox.Text = emptyChar
 			editBox.CursorPosition = 2
@@ -1555,12 +1555,12 @@ Lib.CodeFrame = (function()
 						for _, v in indentRemove do
 							indentRep -= simpleCount(text, v)
 						end
-						
+
 						if indentRep > 0 then
 							autocomplete = "%s\n%send"
 						end
 					end
-					
+
 					local hasNewline = autocomplete and autocomplete:find("\n", 1, true) ~= nil
 
 					if autocomplete and (hasNewline and originalText:sub(-1) == "\n" or not hasNewline) then
@@ -1649,7 +1649,7 @@ Lib.CodeFrame = (function()
 				obj.FloatCursorX = selX
 
 				if input.UserInputType == Enum.UserInputType.Touch then return end
-				
+
 				local function updateSelection()
 					local relX = mouse.X - codeFrame.AbsolutePosition.X
 					local relY = mouse.Y - codeFrame.AbsolutePosition.Y
@@ -1724,11 +1724,11 @@ Lib.CodeFrame = (function()
 		obj.ShowFooter = false
 		obj.MaxHistory = 1
 		obj.ControlButtons = true
-		
+
 		local frame = create({
 			{1,"TextButton",{AutoButtonColor=false,Name="CodeBox",Text="",BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400)}},
 		})
-		
+
 		local footer = Instance.new("TextLabel", frame)
 		footer.Name = "Footer"
 		footer.Size = UDim2.new(1, 0, 0, 17)
@@ -1737,7 +1737,7 @@ Lib.CodeFrame = (function()
 		footer.Text = ""
 		footer.TextScaled = true
 		footer.TextXAlignment = Enum.TextXAlignment.Left
-		
+
 		local pad = Instance.new("UIPadding", footer)
 		pad.PaddingTop = UDim.new(0.15, 0)
 		pad.PaddingBottom = UDim.new(0.15, 0)
@@ -1748,7 +1748,7 @@ Lib.CodeFrame = (function()
 		holder.Name = "Holder"
 		holder.Size = UDim2.new(1, 0, 1, -footer.Size.Y.Offset)
 		holder.BackgroundTransparency = 1
-		
+
 		local function changed(text)
 			footer.Text = ("Current line: %s | Current symbol: %s | Lines: %s | Symbols: %s"):format(obj.CursorY + 1, obj.CursorX, #obj.Lines, #text)
 		end
@@ -1760,9 +1760,9 @@ Lib.CodeFrame = (function()
 		obj.CursorMoved = Instance.new("BindableEvent", holder)
 		obj.CursorMoved.Name = "CursorMoved"
 		obj.CursorMoved.Event:Connect(changed)
-		
+
 		obj.TextChanged:Fire("")
-		
+
 		local elems = { }
 
 		local linesFrame = Instance.new("Frame")
@@ -2039,27 +2039,27 @@ Lib.CodeFrame = (function()
 			cursor:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
 				local asize = obj.Autocomplete.AbsoluteSize
 				local apos = cursor.AbsolutePosition + Vector2.new(cursor.AbsoluteSize.X + 15, 1)
-				
+
 				local fasize = frame.AbsoluteSize
 				local fapos = frame.AbsolutePosition
 
 				local endPoint1 = asize + apos
 				local endPoint2 = fasize + fapos
-				
+
 				local shiftY = 1
 				if endPoint1.Y > endPoint2.Y - footer.AbsoluteSize.Y - 3 then
 					shiftY = endPoint2.Y - endPoint1.Y - footer.AbsoluteSize.Y - 3
 				end
-				
+
 				local shiftX = 15
 				if endPoint1.X > endPoint2.X then
 					shiftX = 0 - asize.X - 15
 				end
-				
+
 				obj.Autocomplete.Position = UDim2.new(1, shiftX, 0, shiftY)
 			end)
 		end
-		
+
 		do -- goto
 			local objects = {
 				["Instance0"] = Instance.new("Frame"),
@@ -2210,7 +2210,7 @@ Lib.CodeFrame = (function()
 				objects["Instance5"]["Color"] = Color3.new(0.0784314, 0.0784314, 0.0784314)
 				objects["Instance5"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border
 			end
-			
+
 			obj.Goto = objects.Instance0
 			objects.Instance3.Changed:Connect(function()
 				local text = objects.Instance3.Text
@@ -2218,18 +2218,18 @@ Lib.CodeFrame = (function()
 					objects.Instance3.Text = ""
 				end
 			end)
-			
+
 			objects.Instance3.FocusLost:Connect(function(enter)
 				if enter then
 					obj.Goto.Visible = false
-					
+
 					local line = tonumber(objects.Instance3.Text)
 					objects.Instance3.Text = ""
-					
+
 					obj:JumpToLine(line)
 				end
 			end)
-			
+
 			obj.Goto:GetPropertyChangedSignal("Visible"):Connect(function()
 				if obj.Goto.Visible then
 					task.wait()
@@ -2237,7 +2237,7 @@ Lib.CodeFrame = (function()
 				end
 			end)
 		end
-		
+
 		do -- find and replace
 			local objects = {
 				["Instance0"] = Instance.new("Frame"),
@@ -2456,12 +2456,12 @@ Lib.CodeFrame = (function()
 				objects["Instance8"]["PaddingLeft"] = UDim.new(0.0500000007, 0)
 				objects["Instance8"]["PaddingRight"] = UDim.new(0, 0)
 			end
-			
+
 			obj.Replace = objects.Instance0
 			local function isDown(key)
 				return uis:IsKeyDown(Enum.KeyCode["Left" .. key]) or uis:IsKeyDown(Enum.KeyCode["Right" .. key])
 			end
-			
+
 			uis.InputBegan:Connect(function(input)
 				if obj.ControlButtons then
 					local tb = uis:GetFocusedTextBox()
@@ -2472,7 +2472,7 @@ Lib.CodeFrame = (function()
 						elseif input.KeyCode == Enum.KeyCode.F or input.KeyCode == Enum.KeyCode.H then
 							obj.Goto.Visible = false
 							obj.Replace.Visible = not obj.Replace.Visible or objects.Instance3.Text == "" or input.KeyCode == Enum.KeyCode.H and objects.Instance6.Text == ""
-							
+
 							if obj.Replace.Visible then
 								objects["Instance" .. ((input.KeyCode == Enum.KeyCode.F or objects.Instance3.Text == "") and "3" or "6")]:CaptureFocus()
 							end
@@ -2519,19 +2519,19 @@ Lib.CodeFrame = (function()
 
 		return frame
 	end
-	
+
 	funcs.JumpToLine = function(self, line)
 		if not line then return end
-		
+
 		self:SetEditing(true)
 		repeat task.wait() until self.Editing
-		
+
 		local lines = self.Lines
 		local line = math.clamp(line, 1, #lines)
-		
+
 		self:MoveCursor(#lines[line], line - 1)
 	end
-	
+
 	funcs.GetTextAfterCursor = function(self, allLines)
 		return allLines and table.concat(self.Lines, "\n", self.CursorY + 1):sub(self.CursorX + 1) or self.Lines[self.CursorY + 1]:sub(self.CursorX + 1)
 	end
@@ -2541,13 +2541,13 @@ Lib.CodeFrame = (function()
 			self:ResetSelection()
 			return
 		end
-		
+
 		toFind = toFind:lower()
-		
+
 		local shift = self.CursorX + #toFind
 		local textAfterCursor = self:GetTextAfterCursor(true):sub(#toFind):lower()
 		local found = textAfterCursor:find(toFind)
-		
+
 		if not found then
 			self.CursorX = 0
 			self.CursorY = 0
@@ -2556,37 +2556,37 @@ Lib.CodeFrame = (function()
 			textAfterCursor = table.concat(self.Lines, "\n"):lower()
 			found = textAfterCursor:find(toFind)
 		end
-		
+
 		if found then
 			local old = self.CursorY
 			self.CursorY += simpleCount(textAfterCursor:sub(1, found - 1), "\n")
 			if self.CursorY ~= old then
 				shift = 0
 			end
-			
-			local found, extends = self.Lines[self.CursorY + 1]:sub(shift):lower():find(toFind)
-			
+
+			local found, extends = self.Lines[self.CursorY + 1]:sub(math.max(shift - 1, 1)):lower():find(toFind)
+
 			if self.CursorY == old then
 				shift -= 1
 			end
-			
+
 			self.CursorX = found + shift
 			self.SelectionRange = {{found-1+shift,self.CursorY},{extends+shift,self.CursorY}}
-			
+
 			if self:GetSelectionText():lower() ~= toFind then
 				self.SelectionRange = {{found+shift,self.CursorY},{extends+shift+1,self.CursorY}}
 			end
-			
+
 			self.CursorX = self.SelectionRange[2][1]
-			
+
 			self:Refresh()
 			self:SetCopyableSelection()
 		end
 	end
-	
+
 	funcs.ReplaceSelection = function(self, toReplace: string)
 		if not self:IsValidRange() then return end
-		
+
 		local x = self.SelectionRange[1][1]
 		self:DeleteRange(self.SelectionRange,false,false)
 		self.CursorX = x
@@ -2631,10 +2631,10 @@ Lib.CodeFrame = (function()
 		editBox.SelectionStart = 2
 		editBox.CursorPosition = #editBox.Text + 1
 	end
-	
+
 	funcs.QuickShift = function(self,lr)
 		local line = self.Lines[self.CursorY+1] or ""
-		
+
 		if lr then
 			self.CursorX = self.CursorX - 1 - (line:sub(self.CursorX-3,self.CursorX) == tabReplacement and 3 or 0)
 		else
@@ -2650,7 +2650,7 @@ Lib.CodeFrame = (function()
 			or byte >= 240 and byte <= 247 and 4)
 			or 0
 	end
-	
+
 	funcs.Shift = function(self,dir,upd,reset)
 		if reset == true then
 			self:ResetSelection(true)
@@ -2662,16 +2662,16 @@ Lib.CodeFrame = (function()
 				self.SelectionRange[1][2] = self.CursorY
 			end
 		end
-		
+
 		if dir == "Left" then
 			local line = self.Lines[self.CursorY+1] or ""
 			local str = ""
-			
+
 			repeat
 				self:QuickShift(true)
 				str = line:sub(self.CursorX+1,self.CursorX+1) .. str
 			until self:GetLen(str) == #str or #str == 4 or self.CursorX <= 0
-			
+
 			if self.CursorX < 0 then
 				self.CursorY = self.CursorY - 1
 				if self.CursorY == -1 then
@@ -2680,17 +2680,17 @@ Lib.CodeFrame = (function()
 					self.CursorX = #(self.Lines[self.CursorY + 1] or "")
 				end
 			end
-			
+
 			self.FloatCursorX = self.CursorX
 		elseif dir == "Right" then
 			local line = self.Lines[self.CursorY+1] or ""
 			local str = ""
-			
+
 			repeat
 				self:QuickShift(false)
 				str = line:sub(self.CursorX+1,self.CursorX+1) .. str
 			until self:GetLen(str) == #str or #str == 4 or self.CursorX >= #line
-			
+
 			if self.CursorX > #line then
 				if self.CursorY + 1 < #self.Lines then
 					self.CursorY = self.CursorY + 1
@@ -2699,7 +2699,7 @@ Lib.CodeFrame = (function()
 					self.CursorX = #line
 				end
 			end
-			
+
 			self.FloatCursorX = self.CursorX
 		elseif dir == "Up" then
 			if self.CursorY - 1 ~= -1 then
@@ -2719,18 +2719,18 @@ Lib.CodeFrame = (function()
 
 			--if self.SelectionRange[2][2] < self.SelectionRange[1][2] then
 			--	local c = self.SelectionRange[1]
-				
+
 			--	self.SelectionRange[1] = self.SelectionRange[2]
 			--	self.SelectionRange[2] = c
 			--end
 		end
-		
+
 		if upd then
 			self:UpdateCursor()
 			self:Refresh()
 		end
 	end
-	
+
 	funcs.GetSymbolAtCursor = function(self, back)
 		return self.Lines[self.CursorY + 1]:sub(self.CursorX + (back and 0 or 1), self.CursorX + (back and 0 or 1))
 	end
@@ -2739,7 +2739,7 @@ Lib.CodeFrame = (function()
 		if self.EditBoxEvent then
 			self.EditBoxEvent:Disconnect()
 		end
-		
+
 		local function isDown(key)
 			return uis:IsKeyDown(Enum.KeyCode["Left" .. key]) or uis:IsKeyDown(Enum.KeyCode["Right" .. key])
 		end
@@ -2771,7 +2771,7 @@ Lib.CodeFrame = (function()
 						updateAutocompletes(self)
 					end
 				end)
-				
+
 				self:SetCopyableSelection()
 			elseif keycode == keycodes.Up then
 				setupMove(keycodes.Up,function()
@@ -2920,7 +2920,7 @@ Lib.CodeFrame = (function()
 
 	funcs.AppendText = function(self, text)
 		self:DeleteRange(nil,true,true)
-		
+
 		local lines,cursorX,cursorY = self.Lines,self.CursorX,self.CursorY
 		local line = lines[cursorY+1]
 		local before = line:sub(1,cursorX)
@@ -2976,7 +2976,7 @@ Lib.CodeFrame = (function()
 		end
 		return 0
 	end
-	
+
 	funcs.SafeFocus = function(self)
 		self.FocusIgnore = true
 		repeat task.wait() until self.Editing
@@ -3085,7 +3085,7 @@ Lib.CodeFrame = (function()
 		else
 			cursor.Visible = false
 		end
-		
+
 		self.CursorMoved:Fire(self.Text)
 		resetAutocomplete(self)
 	end
@@ -3197,7 +3197,7 @@ Lib.CodeFrame = (function()
 				local lineTable = foundHighlights[curLine]
 				if not lineTable then lineTable = { } foundHighlights[curLine] = lineTable end
 				lineTable[pos] = {typ,ending}
-				
+
 				if ending > lineEnd then
 					curLine = curLine + 1
 					lineEnd = newLines[curLine] or textLen+1
@@ -3210,7 +3210,7 @@ Lib.CodeFrame = (function()
 		end
 		self.PreHighlights = foundHighlights
 	end
-	
+
 	local brackets = {
 		["("] = true,
 		[")"] = true,
@@ -3383,7 +3383,7 @@ Lib.CodeFrame = (function()
 		for row = 1,maxLines do
 			local lineFrame = self.LineFrames[row]
 			local selectionHighlight, label
-			
+
 			if not lineFrame then
 				lineFrame = Instance.new("Frame", linesFrame)
 				selectionHighlight = Instance.new("Frame", lineFrame)
@@ -3394,7 +3394,7 @@ Lib.CodeFrame = (function()
 				selectionHighlight = lineFrame.SelectionHighlight
 				label = lineFrame.Label
 			end
-			
+
 			lineFrame.Name = "Line"
 			lineFrame.Position = UDim2.new(0, 0, 0, (row - 1) * self.FontSize)
 			lineFrame.Size = UDim2.new(1,0,0,self.FontSize)
@@ -3404,7 +3404,7 @@ Lib.CodeFrame = (function()
 			selectionHighlight.Name = "SelectionHighlight"
 			selectionHighlight.BorderSizePixel = 0
 			selectionHighlight.BackgroundColor3 = self.Replace.Visible and self.Colors.MatchingWord or self.Colors.SelectionBack
-			
+
 			label.Name = "Label"
 			label.BackgroundTransparency = 1
 			label.Font = self.Colors.Font
@@ -3423,7 +3423,7 @@ Lib.CodeFrame = (function()
 
 			local richTemplates = self.RichTemplates
 			local textTemplate = richTemplates.Text
-			local selectionTemplate = richTemplates.SelectedText
+			local selectionTemplate = richTemplates.SelectedText or textTemplate
 			local curType = highlights[colStart]
 			local curTemplate = richTemplates[typeMap[curType]] or textTemplate
 
@@ -3471,6 +3471,7 @@ Lib.CodeFrame = (function()
 						colStart = relaX
 						curTemplate = template
 					end
+					
 					curType = posType
 				end
 			end
@@ -3483,7 +3484,7 @@ Lib.CodeFrame = (function()
 			if self.Lines[relaY] then
 				lineNumberStr = lineNumberStr .. (relaY == self.CursorY+1 and ("<b>"..relaY.."</b>\n") or relaY .. "\n")
 			end
-			
+
 			if simpleCount(resText, "<b>") > simpleCount(resText, "</b>") then
 				resText = resText .. "</b>"
 			end
@@ -3625,7 +3626,7 @@ Lib.CodeFrame = (function()
 	funcs.ApplyTheme = function(self, syntaxColor)
 		self.SyntaxColors = syntaxColor or self.SyntaxColors or table.clone(syntaxColors)
 		self.Colors = self.SyntaxColors
-		
+
 		pcall(self.Refresh, self)
 		self:MakeRichTemplates()
 	end
@@ -3735,7 +3736,7 @@ local metaNew = function(...)
 					new[index] = value
 				end
 			end
-			
+
 			new:Refresh()
 		end,
 	})
@@ -3746,32 +3747,32 @@ local oldEnv = table.clone(ENV)
 return table.freeze({
 	new = function(self, syntaxColors, env)
 		syntaxColors = typeof(syntaxColors) == "string" and themes[syntaxColors] or syntaxColors
-		
+
 		local gui = Gui and Gui.Parent or Instance.new("ScreenGui", getfenv().gethui and getfenv().gethui() or game:GetService("CoreGui") or game:GetService("Players").LocalPlayer.PlayerGui)
 		gui.Name = "CodeEditor"
 		gui.ResetOnSpawn = false
 		Gui = gui
-		
+
 		ENV = env or oldEnv
-		
+
 		local newMeta = metaNew(syntaxColors)
 		newMeta.Parent = gui
 		newMeta.Size = UDim2.fromScale(0.75, 0.75)
 		newMeta.Position = UDim2.fromScale(0.125, 0.125)
-		
+
 		local con; con = newMeta.Gui:GetPropertyChangedSignal("Parent"):Connect(function()
 			if #gui:GetChildren() ~= 0 then return end
-			
+
 			con:Disconnect()
 			gui:Destroy()
 		end)
-		
+
 		return newMeta
 	end,
 
 	fromTextBox = function(self, textBox, syntaxColors, env)
 		syntaxColors = table.clone(typeof(syntaxColors) == "table" and syntaxColors or themes.Galaxy)
-		
+
 		local new = self:new(syntaxColors, env)
 		local colors = new.Colors
 
