@@ -2568,13 +2568,13 @@ Lib.CodeFrame = (function()
 			if self.CursorY == old then
 				shift -= 1
 			end
-			
+
 			if not found then
 				self.CursorY += 1
 				if self.CursorY >= #self.Lines then
 					self.CursorY = 0
 				end
-				
+
 				return self:FindNext(toFind)
 			end
 
@@ -3479,7 +3479,7 @@ Lib.CodeFrame = (function()
 						colStart = relaX
 						curTemplate = template
 					end
-					
+
 					curType = posType
 				end
 			end
