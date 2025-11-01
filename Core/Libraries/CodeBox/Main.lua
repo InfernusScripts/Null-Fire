@@ -976,6 +976,7 @@ Lib.ScrollBar = (function()
 	funcs.AddMarker = function(self,ind,color)
 		self.Markers[ind] = color or Color3.new(0,0,0)
 	end
+	
 	funcs.ScrollTo = function(self,ind,nocallback)
 		self.Index = ind
 		self:Update()
@@ -1382,6 +1383,14 @@ Lib.CodeFrame = (function()
 
 	local function setupEditBox(obj)
 		obj.AutocompleteEnabled = true
+		obj.FramesPassed = 0
+		obj.LastTyped = 0
+		
+		renderStepped:Connect(function()
+			if obj.Editing then
+				obj.FramesPassed += 1
+			end
+		end)
 
 		local indentAdd = {
 			"(", "[", "{", "then", "do", "function", "repeat"
@@ -1428,11 +1437,13 @@ Lib.CodeFrame = (function()
 		end)
 
 		editBox:GetPropertyChangedSignal("Text"):Connect(function()
-			if obj.EditBoxCopying or editBox.Text == emptyChar or obj.FocusIgnore then
+			if obj.EditBoxCopying or editBox.Text == emptyChar or obj.FocusIgnore or obj.LastTyped == obj.FramesPassed then
 				obj.EditBoxCopying = false
 				obj.EditSkip = false
 				return
 			end
+			
+			obj.LastTyped = obj.FramesPassed
 
 			if obj.EditSkip then
 				editBox.Text = emptyChar
