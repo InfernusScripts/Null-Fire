@@ -464,10 +464,11 @@ local function isValidString(str)
 	return str:match("^[a-zA-Z0-9_]+$") ~= nil
 end
 
-local function simpleCount(str: string, a)
+local function simpleCount(str: string, a, limit)
 	local amount, pointer = 0, 1
+	local limit = tonumber(limit) or math.huge
 
-	while pointer <= #str do
+	while pointer <= #str and amount < limit do
 		local found = str:find(a, pointer, true)
 		if not found then break end
 
@@ -1594,7 +1595,7 @@ Lib.CodeFrame = (function()
 				end
 
 				obj:AppendText(text)
-				if simpleCount(text, "\n") > 2 then
+				if simpleCount(text, "\n", 2) == 2 then
 					task.defer(obj.AppendText, obj, "")
 				end
 
@@ -3064,7 +3065,7 @@ Lib.CodeFrame = (function()
 		if self.CursorY < self.ViewY + 1 then
 			self.ViewY = math.max(0, self.CursorY)
 		elseif self.CursorY > self.ViewY + maxLines then
-			self.ViewY = math.max(0, self.CursorY - maxLines + 1)
+			self.ViewY = math.max(0, self.CursorY - maxLines + 2)
 		end
 
 		if self.CursorX < self.ViewX + 1 then
@@ -3072,7 +3073,7 @@ Lib.CodeFrame = (function()
 		elseif self.CursorX > self.ViewX + maxCols then
 			self.ViewX = math.max(0, self.CursorX - maxCols + 2)
 		end
-
+		
 		self:Refresh()
 	end
 
@@ -3522,7 +3523,7 @@ Lib.CodeFrame = (function()
 			end
 
 			if self.Lines[relaY] then
-				lineNumberStr = lineNumberStr .. (relaY == self.CursorY+1 and ("<b>"..relaY.."</b>\n") or relaY .. "\n")
+				lineNumberStr = lineNumberStr .. (relaY == self.CursorY+1 and ("<b>" .. relaY .. "</b>") or relaY) .. "\n"
 			end
 
 			if simpleCount(resText, "<b>") > simpleCount(resText, "</b>") then
