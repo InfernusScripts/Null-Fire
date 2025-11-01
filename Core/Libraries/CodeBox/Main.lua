@@ -1428,6 +1428,12 @@ Lib.CodeFrame = (function()
 		end)
 
 		editBox:GetPropertyChangedSignal("Text"):Connect(function()
+			if obj.EditBoxCopying or editBox.Text == emptyChar or obj.FocusIgnore then
+				obj.EditBoxCopying = false
+				obj.EditSkip = false
+				return
+			end
+			
 			if obj.EditSkip then
 				editBox.Text = emptyChar
 				obj.EditSkip = false
@@ -1435,7 +1441,6 @@ Lib.CodeFrame = (function()
 			end
 
 			if not obj.TextEditable then return editBox:ReleaseFocus() end
-			if obj.EditBoxCopying or editBox.Text == emptyChar then return end
 
 			local originalText: string = editBox.Text
 			
@@ -1723,26 +1728,46 @@ Lib.CodeFrame = (function()
 		obj.SyntaxHighlight = true
 		obj.PreviousSyntaxHighlight = obj.SyntaxHighlight
 		obj.AutoFill = true
+		obj.ShowFooter = false
 		obj.MaxHistory = 1
 		
 		local frame = create({
 			{1,"TextButton",{AutoButtonColor=false,Name="CodeBox",Text="",BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400)}},
 		})
+		
+		local footer = Instance.new("TextLabel", frame)
+		footer.Name = "Footer"
+		footer.Size = UDim2.new(1, 0, 0, 17)
+		footer.Position = UDim2.new(0, 0, 1, -footer.Size.Y.Offset)
+		footer.BackgroundTransparency = 1
+		footer.Text = ""
+		footer.TextScaled = true
+		footer.TextXAlignment = Enum.TextXAlignment.Left
+		
+		local pad = Instance.new("UIPadding", footer)
+		pad.PaddingTop = UDim.new(0.15, 0)
+		pad.PaddingBottom = UDim.new(0.15, 0)
+		pad.PaddingLeft = UDim.new(0, 5)
+		pad.PaddingRight = UDim.new(0, 0)
 
 		local holder = Instance.new("Frame", frame)
 		holder.Name = "Holder"
-		holder.Size = UDim2.new(1, 0, 1, -10)
-
-		local footer = Instance.new("Frame", frame)
-		footer.Name = "Footer"
-		footer.Size = UDim2.new(1, 0, 0, 10)
-		footer.Position = UDim2.new(0, 0, 1, -10)
+		holder.Size = UDim2.new(1, 0, 1, -footer.Size.Y.Offset)
+		holder.BackgroundTransparency = 1
+		
+		local function changed(text)
+			footer.Text = ("Current line: %s | Current symbol: %s | Lines: %s | Symbols: %s"):format(obj.CursorY + 1, obj.CursorX, #obj.Lines, #text)
+		end
 
 		obj.TextChanged = Instance.new("BindableEvent", holder)
 		obj.TextChanged.Name = "TextChanged"
-		obj.TextChanged.Event:Connect(function()
-			
-		end)
+		obj.TextChanged.Event:Connect(changed)
+
+		obj.CursorMoved = Instance.new("BindableEvent", holder)
+		obj.CursorMoved.Name = "CursorMoved"
+		obj.CursorMoved.Event:Connect(changed)
+		
+		obj.TextChanged:Fire("")
 		
 		local elems = { }
 
@@ -2018,12 +2043,532 @@ Lib.CodeFrame = (function()
 
 			obj.Autocomplete = objects["Instance0"]
 		end
+		
+		do -- goto
+			local objects = {
+				["Instance0"] = Instance.new("Frame"),
+				["Instance1"] = Instance.new("UIStroke"),
+				["Instance2"] = Instance.new("TextLabel"),
+				["Instance3"] = Instance.new("TextBox"),
+				["Instance4"] = Instance.new("UIPadding"),
+				["Instance5"] = Instance.new("UIStroke")
+			}
+
+			do -- Set properties
+				objects["Instance0"]["LayoutOrder"] = 0
+				objects["Instance0"]["Active"] = false
+				objects["Instance0"]["Parent"] = frame
+				objects["Instance0"]["AnchorPoint"] = Vector2.new(1, 0)
+				objects["Instance0"]["SizeConstraint"] = Enum.SizeConstraint.RelativeXY
+				objects["Instance0"]["ZIndex"] = 3
+				objects["Instance0"]["AutomaticSize"] = Enum.AutomaticSize.None
+				objects["Instance0"]["Size"] = UDim2.new(0, 150, 0, 40)
+				objects["Instance0"]["Draggable"] = false
+				objects["Instance0"]["Style"] = Enum.FrameStyle.Custom
+				objects["Instance0"]["ClipsDescendants"] = false
+				objects["Instance0"]["BorderColor3"] = Color3.new(0, 0, 0)
+				objects["Instance0"]["BorderMode"] = Enum.BorderMode.Outline
+				objects["Instance0"]["BackgroundTransparency"] = 0.25
+				objects["Instance0"]["BorderSizePixel"] = 0
+				objects["Instance0"]["Rotation"] = 0
+				objects["Instance0"]["Transparency"] = 0.25
+				objects["Instance0"]["Name"] = "Goto"
+				objects["Instance0"]["SelectionOrder"] = 0
+				objects["Instance0"]["Visible"] = false
+				objects["Instance0"]["Selectable"] = false
+				objects["Instance0"]["Position"] = UDim2.new(1, -10, 0, 10)
+				objects["Instance0"]["BackgroundColor3"] = Color3.new(0.137255, 0.137255, 0.137255)
+
+				objects["Instance1"]["Enabled"] = true
+				objects["Instance1"]["Transparency"] = 0
+				objects["Instance1"]["Name"] = "UIStroke"
+				objects["Instance1"]["LineJoinMode"] = Enum.LineJoinMode.Miter
+				objects["Instance1"]["Parent"] = objects["Instance0"]
+				objects["Instance1"]["Thickness"] = 1
+				objects["Instance1"]["Color"] = Color3.new(0, 0, 0)
+				objects["Instance1"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border
+
+				objects["Instance2"]["Visible"] = true
+				objects["Instance2"]["FontSize"] = Enum.FontSize.Size14
+				objects["Instance2"]["TextDirection"] = Enum.TextDirection.Auto
+				objects["Instance2"]["Active"] = false
+				objects["Instance2"]["TextStrokeTransparency"] = 1
+				objects["Instance2"]["TextTruncate"] = Enum.TextTruncate.None
+				objects["Instance2"]["SizeConstraint"] = Enum.SizeConstraint.RelativeXY
+				objects["Instance2"]["ZIndex"] = 1
+				objects["Instance2"]["BorderSizePixel"] = 0
+				objects["Instance2"]["Draggable"] = false
+				objects["Instance2"]["RichText"] = false
+				objects["Instance2"]["Transparency"] = 1
+				objects["Instance2"]["SelectionOrder"] = 0
+				objects["Instance2"]["TextYAlignment"] = Enum.TextYAlignment.Center
+				objects["Instance2"]["TextScaled"] = true
+				objects["Instance2"]["TextWrap"] = true
+				objects["Instance2"]["FontFace"] = Font.new("rbxasset://fonts/families/Inconsolata.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal, false)
+				objects["Instance2"]["BorderMode"] = Enum.BorderMode.Outline
+				objects["Instance2"]["Parent"] = objects["Instance0"]
+				objects["Instance2"]["AnchorPoint"] = Vector2.new(0.5, 0)
+				objects["Instance2"]["TextSize"] = 14
+				objects["Instance2"]["Position"] = UDim2.new(0.5, 0, 0.05000000074505806, 0)
+				objects["Instance2"]["AutomaticSize"] = Enum.AutomaticSize.None
+				objects["Instance2"]["Size"] = UDim2.new(1, 0, 0.30000001192092896, 0)
+				objects["Instance2"]["BackgroundTransparency"] = 1
+				objects["Instance2"]["LineHeight"] = 1
+				objects["Instance2"]["BackgroundColor3"] = Color3.new(1, 1, 1)
+				objects["Instance2"]["TextColor3"] = Color3.new(0.8, 0.8, 0.8)
+				objects["Instance2"]["BorderColor3"] = Color3.new(0, 0, 0)
+				objects["Instance2"]["Text"] = "Go to line"
+				objects["Instance2"]["LayoutOrder"] = 0
+				objects["Instance2"]["TextWrapped"] = true
+				objects["Instance2"]["Rotation"] = 0
+				objects["Instance2"]["TextTransparency"] = 0
+				objects["Instance2"]["Name"] = "Title"
+				objects["Instance2"]["TextXAlignment"] = Enum.TextXAlignment.Center
+				objects["Instance2"]["ClipsDescendants"] = false
+				objects["Instance2"]["MaxVisibleGraphemes"] = -1
+				objects["Instance2"]["TextStrokeColor3"] = Color3.new(0, 0, 0)
+				objects["Instance2"]["Selectable"] = false
+
+				objects["Instance3"]["LayoutOrder"] = 0
+				objects["Instance3"]["FontSize"] = Enum.FontSize.Size14
+				objects["Instance3"]["LineHeight"] = 1
+				objects["Instance3"]["Active"] = true
+				objects["Instance3"]["TextStrokeTransparency"] = 1
+				objects["Instance3"]["SelectionStart"] = -1
+				objects["Instance3"]["PlaceholderColor3"] = Color3.new(0.7, 0.7, 0.7)
+				objects["Instance3"]["SizeConstraint"] = Enum.SizeConstraint.RelativeXY
+				objects["Instance3"]["ZIndex"] = 1
+				objects["Instance3"]["BorderSizePixel"] = 0
+				objects["Instance3"]["TextEditable"] = true
+				objects["Instance3"]["Draggable"] = false
+				objects["Instance3"]["RichText"] = false
+				objects["Instance3"]["Transparency"] = 0
+				objects["Instance3"]["SelectionOrder"] = 0
+				objects["Instance3"]["TextYAlignment"] = Enum.TextYAlignment.Center
+				objects["Instance3"]["TextScaled"] = true
+				objects["Instance3"]["BackgroundColor3"] = Color3.new(0, 0, 0)
+				objects["Instance3"]["FontFace"] = Font.new("rbxasset://fonts/families/Inconsolata.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal, true)
+				objects["Instance3"]["BorderMode"] = Enum.BorderMode.Outline
+				objects["Instance3"]["Parent"] = objects["Instance0"]
+				objects["Instance3"]["TextWrapped"] = true
+				objects["Instance3"]["MaxVisibleGraphemes"] = -1
+				objects["Instance3"]["Name"] = "Input"
+				objects["Instance3"]["AnchorPoint"] = Vector2.new(0.5, 1)
+				objects["Instance3"]["TextTransparency"] = 0
+				objects["Instance3"]["TextDirection"] = Enum.TextDirection.Auto
+				objects["Instance3"]["CursorPosition"] = -1
+				objects["Instance3"]["ClipsDescendants"] = false
+				objects["Instance3"]["PlaceholderText"] = "Line..."
+				objects["Instance3"]["AutomaticSize"] = Enum.AutomaticSize.None
+				objects["Instance3"]["Size"] = UDim2.new(0.8999999761581421, 0, 0.44999998807907104, 0)
+				objects["Instance3"]["TextStrokeColor3"] = Color3.new(0, 0, 0)
+				objects["Instance3"]["Selectable"] = true
+				objects["Instance3"]["ShowNativeInput"] = true
+				objects["Instance3"]["TextColor3"] = Color3.new(1, 1, 1)
+				objects["Instance3"]["BorderColor3"] = Color3.new(0, 0, 0)
+				objects["Instance3"]["Text"] = ""
+				objects["Instance3"]["TextSize"] = 14
+				objects["Instance3"]["Visible"] = true
+				objects["Instance3"]["Rotation"] = 0
+				objects["Instance3"]["MultiLine"] = false
+				objects["Instance3"]["BackgroundTransparency"] = 0.5
+				objects["Instance3"]["TextXAlignment"] = Enum.TextXAlignment.Center
+				objects["Instance3"]["TextTruncate"] = Enum.TextTruncate.None
+				objects["Instance3"]["ClearTextOnFocus"] = false
+				objects["Instance3"]["Position"] = UDim2.new(0.5, 0, 0.8999999761581421, 0)
+				objects["Instance3"]["TextWrap"] = true
+
+				objects["Instance4"]["PaddingTop"] = UDim.new(0.150000006, 0)
+				objects["Instance4"]["Name"] = "UIPadding"
+				objects["Instance4"]["Parent"] = objects["Instance3"]
+				objects["Instance4"]["PaddingBottom"] = UDim.new(0.150000006, 0)
+				objects["Instance4"]["PaddingLeft"] = UDim.new(0, 0)
+				objects["Instance4"]["PaddingRight"] = UDim.new(0, 0)
+
+				objects["Instance5"]["Enabled"] = true
+				objects["Instance5"]["Transparency"] = 0
+				objects["Instance5"]["Name"] = "UIStroke"
+				objects["Instance5"]["LineJoinMode"] = Enum.LineJoinMode.Miter
+				objects["Instance5"]["Parent"] = objects["Instance3"]
+				objects["Instance5"]["Thickness"] = 1
+				objects["Instance5"]["Color"] = Color3.new(0.0784314, 0.0784314, 0.0784314)
+				objects["Instance5"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border
+			end
+			
+			obj.Goto = objects.Instance0
+			objects.Instance3.Changed:Connect(function()
+				local text = objects.Instance3.Text
+				if not tonumber(text) and text ~= "" then
+					objects.Instance3.Text = ""
+				end
+			end)
+			
+			objects.Instance3.FocusLost:Connect(function(enter)
+				if enter then
+					obj.Goto.Visible = false
+					
+					local line = tonumber(objects.Instance3.Text)
+					objects.Instance3.Text = ""
+					
+					obj:JumpToLine(line)
+				end
+			end)
+			
+			obj.Goto:GetPropertyChangedSignal("Visible"):Connect(function()
+				if obj.Goto.Visible then
+					task.wait()
+					objects.Instance3:CaptureFocus()
+				end
+			end)
+		end
+		
+		do -- find and replace
+			local objects = {
+				["Instance0"] = Instance.new("Frame"),
+				["Instance1"] = Instance.new("UIStroke"),
+				["Instance2"] = Instance.new("TextLabel"),
+				["Instance3"] = Instance.new("TextBox"),
+				["Instance4"] = Instance.new("UIPadding"),
+				["Instance5"] = Instance.new("UIStroke"),
+				["Instance6"] = Instance.new("TextBox"),
+				["Instance7"] = Instance.new("UIStroke"),
+				["Instance8"] = Instance.new("UIPadding")
+			}
+
+			do
+				objects["Instance0"]["LayoutOrder"] = 0
+				objects["Instance0"]["Active"] = false
+				objects["Instance0"]["Parent"] = frame
+				objects["Instance0"]["AnchorPoint"] = Vector2.new(1, 0)
+				objects["Instance0"]["SizeConstraint"] = Enum.SizeConstraint.RelativeXY
+				objects["Instance0"]["ZIndex"] = 4
+				objects["Instance0"]["AutomaticSize"] = Enum.AutomaticSize.None
+				objects["Instance0"]["Size"] = UDim2.new(0, 150, 0, 64)
+				objects["Instance0"]["Draggable"] = false
+				objects["Instance0"]["Style"] = Enum.FrameStyle.Custom
+				objects["Instance0"]["ClipsDescendants"] = false
+				objects["Instance0"]["BorderColor3"] = Color3.new(0, 0, 0)
+				objects["Instance0"]["BorderMode"] = Enum.BorderMode.Outline
+				objects["Instance0"]["BackgroundTransparency"] = 0.25
+				objects["Instance0"]["BorderSizePixel"] = 0
+				objects["Instance0"]["Rotation"] = 0
+				objects["Instance0"]["Transparency"] = 0.25
+				objects["Instance0"]["Name"] = "Search"
+				objects["Instance0"]["SelectionOrder"] = 0
+				objects["Instance0"]["Visible"] = false
+				objects["Instance0"]["Selectable"] = false
+				objects["Instance0"]["Position"] = UDim2.new(1, -10, 0, 10)
+				objects["Instance0"]["BackgroundColor3"] = Color3.new(0.137255, 0.137255, 0.137255)
+
+				objects["Instance1"]["Enabled"] = true
+				objects["Instance1"]["Transparency"] = 0
+				objects["Instance1"]["Name"] = "UIStroke"
+				objects["Instance1"]["LineJoinMode"] = Enum.LineJoinMode.Miter
+				objects["Instance1"]["Parent"] = objects["Instance0"]
+				objects["Instance1"]["Thickness"] = 1
+				objects["Instance1"]["Color"] = Color3.new(0, 0, 0)
+				objects["Instance1"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border
+
+				objects["Instance2"]["Visible"] = true
+				objects["Instance2"]["FontSize"] = Enum.FontSize.Size14
+				objects["Instance2"]["TextDirection"] = Enum.TextDirection.Auto
+				objects["Instance2"]["Active"] = false
+				objects["Instance2"]["TextStrokeTransparency"] = 1
+				objects["Instance2"]["TextTruncate"] = Enum.TextTruncate.None
+				objects["Instance2"]["SizeConstraint"] = Enum.SizeConstraint.RelativeXY
+				objects["Instance2"]["ZIndex"] = 1
+				objects["Instance2"]["BorderSizePixel"] = 0
+				objects["Instance2"]["Draggable"] = false
+				objects["Instance2"]["RichText"] = false
+				objects["Instance2"]["Transparency"] = 1
+				objects["Instance2"]["SelectionOrder"] = 0
+				objects["Instance2"]["TextYAlignment"] = Enum.TextYAlignment.Center
+				objects["Instance2"]["TextScaled"] = true
+				objects["Instance2"]["TextWrap"] = true
+				objects["Instance2"]["FontFace"] = Font.new("rbxasset://fonts/families/Inconsolata.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal, false)
+				objects["Instance2"]["BorderMode"] = Enum.BorderMode.Outline
+				objects["Instance2"]["Parent"] = objects["Instance0"]
+				objects["Instance2"]["AnchorPoint"] = Vector2.new(0.5, 0)
+				objects["Instance2"]["TextSize"] = 14
+				objects["Instance2"]["Position"] = UDim2.new(0.5, 0, 0.0312504768371582, 0)
+				objects["Instance2"]["AutomaticSize"] = Enum.AutomaticSize.None
+				objects["Instance2"]["Size"] = UDim2.new(1, 0, 0.2020832896232605, 0)
+				objects["Instance2"]["BackgroundTransparency"] = 1
+				objects["Instance2"]["LineHeight"] = 1
+				objects["Instance2"]["BackgroundColor3"] = Color3.new(1, 1, 1)
+				objects["Instance2"]["TextColor3"] = Color3.new(0.8, 0.8, 0.8)
+				objects["Instance2"]["BorderColor3"] = Color3.new(0, 0, 0)
+				objects["Instance2"]["Text"] = "Find & replace"
+				objects["Instance2"]["LayoutOrder"] = 0
+				objects["Instance2"]["TextWrapped"] = true
+				objects["Instance2"]["Rotation"] = 0
+				objects["Instance2"]["TextTransparency"] = 0
+				objects["Instance2"]["Name"] = "Title"
+				objects["Instance2"]["TextXAlignment"] = Enum.TextXAlignment.Center
+				objects["Instance2"]["ClipsDescendants"] = false
+				objects["Instance2"]["MaxVisibleGraphemes"] = -1
+				objects["Instance2"]["TextStrokeColor3"] = Color3.new(0, 0, 0)
+				objects["Instance2"]["Selectable"] = false
+
+				objects["Instance3"]["LayoutOrder"] = 0
+				objects["Instance3"]["FontSize"] = Enum.FontSize.Size14
+				objects["Instance3"]["LineHeight"] = 1
+				objects["Instance3"]["Active"] = true
+				objects["Instance3"]["TextStrokeTransparency"] = 1
+				objects["Instance3"]["SelectionStart"] = -1
+				objects["Instance3"]["PlaceholderColor3"] = Color3.new(0.7, 0.7, 0.7)
+				objects["Instance3"]["SizeConstraint"] = Enum.SizeConstraint.RelativeXY
+				objects["Instance3"]["ZIndex"] = 1
+				objects["Instance3"]["BorderSizePixel"] = 0
+				objects["Instance3"]["TextEditable"] = true
+				objects["Instance3"]["Draggable"] = false
+				objects["Instance3"]["RichText"] = false
+				objects["Instance3"]["Transparency"] = 0.5
+				objects["Instance3"]["SelectionOrder"] = 0
+				objects["Instance3"]["TextYAlignment"] = Enum.TextYAlignment.Center
+				objects["Instance3"]["TextScaled"] = true
+				objects["Instance3"]["BackgroundColor3"] = Color3.new(0, 0, 0)
+				objects["Instance3"]["FontFace"] = Font.new("rbxasset://fonts/families/Inconsolata.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal, true)
+				objects["Instance3"]["BorderMode"] = Enum.BorderMode.Outline
+				objects["Instance3"]["Parent"] = objects["Instance0"]
+				objects["Instance3"]["TextWrapped"] = true
+				objects["Instance3"]["MaxVisibleGraphemes"] = -1
+				objects["Instance3"]["Name"] = "Scan"
+				objects["Instance3"]["AnchorPoint"] = Vector2.new(0.5, 1)
+				objects["Instance3"]["TextTransparency"] = 0
+				objects["Instance3"]["TextDirection"] = Enum.TextDirection.Auto
+				objects["Instance3"]["CursorPosition"] = -1
+				objects["Instance3"]["ClipsDescendants"] = false
+				objects["Instance3"]["PlaceholderText"] = "Find..."
+				objects["Instance3"]["AutomaticSize"] = Enum.AutomaticSize.None
+				objects["Instance3"]["Size"] = UDim2.new(0.8999999761581421, 0, 0.28124937415122986, 0)
+				objects["Instance3"]["TextStrokeColor3"] = Color3.new(0, 0, 0)
+				objects["Instance3"]["Selectable"] = true
+				objects["Instance3"]["ShowNativeInput"] = true
+				objects["Instance3"]["TextColor3"] = Color3.new(1, 1, 1)
+				objects["Instance3"]["BorderColor3"] = Color3.new(0, 0, 0)
+				objects["Instance3"]["Text"] = ""
+				objects["Instance3"]["TextSize"] = 14
+				objects["Instance3"]["Visible"] = true
+				objects["Instance3"]["Rotation"] = 0
+				objects["Instance3"]["MultiLine"] = false
+				objects["Instance3"]["BackgroundTransparency"] = 0.5
+				objects["Instance3"]["TextXAlignment"] = Enum.TextXAlignment.Left
+				objects["Instance3"]["TextTruncate"] = Enum.TextTruncate.None
+				objects["Instance3"]["ClearTextOnFocus"] = false
+				objects["Instance3"]["Position"] = UDim2.new(0.5, 0, 0.5649999976158142, 0)
+				objects["Instance3"]["TextWrap"] = true
+
+				objects["Instance4"]["PaddingTop"] = UDim.new(0.150000006, 0)
+				objects["Instance4"]["Name"] = "UIPadding"
+				objects["Instance4"]["Parent"] = objects["Instance3"]
+				objects["Instance4"]["PaddingBottom"] = UDim.new(0.150000006, 0)
+				objects["Instance4"]["PaddingLeft"] = UDim.new(0.0500000007, 0)
+				objects["Instance4"]["PaddingRight"] = UDim.new(0, 0)
+
+				objects["Instance5"]["Enabled"] = true
+				objects["Instance5"]["Transparency"] = 0
+				objects["Instance5"]["Name"] = "UIStroke"
+				objects["Instance5"]["LineJoinMode"] = Enum.LineJoinMode.Miter
+				objects["Instance5"]["Parent"] = objects["Instance3"]
+				objects["Instance5"]["Thickness"] = 1
+				objects["Instance5"]["Color"] = Color3.new(0.0784314, 0.0784314, 0.0784314)
+				objects["Instance5"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border
+
+				objects["Instance6"]["LayoutOrder"] = 0
+				objects["Instance6"]["FontSize"] = Enum.FontSize.Size14
+				objects["Instance6"]["LineHeight"] = 1
+				objects["Instance6"]["Active"] = true
+				objects["Instance6"]["TextStrokeTransparency"] = 1
+				objects["Instance6"]["SelectionStart"] = -1
+				objects["Instance6"]["PlaceholderColor3"] = Color3.new(0.7, 0.7, 0.7)
+				objects["Instance6"]["SizeConstraint"] = Enum.SizeConstraint.RelativeXY
+				objects["Instance6"]["ZIndex"] = 1
+				objects["Instance6"]["BorderSizePixel"] = 0
+				objects["Instance6"]["TextEditable"] = true
+				objects["Instance6"]["Draggable"] = false
+				objects["Instance6"]["RichText"] = false
+				objects["Instance6"]["Transparency"] = 0.5
+				objects["Instance6"]["SelectionOrder"] = 0
+				objects["Instance6"]["TextYAlignment"] = Enum.TextYAlignment.Center
+				objects["Instance6"]["TextScaled"] = true
+				objects["Instance6"]["BackgroundColor3"] = Color3.new(0, 0, 0)
+				objects["Instance6"]["FontFace"] = Font.new("rbxasset://fonts/families/Inconsolata.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal, true)
+				objects["Instance6"]["BorderMode"] = Enum.BorderMode.Outline
+				objects["Instance6"]["Parent"] = objects["Instance0"]
+				objects["Instance6"]["TextWrapped"] = true
+				objects["Instance6"]["MaxVisibleGraphemes"] = -1
+				objects["Instance6"]["Name"] = "Replace"
+				objects["Instance6"]["AnchorPoint"] = Vector2.new(0.5, 1)
+				objects["Instance6"]["TextTransparency"] = 0
+				objects["Instance6"]["TextDirection"] = Enum.TextDirection.Auto
+				objects["Instance6"]["CursorPosition"] = 1
+				objects["Instance6"]["ClipsDescendants"] = false
+				objects["Instance6"]["PlaceholderText"] = "Replace..."
+				objects["Instance6"]["AutomaticSize"] = Enum.AutomaticSize.None
+				objects["Instance6"]["Size"] = UDim2.new(0.8999999761581421, 0, 0.28124937415122986, 0)
+				objects["Instance6"]["TextStrokeColor3"] = Color3.new(0, 0, 0)
+				objects["Instance6"]["Selectable"] = true
+				objects["Instance6"]["ShowNativeInput"] = true
+				objects["Instance6"]["TextColor3"] = Color3.new(1, 1, 1)
+				objects["Instance6"]["BorderColor3"] = Color3.new(0, 0, 0)
+				objects["Instance6"]["Text"] = ""
+				objects["Instance6"]["TextSize"] = 14
+				objects["Instance6"]["Visible"] = true
+				objects["Instance6"]["Rotation"] = 0
+				objects["Instance6"]["MultiLine"] = false
+				objects["Instance6"]["BackgroundTransparency"] = 0.5
+				objects["Instance6"]["TextXAlignment"] = Enum.TextXAlignment.Left
+				objects["Instance6"]["TextTruncate"] = Enum.TextTruncate.None
+				objects["Instance6"]["ClearTextOnFocus"] = false
+				objects["Instance6"]["Position"] = UDim2.new(0.5, 0, 0.925000011920929, 0)
+				objects["Instance6"]["TextWrap"] = true
+
+				objects["Instance7"]["Enabled"] = true
+				objects["Instance7"]["Transparency"] = 0
+				objects["Instance7"]["Name"] = "UIStroke"
+				objects["Instance7"]["LineJoinMode"] = Enum.LineJoinMode.Miter
+				objects["Instance7"]["Parent"] = objects["Instance6"]
+				objects["Instance7"]["Thickness"] = 1
+				objects["Instance7"]["Color"] = Color3.new(0.0784314, 0.0784314, 0.0784314)
+				objects["Instance7"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border
+
+				objects["Instance8"]["PaddingTop"] = UDim.new(0.150000006, 0)
+				objects["Instance8"]["Name"] = "UIPadding"
+				objects["Instance8"]["Parent"] = objects["Instance6"]
+				objects["Instance8"]["PaddingBottom"] = UDim.new(0.150000006, 0)
+				objects["Instance8"]["PaddingLeft"] = UDim.new(0.0500000007, 0)
+				objects["Instance8"]["PaddingRight"] = UDim.new(0, 0)
+			end
+			
+			obj.Replace = objects.Instance0
+			local function isDown(key)
+				return uis:IsKeyDown(Enum.KeyCode["Left" .. key]) or uis:IsKeyDown(Enum.KeyCode["Right" .. key])
+			end
+			
+			uis.InputBegan:Connect(function(input)
+				local tb = uis:GetFocusedTextBox()
+				if tb and tb:IsDescendantOf(frame) and isDown("Control") then
+					if input.KeyCode == Enum.KeyCode.G then
+						obj.Replace.Visible = false
+						obj.Goto.Visible = not obj.Goto.Visible
+					elseif input.KeyCode == Enum.KeyCode.F or input.KeyCode == Enum.KeyCode.H then
+						obj.Goto.Visible = false
+						obj.Replace.Visible = not obj.Replace.Visible or objects.Instance3.Text == "" or input.KeyCode == Enum.KeyCode.H and objects.Instance6.Text == ""
+						
+						if obj.Replace.Visible then
+							objects["Instance" .. ((input.KeyCode == Enum.KeyCode.F or objects.Instance3.Text == "") and "3" or "6")]:CaptureFocus()
+						end
+					end
+				end
+			end)
+
+			objects.Instance3.FocusLost:Connect(function(enter)
+				if enter then
+					obj:FindNext(objects.Instance3.Text)
+					objects.Instance3:CaptureFocus()
+				end
+			end)
+
+			objects.Instance3.Changed:Connect(function()
+				objects.Instance3.Text = objects.Instance3.Text:gsub("[\0\r\n]", "")
+			end)
+
+			objects.Instance6.Changed:Connect(function()
+				objects.Instance6.Text = objects.Instance6.Text:gsub("[\0\r\n]", "")
+			end)
+
+			objects.Instance6.FocusLost:Connect(function(enter)
+				if enter then
+					if not obj:IsValidRange() then
+						obj:FindNext(objects.Instance3.Text)
+						objects.Instance6:CaptureFocus()
+					else
+						obj:ReplaceSelection(objects.Instance6.Text)
+						obj:FindNext(objects.Instance3.Text)
+						objects.Instance6:CaptureFocus()
+					end
+				end
+			end)
+		end
 
 		setupEditBox(obj)
 		setupMouseSelection(obj)
 		resetAutocomplete(obj)
 
 		return frame
+	end
+	
+	funcs.JumpToLine = function(self, line)
+		if not line then return end
+		
+		self:SetEditing(true)
+		repeat task.wait() until self.Editing
+		
+		local lines = self.Lines
+		local line = math.clamp(line, 1, #lines)
+		
+		self:MoveCursor(#lines[line], line - 1)
+	end
+	
+	funcs.GetTextAfterCursor = function(self, allLines)
+		return allLines and table.concat(self.Lines, "\n", self.CursorY + 1):sub(self.CursorX + 1) or self.Lines[self.CursorY + 1]:sub(self.CursorX + 1)
+	end
+	
+	funcs.FindNext = function(self, toFind: string)
+		if #toFind == 0 then
+			self:ResetSelection()
+			return
+		end
+		
+		toFind = toFind:lower()
+		
+		local shift = self.CursorX + #toFind
+		local textAfterCursor = self:GetTextAfterCursor(true):sub(#toFind):lower()
+		local found = textAfterCursor:find(toFind)
+		
+		if not found then
+			self.CursorX = 0
+			self.CursorY = 0
+			shift = 0
+
+			textAfterCursor = table.concat(self.Lines, "\n"):lower()
+			found = textAfterCursor:find(toFind)
+		end
+		
+		if found then
+			local old = self.CursorY
+			self.CursorY += simpleCount(textAfterCursor:sub(1, found - 1), "\n")
+			if self.CursorY ~= old then
+				shift = 0
+			end
+			
+			local found, extends = self.Lines[self.CursorY + 1]:sub(shift):lower():find(toFind)
+			
+			if self.CursorY == old then
+				shift -= 1
+			end
+			
+			self.CursorX = found + shift
+			self.SelectionRange = {{found-1+shift,self.CursorY},{extends+shift,self.CursorY}}
+			
+			if self:GetSelectionText():lower() ~= toFind then
+				return self:FindNext(toFind)
+			end
+			
+			self:Refresh()
+			self:SetCopyableSelection()
+		end
+	end
+	
+	funcs.ReplaceSelection = function(self, toReplace: string)
+		if not self:IsValidRange() then return end
+		
+		self:DeleteRange(self.SelectionRange,false,false)
+		self.CursorX = math.max(self.CursorX - 1, 0)
+		self:AppendText(toReplace)
+		self.SelectionRange = {{-1,-1},{-1,-1}}
+		self:Refresh()
 	end
 
 	funcs.GetSelectionText = function(self)
@@ -2057,7 +2602,7 @@ Lib.CodeFrame = (function()
 		local text = self:GetSelectionText()
 		local editBox = self.GuiElems.EditBox
 
-		self.EditSkip = true
+		self.EditBoxCopying = true
 		editBox.Text = emptyChar .. text
 		editBox.SelectionStart = 2
 		editBox.CursorPosition = #editBox.Text + 1
@@ -2234,7 +2779,7 @@ Lib.CodeFrame = (function()
 					self:ResetSelection(true)
 					self:Refresh()
 				end)
-			elseif (uis:IsKeyDown(Enum.KeyCode.LeftControl) or uis:IsKeyDown(Enum.KeyCode.RightControl)) then
+			elseif isDown("Control") then
 				if keycode == keycodes.A then
 					self.SelectionRange = {{0,0},{#self.Lines[#self.Lines],#self.Lines-1}}
 					self:SetCopyableSelection()
@@ -2244,6 +2789,22 @@ Lib.CodeFrame = (function()
 						if #self.History > 0 then
 							self:SetText(table.remove(self.History, #self.History))
 						end
+					end,true)
+				elseif keycode == keycodes.X then
+					setupMove(keycodes.X,function()
+						if self:IsValidRange() then
+							self:DeleteRange(self.SelectionRange,false,true)
+						else
+							if #self.Lines > 1 then
+								table.remove(self.Lines, self.CursorY + 1)
+							else
+								self.Lines[1] = ""
+							end
+						end
+
+						self:ResetSelection(true)
+						self:ProcessTextChange()
+						self:Refresh()
 					end,true)
 				end
 			end
@@ -2363,9 +2924,9 @@ Lib.CodeFrame = (function()
 	end
 	
 	funcs.SafeFocus = function(self)
-		self.EditBoxCopying = true
+		self.FocusIgnore = true
 		repeat task.wait() until self.Editing
-		self.EditBoxCopying = false
+		self.FocusIgnore = false
 		self.EditSkip = true
 		self.GuiElems.EditBox.Text = emptyChar
 	end
@@ -2470,7 +3031,8 @@ Lib.CodeFrame = (function()
 		else
 			cursor.Visible = false
 		end
-
+		
+		self.CursorMoved:Fire(self.Text)
 		resetAutocomplete(self)
 	end
 
@@ -2737,12 +3299,20 @@ Lib.CodeFrame = (function()
 	end
 
 	funcs.Refresh = function(self)
+		local start = tick()
+
+		self.Frame.LineNumbers.TextColor3 = self.Colors.Text
+		self.Gui.BackgroundColor3 = self.Colors.Background
+		self.Gui.BackgroundTransparency = self.Colors.Transparency
+		self.Holder.Size = UDim2.new(1, 0, 1, self.ShowFooter and -self.Footer.Size.Y.Offset or 0)
+		self.Footer.Visible = self.ShowFooter
+		self.Footer.TextColor3 = self.Colors.Text
+		self.Footer.Font = self.Colors.Font
+
 		if self.PreviousSyntaxHighlight ~= self.SyntaxHighlight then
 			self.PreviousSyntaxHighlight = self.SyntaxHighlight
 			self:MakeRichTemplates()
 		end
-		
-		local start = tick()
 
 		local linesFrame = self.Frame.Lines
 		local hSize = math.max(0,linesFrame.AbsoluteSize.X)
@@ -2758,35 +3328,38 @@ Lib.CodeFrame = (function()
 
 		for row = 1,maxLines do
 			local lineFrame = self.LineFrames[row]
+			local selectionHighlight, label
+			
 			if not lineFrame then
-				lineFrame = Instance.new("Frame")
-				lineFrame.Name = "Line"
-				lineFrame.Position = UDim2.new(0,0,0,(row-1)*self.FontSize)
-				lineFrame.Size = UDim2.new(1,0,0,self.FontSize)
-				lineFrame.BorderSizePixel = 0
-				lineFrame.BackgroundTransparency = 1
+				lineFrame = Instance.new("Frame", linesFrame)
+				selectionHighlight = Instance.new("Frame", lineFrame)
+				label = Instance.new("TextLabel", lineFrame)
 
-				local selectionHighlight = Instance.new("Frame")
-				selectionHighlight.Name = "SelectionHighlight"
-				selectionHighlight.BorderSizePixel = 0
-				selectionHighlight.BackgroundColor3 = self.SyntaxColors.SelectionBack
-				selectionHighlight.Parent = lineFrame
-
-				local label = Instance.new("TextLabel")
-				label.Name = "Label"
-				label.BackgroundTransparency = 1
-				label.Font = self.Colors.Font
-				label.TextSize = self.FontSize
-				label.Size = UDim2.new(1,0,0,self.FontSize)
-				label.RichText = true
-				label.TextXAlignment = Enum.TextXAlignment.Left
-				label.TextColor3 = self.Colors.Text
-				label.ZIndex = 2
-				label.Parent = lineFrame
-
-				lineFrame.Parent = linesFrame
 				self.LineFrames[row] = lineFrame
+			else
+				selectionHighlight = lineFrame.SelectionHighlight
+				label = lineFrame.Label
 			end
+			
+			lineFrame.Name = "Line"
+			lineFrame.Position = UDim2.new(0, 0, 0, (row - 1) * self.FontSize)
+			lineFrame.Size = UDim2.new(1,0,0,self.FontSize)
+			lineFrame.BorderSizePixel = 0
+			lineFrame.BackgroundTransparency = 1
+
+			selectionHighlight.Name = "SelectionHighlight"
+			selectionHighlight.BorderSizePixel = 0
+			selectionHighlight.BackgroundColor3 = self.Replace.Visible and self.Colors.MatchingWord or self.Colors.SelectionBack
+			
+			label.Name = "Label"
+			label.BackgroundTransparency = 1
+			label.Font = self.Colors.Font
+			label.TextSize = self.FontSize
+			label.Size = UDim2.new(1,0,0,self.FontSize)
+			label.RichText = true
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.TextColor3 = self.Colors.Text
+			label.ZIndex = 2
 
 			local relaY = viewY + row
 			local lineText = self.Lines[relaY] or ""
@@ -2997,15 +3570,9 @@ Lib.CodeFrame = (function()
 
 	funcs.ApplyTheme = function(self, syntaxColor)
 		self.SyntaxColors = syntaxColor or self.SyntaxColors or table.clone(syntaxColors)
-
-		local colors = self.SyntaxColors
-		self.Colors = colors
-		self.Frame.LineNumbers.TextColor3 = colors.Text
-		self.Frame.BackgroundColor3 = colors.Background
-		self.Frame.BackgroundTransparency = colors.Transparency
-		self.Holder.Size = UDim2.new(1, 0, 1, self.ShowFooter and -10 or 0)
-		self.Footer.Visible = self.ShowFooter
-
+		self.Colors = self.SyntaxColors
+		
+		pcall(self.Refresh, self)
 		self:MakeRichTemplates()
 	end
 
@@ -3065,7 +3632,7 @@ Lib.CodeFrame = (function()
 		scrollH.Gui.Parent = obj.Frame
 
 		obj:UpdateView()
-		obj.Frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		obj.Gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 			obj:UpdateView()
 			obj:Refresh()
 		end)
@@ -3100,24 +3667,22 @@ local metaNew = function(...)
 		__newindex = function(self, index, value)
 			if index == "Text" then
 				return new:SetText(value)
-			elseif index == "SyntaxHighlight" then
-				new[index] = value
-				return new:Refresh()
 			elseif index == "TextEditorMode" then
 				self.AutocompleteEnabled = not value
 				self.SyntaxHighlight = not value
 				self.AutoFill = not value
-				return
 			elseif index == "CodeEditorMode" then
 				self.TextEditorMode = not value
 				return
-			end
-
-			if pcall(get, new.Gui, index) then
-				new.Gui[index] = value
 			else
-				new[index] = value
+				if pcall(get, new.Gui, index) then
+					new.Gui[index] = value
+				else
+					new[index] = value
+				end
 			end
+			
+			new:Refresh()
 		end,
 	})
 end
@@ -3126,6 +3691,8 @@ local Gui
 local oldEnv = table.clone(ENV)
 return table.freeze({
 	new = function(self, syntaxColors, env)
+		syntaxColors = typeof(syntaxColors) == "string" and themes[syntaxColors] or syntaxColors
+		
 		local gui = Gui and Gui.Parent or Instance.new("ScreenGui", getfenv().gethui and getfenv().gethui() or game:GetService("CoreGui") or game:GetService("Players").LocalPlayer.PlayerGui)
 		gui.Name = "CodeEditor"
 		gui.ResetOnSpawn = false
@@ -3138,7 +3705,7 @@ return table.freeze({
 		newMeta.Size = UDim2.fromScale(0.75, 0.75)
 		newMeta.Position = UDim2.fromScale(0.125, 0.125)
 		
-		local con; con = newMeta.Frame:GetPropertyChangedSignal("Parent"):Connect(function()
+		local con; con = newMeta.Gui:GetPropertyChangedSignal("Parent"):Connect(function()
 			if #gui:GetChildren() ~= 0 then return end
 			
 			con:Disconnect()
