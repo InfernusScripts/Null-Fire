@@ -77,6 +77,7 @@ editor.Editing -- true if focused into the CodeBox
 editor:SetEditing(true or false)
 editor:AppendText("hi") -- appends text at cursor position
 editor:GetSelectionText()
+editor:IsValidRange() -- true if user selects some text
 editor.TextEditable
 editor.Autocompleting -- true if autocomplete box is visible
 editor.EditBoxCopying -- true if any text is selected
