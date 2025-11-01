@@ -2553,8 +2553,10 @@ Lib.CodeFrame = (function()
 			self.SelectionRange = {{found-1+shift,self.CursorY},{extends+shift,self.CursorY}}
 			
 			if self:GetSelectionText():lower() ~= toFind then
-				return self:FindNext(toFind)
+				self.SelectionRange = {{found+shift,self.CursorY},{extends+shift+1,self.CursorY}}
 			end
+			
+			self.CursorX = self.SelectionRange[2][1]
 			
 			self:Refresh()
 			self:SetCopyableSelection()
