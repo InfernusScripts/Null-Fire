@@ -2596,8 +2596,6 @@ Lib.CodeFrame = (function()
 				while obj:FindNext(objects.Instance3.Text, true) do
 					obj:ReplaceSelection(objects.Instance6.Text)
 				end
-				
-				obj:SetEditing(true)
 			end)
 		end
 
