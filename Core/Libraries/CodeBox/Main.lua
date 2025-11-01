@@ -1607,14 +1607,7 @@ Lib.CodeFrame = (function()
 				end
 
 				if not startRange then
-					local line = obj.Lines[obj.CursorY+1] or ""
-					obj.CursorX = obj.CursorX - 1 - (line:sub(obj.CursorX - 3,obj.CursorX) == tabReplacement and 3 or 0)
-
-					if obj.CursorX < 0 then
-						obj.CursorY = obj.CursorY - 1
-						local line2 = obj.Lines[obj.CursorY+1] or ""
-						obj.CursorX = #line2
-					end
+					obj:Shift("Left",false,false)
 
 					obj.FloatCursorX = obj.CursorX
 					obj:UpdateCursor()
@@ -2042,7 +2035,29 @@ Lib.CodeFrame = (function()
 				objects["Instance8"]["HorizontalFlex"] = Enum.UIFlexAlignment.None
 			end
 
-			obj.Autocomplete = objects["Instance0"]
+			obj.Autocomplete = objects.Instance0
+			cursor:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+				local asize = obj.Autocomplete.AbsoluteSize
+				local apos = cursor.AbsolutePosition + Vector2.new(cursor.AbsoluteSize.X + 15, 1)
+				
+				local fasize = frame.AbsoluteSize
+				local fapos = frame.AbsolutePosition
+
+				local endPoint1 = asize + apos
+				local endPoint2 = fasize + fapos
+				
+				local shiftY = 1
+				if endPoint1.Y > endPoint2.Y - footer.AbsoluteSize.Y - 3 then
+					shiftY = endPoint2.Y - endPoint1.Y - footer.AbsoluteSize.Y - 3
+				end
+				
+				local shiftX = 15
+				if endPoint1.X > endPoint2.X then
+					shiftX = 0 - asize.X - 15
+				end
+				
+				obj.Autocomplete.Position = UDim2.new(1, shiftX, 0, shiftY)
+			end)
 		end
 		
 		do -- goto
@@ -2520,7 +2535,7 @@ Lib.CodeFrame = (function()
 	funcs.GetTextAfterCursor = function(self, allLines)
 		return allLines and table.concat(self.Lines, "\n", self.CursorY + 1):sub(self.CursorX + 1) or self.Lines[self.CursorY + 1]:sub(self.CursorX + 1)
 	end
-	
+
 	funcs.FindNext = function(self, toFind: string)
 		if #toFind == 0 then
 			self:ResetSelection()
@@ -2572,8 +2587,9 @@ Lib.CodeFrame = (function()
 	funcs.ReplaceSelection = function(self, toReplace: string)
 		if not self:IsValidRange() then return end
 		
+		local x = self.SelectionRange[1][1]
 		self:DeleteRange(self.SelectionRange,false,false)
-		self.CursorX = math.max(self.CursorX - 1, 0)
+		self.CursorX = x
 		self:AppendText(toReplace)
 		self.SelectionRange = {{-1,-1},{-1,-1}}
 		self:Refresh()
@@ -2616,6 +2632,25 @@ Lib.CodeFrame = (function()
 		editBox.CursorPosition = #editBox.Text + 1
 	end
 	
+	funcs.QuickShift = function(self,lr)
+		local line = self.Lines[self.CursorY+1] or ""
+		
+		if lr then
+			self.CursorX = self.CursorX - 1 - (line:sub(self.CursorX-3,self.CursorX) == tabReplacement and 3 or 0)
+		else
+			self.CursorX = self.CursorX + 1 + (line:sub(self.CursorX+1,self.CursorX+4) == tabReplacement and 3 or 0)
+		end
+	end
+
+	funcs.GetLen = function(self, byte)
+		local byte = byte:byte()
+		return byte and (byte >= 0 and byte <= 127 and 1
+			or byte >= 192 and byte <= 223 and 2
+			or byte >= 224 and byte <= 239 and 3
+			or byte >= 240 and byte <= 247 and 4)
+			or 0
+	end
+	
 	funcs.Shift = function(self,dir,upd,reset)
 		if reset == true then
 			self:ResetSelection(true)
@@ -2630,7 +2665,12 @@ Lib.CodeFrame = (function()
 		
 		if dir == "Left" then
 			local line = self.Lines[self.CursorY+1] or ""
-			self.CursorX = self.CursorX - 1 - (line:sub(self.CursorX-3,self.CursorX) == tabReplacement and 3 or 0)
+			local str = ""
+			
+			repeat
+				self:QuickShift(true)
+				str = line:sub(self.CursorX+1,self.CursorX+1) .. str
+			until self:GetLen(str) == #str or #str == 4 or self.CursorX <= 0
 			
 			if self.CursorX < 0 then
 				self.CursorY = self.CursorY - 1
@@ -2644,7 +2684,13 @@ Lib.CodeFrame = (function()
 			self.FloatCursorX = self.CursorX
 		elseif dir == "Right" then
 			local line = self.Lines[self.CursorY+1] or ""
-			self.CursorX = self.CursorX + 1 + (line:sub(self.CursorX+1,self.CursorX+4) == tabReplacement and 3 or 0)
+			local str = ""
+			
+			repeat
+				self:QuickShift(false)
+				str = line:sub(self.CursorX+1,self.CursorX+1) .. str
+			until self:GetLen(str) == #str or #str == 4 or self.CursorX >= #line
+			
 			if self.CursorX > #line then
 				if self.CursorY + 1 < #self.Lines then
 					self.CursorY = self.CursorY + 1
