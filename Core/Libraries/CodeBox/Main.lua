@@ -2262,7 +2262,10 @@ Lib.CodeFrame = (function()
 				["Instance5"] = Instance.new("UIStroke"),
 				["Instance6"] = Instance.new("TextBox"),
 				["Instance7"] = Instance.new("UIStroke"),
-				["Instance8"] = Instance.new("UIPadding")
+				["Instance8"] = Instance.new("UIPadding"),
+				["Instance9"] = Instance.new("TextButton"),
+				["Instance10"] = Instance.new("UIStroke"),
+				["Instance11"] = Instance.new("UIPadding")
 			}
 
 			do
@@ -2429,14 +2432,14 @@ Lib.CodeFrame = (function()
 				objects["Instance6"]["TextWrapped"] = true
 				objects["Instance6"]["MaxVisibleGraphemes"] = -1
 				objects["Instance6"]["Name"] = "Replace"
-				objects["Instance6"]["AnchorPoint"] = Vector2.new(0.5, 1)
+				objects["Instance6"]["AnchorPoint"] = Vector2.new(0, 1)
 				objects["Instance6"]["TextTransparency"] = 0
 				objects["Instance6"]["TextDirection"] = Enum.TextDirection.Auto
 				objects["Instance6"]["CursorPosition"] = 1
 				objects["Instance6"]["ClipsDescendants"] = false
 				objects["Instance6"]["PlaceholderText"] = "Replace..."
 				objects["Instance6"]["AutomaticSize"] = Enum.AutomaticSize.None
-				objects["Instance6"]["Size"] = UDim2.new(0.8999999761581421, 0, 0.28124937415122986, 0)
+				objects["Instance6"]["Size"] = UDim2.new(0.6499999761581421, 0, 0.2809999883174896, 0)
 				objects["Instance6"]["TextStrokeColor3"] = Color3.new(0, 0, 0)
 				objects["Instance6"]["Selectable"] = true
 				objects["Instance6"]["ShowNativeInput"] = true
@@ -2451,7 +2454,7 @@ Lib.CodeFrame = (function()
 				objects["Instance6"]["TextXAlignment"] = Enum.TextXAlignment.Left
 				objects["Instance6"]["TextTruncate"] = Enum.TextTruncate.None
 				objects["Instance6"]["ClearTextOnFocus"] = false
-				objects["Instance6"]["Position"] = UDim2.new(0.5, 0, 0.925000011920929, 0)
+				objects["Instance6"]["Position"] = UDim2.new(0.05000000074505806, 0, 0.925000011920929, 0)
 				objects["Instance6"]["TextWrap"] = true
 
 				objects["Instance7"]["Enabled"] = true
@@ -2467,8 +2470,69 @@ Lib.CodeFrame = (function()
 				objects["Instance8"]["Name"] = "UIPadding"
 				objects["Instance8"]["Parent"] = objects["Instance6"]
 				objects["Instance8"]["PaddingBottom"] = UDim.new(0.150000006, 0)
-				objects["Instance8"]["PaddingLeft"] = UDim.new(0.0500000007, 0)
+				objects["Instance8"]["PaddingLeft"] = UDim.new(0.075000003, 0)
 				objects["Instance8"]["PaddingRight"] = UDim.new(0, 0)
+
+				objects["Instance9"]["Visible"] = true
+				objects["Instance9"]["FontSize"] = Enum.FontSize.Size14
+				objects["Instance9"]["TextDirection"] = Enum.TextDirection.Auto
+				objects["Instance9"]["Active"] = true
+				objects["Instance9"]["TextStrokeTransparency"] = 1
+				objects["Instance9"]["TextTruncate"] = Enum.TextTruncate.None
+				objects["Instance9"]["SizeConstraint"] = Enum.SizeConstraint.RelativeXY
+				objects["Instance9"]["ZIndex"] = 1
+				objects["Instance9"]["BorderSizePixel"] = 0
+				objects["Instance9"]["Draggable"] = false
+				objects["Instance9"]["RichText"] = false
+				objects["Instance9"]["Modal"] = false
+				objects["Instance9"]["AutoButtonColor"] = true
+				objects["Instance9"]["Transparency"] = 0.5
+				objects["Instance9"]["SelectionOrder"] = 0
+				objects["Instance9"]["TextYAlignment"] = Enum.TextYAlignment.Center
+				objects["Instance9"]["TextScaled"] = true
+				objects["Instance9"]["TextWrap"] = true
+				objects["Instance9"]["FontFace"] = Font.new("rbxasset://fonts/families/Inconsolata.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal, false)
+				objects["Instance9"]["BorderMode"] = Enum.BorderMode.Outline
+				objects["Instance9"]["Parent"] = objects["Instance0"]
+				objects["Instance9"]["AnchorPoint"] = Vector2.new(0, 1)
+				objects["Instance9"]["Style"] = Enum.ButtonStyle.Custom
+				objects["Instance9"]["Position"] = UDim2.new(0.7350000143051147, 0, 0.925000011920929, 0)
+				objects["Instance9"]["BackgroundColor3"] = Color3.new(0, 0, 0)
+				objects["Instance9"]["Selected"] = false
+				objects["Instance9"]["TextSize"] = 14
+				objects["Instance9"]["Size"] = UDim2.new(0.2150000035762787, 0, 0.2809999883174896, 0)
+				objects["Instance9"]["BackgroundTransparency"] = 0.5
+				objects["Instance9"]["TextWrapped"] = true
+				objects["Instance9"]["ClipsDescendants"] = false
+				objects["Instance9"]["TextColor3"] = Color3.new(1, 1, 1)
+				objects["Instance9"]["BorderColor3"] = Color3.new(0, 0, 0)
+				objects["Instance9"]["Text"] = "all"
+				objects["Instance9"]["AutomaticSize"] = Enum.AutomaticSize.None
+				objects["Instance9"]["LayoutOrder"] = 0
+				objects["Instance9"]["Rotation"] = 0
+				objects["Instance9"]["LineHeight"] = 1
+				objects["Instance9"]["Name"] = "TextButton"
+				objects["Instance9"]["TextXAlignment"] = Enum.TextXAlignment.Center
+				objects["Instance9"]["Selectable"] = true
+				objects["Instance9"]["MaxVisibleGraphemes"] = -1
+				objects["Instance9"]["TextStrokeColor3"] = Color3.new(0, 0, 0)
+				objects["Instance9"]["TextTransparency"] = 0
+
+				objects["Instance10"]["Enabled"] = true
+				objects["Instance10"]["Transparency"] = 0
+				objects["Instance10"]["Name"] = "UIStroke"
+				objects["Instance10"]["LineJoinMode"] = Enum.LineJoinMode.Miter
+				objects["Instance10"]["Parent"] = objects["Instance9"]
+				objects["Instance10"]["Thickness"] = 1
+				objects["Instance10"]["Color"] = Color3.new(0.0784314, 0.0784314, 0.0784314)
+				objects["Instance10"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border
+
+				objects["Instance11"]["PaddingTop"] = UDim.new(0.150000006, 0)
+				objects["Instance11"]["Name"] = "UIPadding"
+				objects["Instance11"]["Parent"] = objects["Instance9"]
+				objects["Instance11"]["PaddingBottom"] = UDim.new(0.150000006, 0)
+				objects["Instance11"]["PaddingLeft"] = UDim.new(0, 0)
+				objects["Instance11"]["PaddingRight"] = UDim.new(0, 0)
 			end
 
 			obj.Replace = objects.Instance0
@@ -2525,6 +2589,16 @@ Lib.CodeFrame = (function()
 					end
 				end
 			end)
+			
+			objects.Instance9.MouseButton1Click:Connect(function()
+				if objects.Instance6.Text:lower():find(objects.Instance3.Text:lower(), 1, true) then return end
+				
+				while obj:FindNext(objects.Instance3.Text, true) do
+					obj:ReplaceSelection(objects.Instance6.Text)
+				end
+				
+				obj:SetEditing(true)
+			end)
 		end
 
 		setupEditBox(obj)
@@ -2548,10 +2622,10 @@ Lib.CodeFrame = (function()
 		return allLines and table.concat(self.Lines, "\n", self.CursorY + 1):sub(self.CursorX + 1) or self.Lines[self.CursorY + 1]:sub(self.CursorX + 1)
 	end
 
-	funcs.FindNext = function(self, toFind: string)
+	funcs.FindNext = function(self, toFind: string, noupdate)
 		if #toFind == 0 then
 			self:ResetSelection()
-			return
+			return false
 		end
 
 		toFind = toFind:lower()
@@ -2599,9 +2673,13 @@ Lib.CodeFrame = (function()
 
 			self.CursorX = self.SelectionRange[2][1]
 
-			self:JumpToCursor()
-			task.spawn(self.SetCopyableSelection, self)
+			if not noupdate then
+				self:JumpToCursor()
+				task.spawn(self.SetCopyableSelection, self)
+			end
 		end
+		
+		return not not found
 	end
 
 	funcs.ReplaceSelection = function(self, toReplace: string)
@@ -2765,6 +2843,10 @@ Lib.CodeFrame = (function()
 		end
 
 		if upd then
+			if reset == false then
+				task.spawn(self.SetCopyableSelection, self)
+			end
+			
 			self:UpdateCursor()
 			self:Refresh()
 		end
