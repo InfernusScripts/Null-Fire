@@ -86,4 +86,5 @@ editor.SyntaxHighlight -- if false, all the text will be the same color with no 
 editor.AutoFill -- if false, auto indent will be disabled, typing "(", "[" or "{" will not summon another ")", "]" or "}" and also typing ")" or other ones when its already placed will actually place it
 editor.CodeEditorMode -- sets values of all "AutocompleteEnabled", "SyntaxHighlight" and "AutoFill" at the same time
 editor.TextEditorMode -- reverse of editor.CodeEditorMode
+editor.ControlButtons -- if true, combinations such as Ctrl + G; Ctrl + F and Ctrl + H will work. This option does not apply for Ctrl + Z, Ctrl + X, Ctrl + V, Ctrl + Arrows and other
 ```
