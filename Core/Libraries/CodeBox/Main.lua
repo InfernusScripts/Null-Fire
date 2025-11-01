@@ -1438,25 +1438,24 @@ Lib.CodeFrame = (function()
 		end)
 
 		editBox:GetPropertyChangedSignal("Text"):Connect(function()
-			if obj.EditBoxCopying or editBox.Text == emptyChar or obj.FocusIgnore or obj.LastTyped == obj.FramesPassed then
-				obj.EditBoxCopying = false
-				obj.EditSkip = false
-				return
-			end
-
-			obj.LastTyped = obj.FramesPassed
-
 			if obj.EditSkip then
 				editBox.Text = emptyChar
 				obj.EditSkip = false
 				return
 			end
-
+			
+			if obj.EditBoxCopying or editBox.Text == emptyChar or obj.FocusIgnore or uis.TouchEnabled and obj.LastTyped == obj.FramesPassed then
+				obj.EditBoxCopying = false
+				obj.EditSkip = false
+				return
+			end
+			
 			if not obj.TextEditable then return editBox:ReleaseFocus() end
+
+			obj.LastTyped = obj.FramesPassed
 
 			local originalText: string = editBox.Text
 
-			obj.EditSkip = true
 			editBox.Text = emptyChar
 			editBox.CursorPosition = 2
 
@@ -1730,6 +1729,7 @@ Lib.CodeFrame = (function()
 	end
 
 	local function makeFrame(obj)
+		obj.SelectionStart = {-1,-1}
 		obj.SyntaxHighlight = true
 		obj.PreviousSyntaxHighlight = obj.SyntaxHighlight
 		obj.AutoFill = true
@@ -2082,7 +2082,7 @@ Lib.CodeFrame = (function()
 				["Instance5"] = Instance.new("UIStroke")
 			}
 
-			do -- Set properties
+			do
 				objects["Instance0"]["LayoutOrder"] = 0
 				objects["Instance0"]["Active"] = false
 				objects["Instance0"]["Parent"] = frame
@@ -2600,7 +2600,7 @@ Lib.CodeFrame = (function()
 			self.CursorX = self.SelectionRange[2][1]
 
 			self:JumpToCursor()
-			self:SetCopyableSelection()
+			task.spawn(self.SetCopyableSelection, self)
 		end
 	end
 
@@ -2643,6 +2643,9 @@ Lib.CodeFrame = (function()
 	end
 
 	funcs.SetCopyableSelection = function(self)
+		self:SetEditing(true)
+		while not self.Editing do task.wait() end
+		
 		local text = self:GetSelectionText()
 		local editBox = self.GuiElems.EditBox
 
@@ -2671,25 +2674,25 @@ Lib.CodeFrame = (function()
 			or 0
 	end
 
-	funcs.Shift = function(self,dir,upd,reset)
+	funcs.Shift = function(self, dir, upd, reset)
 		if reset == true then
 			self:ResetSelection(true)
 		elseif reset == false then
-			if self.SelectionRange[1][1] == -1 then
-				self.SelectionRange[1][1] = self.CursorX
+			if self.SelectionStart[1] == -1 then
+				self.SelectionStart[1] = self.CursorX
 			end
-			if self.SelectionRange[1][2] == -1 then
-				self.SelectionRange[1][2] = self.CursorY
+			if self.SelectionStart[2] == -1 then
+				self.SelectionStart[2] = self.CursorY
 			end
 		end
 
 		if dir == "Left" then
-			local line = self.Lines[self.CursorY+1] or ""
+			local line = self.Lines[self.CursorY + 1] or ""
 			local str = ""
 
 			repeat
 				self:QuickShift(true)
-				str = line:sub(self.CursorX+1,self.CursorX+1) .. str
+				str = line:sub(self.CursorX + 1, self.CursorX + 1) .. str
 			until self:GetLen(str) == #str or #str == 4 or self.CursorX <= 0
 
 			if self.CursorX < 0 then
@@ -2703,12 +2706,12 @@ Lib.CodeFrame = (function()
 
 			self.FloatCursorX = self.CursorX
 		elseif dir == "Right" then
-			local line = self.Lines[self.CursorY+1] or ""
+			local line = self.Lines[self.CursorY + 1] or ""
 			local str = ""
 
 			repeat
 				self:QuickShift(false)
-				str = line:sub(self.CursorX+1,self.CursorX+1) .. str
+				str = line:sub(self.CursorX + 1, self.CursorX + 1) .. str
 			until self:GetLen(str) == #str or #str == 4 or self.CursorX >= #line
 
 			if self.CursorX > #line then
@@ -2725,33 +2728,45 @@ Lib.CodeFrame = (function()
 			if self.CursorY - 1 ~= -1 then
 				self.CursorX = self.FloatCursorX
 				self.CursorY = self.CursorY - 1
+
+				local line = self.Lines[self.CursorY + 1] or ""
+				if self.CursorX > #line then
+					self.CursorX = #line
+				end
+
+				self.FloatCursorX = self.CursorX
 			end
 		elseif dir == "Down" then
 			if self.CursorY + 1 < #self.Lines then
 				self.CursorX = self.FloatCursorX
 				self.CursorY = self.CursorY + 1
+
+				local line = self.Lines[self.CursorY + 1] or ""
+				if self.CursorX > #line then
+					self.CursorX = #line
+				end
+
+				self.FloatCursorX = self.CursorX
 			end
 		end
 
 		if reset == false then
-			self.SelectionRange[2][1] = self.CursorX
-			self.SelectionRange[2][2] = self.CursorY
-
-			--if self.SelectionRange[2][2] < self.SelectionRange[1][2] then
-			--	local c = self.SelectionRange[1]
-
-			--	self.SelectionRange[1] = self.SelectionRange[2]
-			--	self.SelectionRange[2] = c
-			--end
-			
-			if upd then
-				self:SetCopyableSelection()
+			if self.CursorY < self.SelectionStart[2] or self.CursorY == self.SelectionStart[2] and self.CursorX < self.SelectionStart[1] then
+				self.SelectionRange[1][1] = self.CursorX
+				self.SelectionRange[1][2] = self.CursorY
+				self.SelectionRange[2][1] = self.SelectionStart[1]
+				self.SelectionRange[2][2] = self.SelectionStart[2]
+			else
+				self.SelectionRange[2][1] = self.CursorX
+				self.SelectionRange[2][2] = self.CursorY
+				self.SelectionRange[1][1] = self.SelectionStart[1]
+				self.SelectionRange[1][2] = self.SelectionStart[2]
 			end
 		end
 
 		if upd then
 			self:UpdateCursor()
-			self:JumpToCursor()
+			self:Refresh()
 		end
 	end
 
@@ -2796,7 +2811,7 @@ Lib.CodeFrame = (function()
 					end
 				end)
 
-				self:SetCopyableSelection()
+				task.spawn(self.SetCopyableSelection, self)
 			elseif keycode == keycodes.Up then
 				setupMove(keycodes.Up,function()
 					if not self.Autocompleting then
@@ -2807,7 +2822,7 @@ Lib.CodeFrame = (function()
 					end
 				end)
 
-				self:SetCopyableSelection()
+				task.spawn(self.SetCopyableSelection, self)
 			elseif keycode == keycodes.Left then
 				setupMove(keycodes.Left,function()
 					repeat
@@ -2818,7 +2833,7 @@ Lib.CodeFrame = (function()
 					self:Refresh()
 				end)
 
-				self:SetCopyableSelection()
+				task.spawn(self.SetCopyableSelection, self)
 			elseif keycode == keycodes.Right then
 				setupMove(keycodes.Right,function()
 					repeat
@@ -2829,7 +2844,7 @@ Lib.CodeFrame = (function()
 					self:Refresh()
 				end)
 
-				self:SetCopyableSelection()
+				task.spawn(self.SetCopyableSelection, self)
 			elseif keycode == keycodes.Delete then
 				setupMove(keycodes.Delete,function()
 					local startRange,endRange
@@ -2860,7 +2875,7 @@ Lib.CodeFrame = (function()
 			elseif isDown("Control") then
 				if keycode == keycodes.A then
 					self.SelectionRange = {{0,0},{#self.Lines[#self.Lines],#self.Lines-1}}
-					self:SetCopyableSelection()
+					task.spawn(self.SetCopyableSelection, self)
 					self:Refresh()
 				elseif keycode == keycodes.Z then
 					setupMove(keycodes.Z,function()
@@ -2897,6 +2912,7 @@ Lib.CodeFrame = (function()
 
 	funcs.ResetSelection = function(self,norefresh)
 		self.SelectionRange = {{-1,-1},{-1,-1}}
+		self.SelectionStart = {-1,-1}
 		if not norefresh then self:Refresh() end
 	end
 
@@ -3620,11 +3636,11 @@ Lib.CodeFrame = (function()
 	end
 
 	funcs.GetText = function(self)
-		return self:ConvertText(table.concat(self.Lines,"\n"), false) -- Tab Convert
+		return self:ConvertText(table.concat(self.Lines,"\n"), false)
 	end
 
 	funcs.SetText = function(self,txt)
-		txt = self:ConvertText(txt, true) -- Tab Convert
+		txt = self:ConvertText(txt, true)
 		local lines = self.Lines
 		table.clear(lines)
 
