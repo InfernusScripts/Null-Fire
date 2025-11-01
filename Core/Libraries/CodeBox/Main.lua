@@ -976,7 +976,7 @@ Lib.ScrollBar = (function()
 	funcs.AddMarker = function(self,ind,color)
 		self.Markers[ind] = color or Color3.new(0,0,0)
 	end
-	
+
 	funcs.ScrollTo = function(self,ind,nocallback)
 		self.Index = ind
 		self:Update()
@@ -1385,7 +1385,7 @@ Lib.CodeFrame = (function()
 		obj.AutocompleteEnabled = true
 		obj.FramesPassed = 0
 		obj.LastTyped = 0
-		
+
 		renderStepped:Connect(function()
 			if obj.Editing then
 				obj.FramesPassed += 1
@@ -1442,7 +1442,7 @@ Lib.CodeFrame = (function()
 				obj.EditSkip = false
 				return
 			end
-			
+
 			obj.LastTyped = obj.FramesPassed
 
 			if obj.EditSkip then
@@ -2237,6 +2237,8 @@ Lib.CodeFrame = (function()
 					local line = tonumber(objects.Instance3.Text)
 					objects.Instance3.Text = ""
 
+					obj:SetEditing(true)
+					repeat task.wait() until obj.Editing
 					obj:JumpToLine(line)
 				end
 			end)
@@ -2534,13 +2536,11 @@ Lib.CodeFrame = (function()
 	funcs.JumpToLine = function(self, line)
 		if not line then return end
 
-		self:SetEditing(true)
-		repeat task.wait() until self.Editing
-
 		local lines = self.Lines
 		local line = math.clamp(line, 1, #lines)
 
 		self:MoveCursor(#lines[line], line - 1)
+		self:JumpToCursor()
 	end
 
 	funcs.GetTextAfterCursor = function(self, allLines)
@@ -2598,7 +2598,7 @@ Lib.CodeFrame = (function()
 
 			self.CursorX = self.SelectionRange[2][1]
 
-			self:Refresh()
+			self:JumpToCursor()
 			self:SetCopyableSelection()
 		end
 	end
@@ -2742,11 +2742,15 @@ Lib.CodeFrame = (function()
 			--	self.SelectionRange[1] = self.SelectionRange[2]
 			--	self.SelectionRange[2] = c
 			--end
+			
+			if upd then
+				self:SetCopyableSelection()
+			end
 		end
 
 		if upd then
 			self:UpdateCursor()
-			self:Refresh()
+			self:JumpToCursor()
 		end
 	end
 
@@ -2967,7 +2971,7 @@ Lib.CodeFrame = (function()
 		self:ProcessTextChange()
 		self.CursorX = cursorX + #textLines[#textLines]
 		self.CursorY = cursorY + #textLines-1
-		self:UpdateCursor()
+		self:JumpToCursor()
 	end
 
 	funcs.ScrollDelta = function(self,x,y)
@@ -3051,8 +3055,27 @@ Lib.CodeFrame = (function()
 	end
 
 	funcs.JumpToCursor = function(self)
+		local linesFrame = self.Frame.Lines
+		local hSize = math.max(0, linesFrame.AbsoluteSize.X)
+		local vSize = math.max(0, linesFrame.AbsoluteSize.Y)
+		local maxLines = math.ceil(vSize / self.FontSize)
+		local maxCols = math.ceil(hSize / math.ceil(self.FontSize / self.Colors.WidthDivider))
+
+		if self.CursorY < self.ViewY + 1 then
+			self.ViewY = math.max(0, self.CursorY)
+		elseif self.CursorY > self.ViewY + maxLines then
+			self.ViewY = math.max(0, self.CursorY - maxLines + 1)
+		end
+
+		if self.CursorX < self.ViewX + 1 then
+			self.ViewX = math.max(0, self.CursorX - 1)
+		elseif self.CursorX > self.ViewX + maxCols then
+			self.ViewX = math.max(0, self.CursorX - maxCols + 2)
+		end
+
 		self:Refresh()
 	end
+
 
 	funcs.UpdateCursor = function(self,input)
 		local linesFrame = self.GuiElems.LinesFrame
@@ -3093,7 +3116,7 @@ Lib.CodeFrame = (function()
 		self.CursorX = cursorX
 		self.CursorY = cursorY
 
-		local cursorVisible = (cursorX >= viewX) and (cursorY >= viewY) and (cursorX <= viewX + maxCols) and (cursorY <= viewY + maxLines)
+		local cursorVisible = (cursorX >= viewX) and (cursorY >= viewY) and (cursorX <= viewX + maxCols - 1) and (cursorY <= viewY + maxLines - 1)
 		if cursorVisible then
 			local offX = (cursorX - viewX)
 			local offY = (cursorY - viewY)
@@ -3372,8 +3395,6 @@ Lib.CodeFrame = (function()
 	end
 
 	funcs.Refresh = function(self)
-		local start = tick()
-
 		self.Frame.LineNumbers.TextColor3 = self.Colors.Text
 		self.Gui.BackgroundColor3 = self.Colors.Background
 		self.Gui.BackgroundTransparency = self.Colors.Transparency
