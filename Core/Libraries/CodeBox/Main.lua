@@ -2564,10 +2564,18 @@ Lib.CodeFrame = (function()
 				shift = 0
 			end
 
-			local found, extends = self.Lines[self.CursorY + 1]:sub(math.max(shift - 1, 1)):lower():find(toFind)
-
+			local found, extends = self.Lines[self.CursorY + 1]:sub(math.max(shift, 1)):lower():find(toFind)
 			if self.CursorY == old then
 				shift -= 1
+			end
+			
+			if not found then
+				self.CursorY += 1
+				if self.CursorY >= #self.Lines then
+					self.CursorY = 0
+				end
+				
+				return self:FindNext(toFind)
 			end
 
 			self.CursorX = found + shift
