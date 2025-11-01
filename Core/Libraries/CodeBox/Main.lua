@@ -1730,6 +1730,7 @@ Lib.CodeFrame = (function()
 		obj.AutoFill = true
 		obj.ShowFooter = false
 		obj.MaxHistory = 1
+		obj.ControlButtons = true
 		
 		local frame = create({
 			{1,"TextButton",{AutoButtonColor=false,Name="CodeBox",Text="",BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400)}},
@@ -2447,19 +2448,24 @@ Lib.CodeFrame = (function()
 			end
 			
 			uis.InputBegan:Connect(function(input)
-				local tb = uis:GetFocusedTextBox()
-				if tb and tb:IsDescendantOf(frame) and isDown("Control") then
-					if input.KeyCode == Enum.KeyCode.G then
-						obj.Replace.Visible = false
-						obj.Goto.Visible = not obj.Goto.Visible
-					elseif input.KeyCode == Enum.KeyCode.F or input.KeyCode == Enum.KeyCode.H then
-						obj.Goto.Visible = false
-						obj.Replace.Visible = not obj.Replace.Visible or objects.Instance3.Text == "" or input.KeyCode == Enum.KeyCode.H and objects.Instance6.Text == ""
-						
-						if obj.Replace.Visible then
-							objects["Instance" .. ((input.KeyCode == Enum.KeyCode.F or objects.Instance3.Text == "") and "3" or "6")]:CaptureFocus()
+				if obj.ControlButtons then
+					local tb = uis:GetFocusedTextBox()
+					if tb and tb:IsDescendantOf(frame) and isDown("Control") then
+						if input.KeyCode == Enum.KeyCode.G then
+							obj.Replace.Visible = false
+							obj.Goto.Visible = not obj.Goto.Visible
+						elseif input.KeyCode == Enum.KeyCode.F or input.KeyCode == Enum.KeyCode.H then
+							obj.Goto.Visible = false
+							obj.Replace.Visible = not obj.Replace.Visible or objects.Instance3.Text == "" or input.KeyCode == Enum.KeyCode.H and objects.Instance6.Text == ""
+							
+							if obj.Replace.Visible then
+								objects["Instance" .. ((input.KeyCode == Enum.KeyCode.F or objects.Instance3.Text == "") and "3" or "6")]:CaptureFocus()
+							end
 						end
 					end
+				else
+					obj.Goto.Visible = false
+					obj.Replace.Visible = false
 				end
 			end)
 
