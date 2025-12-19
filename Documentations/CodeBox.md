@@ -87,4 +87,5 @@ editor.AutoFill -- if false, auto indent will be disabled, typing "(", "[" or "{
 editor.CodeEditorMode -- sets values of all "AutocompleteEnabled", "SyntaxHighlight" and "AutoFill" at the same time
 editor.TextEditorMode -- reverse of editor.CodeEditorMode
 editor.ControlButtons -- if true, combinations such as Ctrl + G; Ctrl + F and Ctrl + H will work. This option does not apply for Ctrl + Z, Ctrl + X, Ctrl + V, Ctrl + Arrows and other
+editor.LinesVisible -- if true, lines text on the left side will be visible
 ```
