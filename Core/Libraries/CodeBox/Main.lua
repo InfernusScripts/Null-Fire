@@ -1816,7 +1816,7 @@ Lib.CodeFrame = (function()
 		obj.History = { }
 		obj.RedoHistory = { }
 		obj.FromHistory = false
-		obj.LinesVisible = false
+		obj.LinesVisible = true
 
 		local frame = create({
 			{1,"TextButton",{AutoButtonColor=false,Name="CodeBox",Text="",BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400)}},
