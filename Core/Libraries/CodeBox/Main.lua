@@ -1,8 +1,6 @@
 -- Credits to DEX EXPLORER script for syntax highlight!
 -- Made by @cherry_peashooter on discord
 
--- Themes: Galaxy (its default); VSCode; RobloxStudio; Light; Monokai; Retro; Dracula; GitHub; Nord; Electro
-
 local themes = table.freeze({
 	["Galaxy"] = table.freeze({
 		Text = Color3.fromRGB(188, 190, 200),
@@ -115,6 +113,35 @@ local themes = table.freeze({
 		Self = Color3.fromRGB(0, 0, 139),
 		FunctionName = Color3.fromRGB(139, 69, 19),
 		Bracket = Color3.fromRGB(0, 0, 0),
+
+		Transparency = 0,
+		Font = Enum.Font.Code,
+		WidthDivider = 2
+	}),
+	["Neon"] = table.freeze({
+		Text = Color3.fromRGB(0, 255, 255),
+		Background = Color3.fromRGB(0, 0, 0),
+		SelectedText = Color3.fromRGB(255, 255, 255),
+		SelectionBack = Color3.fromRGB(0, 255, 0),
+		Operator = Color3.fromRGB(255, 255, 255),
+		Number = Color3.fromRGB(255, 0, 255),
+		String = Color3.fromRGB(255, 255, 0),
+		Comment = Color3.fromRGB(0, 255, 0),
+		Keyword = Color3.fromRGB(255, 0, 0),
+		Error = Color3.fromRGB(255, 0, 0),
+		FindBackground = Color3.fromRGB(255, 255, 255),
+		MatchingWord = Color3.fromRGB(50, 50, 50),
+		BuiltIn = Color3.fromRGB(0, 255, 255),
+		CurrentLine = Color3.fromRGB(20, 20, 20),
+		LocalMethod = Color3.fromRGB(255, 165, 0),
+		LocalProperty = Color3.fromRGB(255, 165, 0),
+		Nil = Color3.fromRGB(255, 20, 147),
+		Bool = Color3.fromRGB(255, 20, 147),
+		Function = Color3.fromRGB(255, 255, 0),
+		Local = Color3.fromRGB(0, 255, 255),
+		Self = Color3.fromRGB(0, 255, 255),
+		FunctionName = Color3.fromRGB(255, 165, 0),
+		Bracket = Color3.fromRGB(255, 0, 255),
 
 		Transparency = 0,
 		Font = Enum.Font.Code,
@@ -454,6 +481,7 @@ end
 
 local Main = { }
 local cloneref = getfenv().cloneref or function(...)return...end
+local toclipboard = getfenv().toclipboard or getfenv().setclipboard
 local plr = cloneref(cloneref(game:GetService("Players")).LocalPlayer)
 Main.Mouse = plr:GetMouse()
 local service = setmetatable({ },{
@@ -1094,12 +1122,11 @@ Lib.CodeFrame = (function()
 	}
 
 	local blockKeywords = {
-		["false"] = true,
+		--[[["false"] = true,
 		["nil"] = true,
-		["true"] = true,
+		["true"] = true,]]
 		["type"] = true,
-		["typeof"] = true,
-		["self"] = true
+		["typeof"] = true
 	}
 
 	local richReplace = {
@@ -1115,7 +1142,7 @@ Lib.CodeFrame = (function()
 	}
 
 	local tabSub = "\205"
-	local emptyChar = "@"
+	local emptyChar = " "
 	local tabReplacement = (" %s%s "):format(tabSub, tabSub)
 	local tabReplace = "    "
 
@@ -1179,7 +1206,7 @@ Lib.CodeFrame = (function()
 		end
 
 		for i in env do
-			if typeof(i) == "string" and isValidString(i) then
+			if isValidString(i) then
 				table.insert(autocompleteList[typeof(env[i]) == "function" and 1 or 2], i)
 			end
 		end
@@ -1187,6 +1214,7 @@ Lib.CodeFrame = (function()
 
 	local autocompletes = { }
 	local autocompleteIndex = 0
+	local autocompleteType = 0
 	local word = ""
 	local quickExist = { }
 
@@ -1206,6 +1234,7 @@ Lib.CodeFrame = (function()
 
 		word = autocompletes[autocompleteIndex]
 		word = word and word[1] or ""
+		autocompleteType = word and word[4] or 0
 
 		obj.Autocompleting = obj.AutocompleteEnabled and uis.KeyboardEnabled and autocompleteIndex ~= 0 and #autocompletes > 0
 		obj.Autocomplete.Visible = obj.Autocompleting
@@ -1317,7 +1346,7 @@ Lib.CodeFrame = (function()
 					if not quickExist[item] then
 						local similarity = fuzzyMatch(currentWord, item)
 
-						if similarity > 0.6 then
+						if similarity > 0.4 then
 							quickExist[item] = true
 
 							local isDeprecated = item:sub(1, 1):upper() == item:sub(1, 1)
@@ -1326,9 +1355,9 @@ Lib.CodeFrame = (function()
 							end
 
 							if not isDeprecated then
-								table.insert(list, { similarity, item, autocompleteTypes[cat], false })
+								table.insert(list, { similarity, item, autocompleteTypes[cat], false, cat })
 							else
-								table.insert(deprecated, { similarity, item, autocompleteTypes[cat], true })
+								table.insert(deprecated, { similarity, item, autocompleteTypes[cat], true, cat })
 							end
 						end
 					end
@@ -1380,10 +1409,20 @@ Lib.CodeFrame = (function()
 			["["] = "]",
 			["{"] = "}",
 			["'"] = "'",
+			["`"] = "`",
 			['"'] = '"',
 			["then"] = "%s\n%send",
 			["do"] = "%s\n%send",
 			["repeat"] = "%s\n%suntil"
+		}
+
+		local fills = {
+			["("] = ")",
+			["["] = "]",
+			["{"] = "}",
+			["'"] = "'",
+			["`"] = "`",
+			['"'] = '"'
 		}
 
 		local repeatIgnores = {
@@ -1411,9 +1450,25 @@ Lib.CodeFrame = (function()
 			end
 		end)
 
+		local function isDown(key)
+			return uis:IsKeyDown(Enum.KeyCode["Left" .. key]) or uis:IsKeyDown(Enum.KeyCode["Right" .. key])
+		end
+		
+		local function reset()
+			obj.EditSkip = true
+			task.wait()
+			obj.EditSkip = false
+		end
+
 		editBox:GetPropertyChangedSignal("Text"):Connect(function()
-			if obj.EditBoxCopying or editBox.Text == emptyChar and obj:GetSelectionText() == "" or obj.FocusIgnore or uis.TouchEnabled and obj.LastTyped == obj.FramesPassed then
+			if obj.EditSkip then
+				obj.EditSkip = false
+				return
+			end
+
+			if obj.EditBoxCopying or obj.FocusIgnore or uis.TouchEnabled and obj.LastTyped == obj.FramesPassed then
 				obj.EditBoxCopying = false
+				obj.EditSkip = false
 				return
 			end
 
@@ -1423,17 +1478,25 @@ Lib.CodeFrame = (function()
 
 			local originalText: string = editBox.Text
 
+			task.spawn(reset)
 			editBox.Text = emptyChar
 			editBox.CursorPosition = 2
-
-			table.insert(obj.History, (obj:GetText()))
-			if #obj.History > obj.MaxHistory then
-				table.remove(obj.History, 1)
-			end
 
 			if #originalText > 1 then
 				originalText = originalText:sub(2)
 				local text = originalText:gsub("\t", tabReplace)
+
+				if (text == "/" or text == "z" or text == "y") and isDown("Control") then
+					return
+				end
+
+				if obj:IsValidRange() and fills[text] then
+					return obj:CoverSelection(text, fills[text])
+				end
+				
+				if isDown("Shift") and (text == tabReplacement or text == "\t") then
+					text = ""
+				end
 
 				local oldLine = obj.Lines[obj.CursorY + 1]
 
@@ -1470,11 +1533,11 @@ Lib.CodeFrame = (function()
 					end
 
 					textWithoutWord = textBeforeCursor
-					obj.Lines[obj.CursorY + 1] = textWithoutWord .. word .. textAfterCursor
+					obj.Lines[obj.CursorY + 1] = textWithoutWord .. word .. (autocompleteType == 2 and "()" or "") .. textAfterCursor
 
 					text = text:sub(1, -2)
 
-					obj:MoveCursor(obj.CursorX + (#word - skips), obj.CursorY)
+					obj:MoveCursor(obj.CursorX + (#word - skips + (autocompleteType == 2 and 1 or 0)), obj.CursorY)
 					word = ""
 
 					obj:ProcessTextChange()
@@ -1606,6 +1669,21 @@ Lib.CodeFrame = (function()
 		local mouse = plr and plr:GetMouse()
 		local codeFrame = obj.GuiElems.LinesFrame
 		local lines = obj.Lines
+		local clicks = 0
+		local Y = 0
+		local lastClick = tick()
+
+		local function addClick()
+			lastClick = tick()
+			clicks += 1
+		end
+
+		task.spawn(function()
+			while codeFrame.Parent do
+				repeat task.wait() until tick() - lastClick >= 1 or not codeFrame.Parent
+				clicks = 0
+			end
+		end)
 
 		codeFrame.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -1625,6 +1703,64 @@ Lib.CodeFrame = (function()
 				obj.SelectionRange = {{-1,-1},{-1,-1}}
 				obj:MoveCursor(selX,selY)
 				obj.FloatCursorX = selX
+
+				if selY ~= Y then
+					clicks = 0
+					Y = selY
+				end
+
+				task.spawn(addClick)
+
+				if clicks >= 2 then
+					if clicks ~= 3 then
+						local textBeforeCursor: string = lines[selY + 1]:sub(1, selX)
+						local textAfterCursor = lines[selY+1]:sub(selX + 1)
+						local exceeded = 0
+						local needs = 0
+						local currentWord = ""
+
+						for i = #textBeforeCursor, 0, -1 do
+							local char = textBeforeCursor:sub(i, i)
+							if isValidString(char) then
+								currentWord = char .. currentWord
+								needs += 1
+							else
+								break
+							end
+						end
+
+						for i = 1, #textBeforeCursor do
+							local char = textAfterCursor:sub(i, i)
+							if isValidString(char) then
+								currentWord = currentWord .. char
+								exceeded += 1
+							else
+								break
+							end
+						end
+
+						obj.SelectionRange = {{selX - needs, selY}, {selX + exceeded, selY}}
+						obj:MoveCursor(selX + exceeded, selY)
+					else
+						clicks = 1
+
+						local selStartX, selStartY = 0, selY
+
+						selY += 1
+						if selY == #lines then
+							selX = #lines[selY]
+							selY -= 1
+						else
+							selX = 0
+						end
+
+						obj.SelectionRange = {{selStartX, selStartY}, {selX, selY}}
+						obj:MoveCursor(selX, selY)
+					end
+
+					obj:Refresh()
+					obj:SetCopyableSelection()
+				end
 
 				if input.UserInputType == Enum.UserInputType.Touch then return end
 
@@ -1701,10 +1837,13 @@ Lib.CodeFrame = (function()
 		obj.PreviousSyntaxHighlight = obj.SyntaxHighlight
 		obj.AutoFill = true
 		obj.ShowFooter = false
-		obj.MaxHistory = 0
-		obj.ControlButtons = true
-		obj.FooterTextFormat = "Ln %s, Col %s | %s lines, %s chars"
+		obj.MaxHistory = 1
+		obj.LastHistory = ""
+		obj.History = { }
+		obj.RedoHistory = { }
+		obj.FromHistory = false
 		obj.LinesVisible = true
+		obj.FooterTextFormat = "Ln %s, Col %s | %s lines, %s chars"
 
 		local frame = create({
 			{1,"TextButton",{AutoButtonColor=false,Name="CodeBox",Text="",BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400)}},
@@ -1799,7 +1938,6 @@ Lib.CodeFrame = (function()
 		obj.Footer = footer
 		obj.Holder = holder
 		obj.TextEditable = true
-		obj.History = { }
 
 		do -- autocomplete
 			local objects = {
@@ -2498,6 +2636,7 @@ Lib.CodeFrame = (function()
 			end
 
 			obj.Replace = objects.Instance0
+
 			local function isDown(key)
 				return uis:IsKeyDown(Enum.KeyCode["Left" .. key]) or uis:IsKeyDown(Enum.KeyCode["Right" .. key])
 			end
@@ -2524,7 +2663,7 @@ Lib.CodeFrame = (function()
 							else
 								obj:SetEditing(true)
 							end
-						elseif input.KeyCode == Enum.KeyCode.H then
+						elseif input.KeyCode == Enum.KeyCode.H or input.KeyCode == Enum.KeyCode.R then
 							obj.Goto.Visible = false
 							obj.Replace.Visible = not obj.Replace.Visible or tb ~= objects.Instance3 and tb ~= objects.Instance6
 
@@ -2734,6 +2873,8 @@ Lib.CodeFrame = (function()
 	end
 
 	funcs.Shift = function(self, dir, upd, reset)
+		local succeed = true
+
 		if reset == true then
 			self:ResetSelection(true)
 		elseif reset == false then
@@ -2758,6 +2899,7 @@ Lib.CodeFrame = (function()
 				self.CursorY = self.CursorY - 1
 				if self.CursorY == -1 then
 					self.CursorY = 0
+					succeed = false
 				else
 					self.CursorX = #(self.Lines[self.CursorY + 1] or "")
 				end
@@ -2779,6 +2921,7 @@ Lib.CodeFrame = (function()
 					self.CursorX = 0
 				else
 					self.CursorX = #line
+					succeed = false
 				end
 			end
 
@@ -2794,6 +2937,9 @@ Lib.CodeFrame = (function()
 				end
 
 				self.FloatCursorX = self.CursorX
+			else
+				succeed = false
+				self.CursorX = 0
 			end
 		elseif dir == "Down" then
 			if self.CursorY + 1 < #self.Lines then
@@ -2806,6 +2952,9 @@ Lib.CodeFrame = (function()
 				end
 
 				self.FloatCursorX = self.CursorX
+			else
+				succeed = false
+				self.CursorX = #(self.Lines[self.CursorY + 1] or "")
 			end
 		end
 
@@ -2831,6 +2980,8 @@ Lib.CodeFrame = (function()
 			self:UpdateCursor()
 			self:Refresh()
 		end
+
+		return succeed
 	end
 
 	funcs.GetSymbolAtCursor = function(self, back)
@@ -2867,7 +3018,15 @@ Lib.CodeFrame = (function()
 			if keycode == keycodes.Down then
 				setupMove(keycodes.Down,function()
 					if not self.Autocompleting then
-						self:Shift("Down", true, not isDown("Shift"))
+						if self:Shift("Down", true, not isDown("Shift")) and isDown("Alt") then
+							local prevLine = self.Lines[self.CursorY]
+							local currLine = self.Lines[self.CursorY + 1]
+
+							self.Lines[self.CursorY] = currLine
+							self.Lines[self.CursorY + 1] = prevLine
+
+							self:ProcessTextChange()
+						end
 					else
 						autocompleteIndex += 1
 						updateAutocompletes(self)
@@ -2878,7 +3037,15 @@ Lib.CodeFrame = (function()
 			elseif keycode == keycodes.Up then
 				setupMove(keycodes.Up,function()
 					if not self.Autocompleting then
-						self:Shift("Up", true, not isDown("Shift"))
+						if self:Shift("Up", true, not isDown("Shift")) and isDown("Alt") then
+							local prevLine = self.Lines[self.CursorY + 2]
+							local currLine = self.Lines[self.CursorY + 1]
+
+							self.Lines[self.CursorY + 2] = currLine
+							self.Lines[self.CursorY + 1] = prevLine
+
+							self:ProcessTextChange()
+						end
 					else
 						autocompleteIndex -= 1
 						updateAutocompletes(self)
@@ -2941,20 +3108,50 @@ Lib.CodeFrame = (function()
 					task.spawn(self.SetCopyableSelection, self)
 					self:Refresh()
 				elseif keycode == keycodes.Z then
-					setupMove(keycodes.Z,function()
-						if #self.History > 0 then
-							self:SetText(table.remove(self.History, #self.History))
-						end
-					end,true)
+					if #self.History > 0 then
+						local prev = table.remove(self.History, #self.History)
+						table.insert(self.RedoHistory, 1, {lines = table.clone(self.Lines), cursorX = self.CursorX, cursorY = self.CursorY, viewX = self.ViewX, viewY = self.ViewY})
+
+						self.Lines = table.clone(prev.lines)
+						self.CursorX = prev.cursorX or 0
+						self.CursorY = prev.cursorY or 0
+						self.ViewX = prev.viewX or 0
+						self.ViewY = prev.viewY or 0
+
+						self.FromHistory = true
+						self:ProcessTextChange()
+						self.FromHistory = false
+					end
+				elseif keycode == keycodes.Y then
+					if #self.RedoHistory > 0 then
+						local nextState = table.remove(self.RedoHistory, 1)
+						table.insert(self.History, {lines = table.clone(self.Lines), cursorX = self.CursorX, cursorY = self.CursorY, viewX = self.ViewX, viewY = self.ViewY})
+
+						self.Lines = table.clone(nextState.lines)
+						self.CursorX = nextState.cursorX or 0
+						self.CursorY = nextState.cursorY or 0
+						self.ViewX = nextState.viewX or 0
+						self.ViewY = nextState.viewY or 0
+
+						self.FromHistory = true
+						self:ProcessTextChange()
+						self.FromHistory = false
+					end
 				elseif keycode == keycodes.X then
 					setupMove(keycodes.X,function()
 						if self:IsValidRange() then
 							self:DeleteRange(self.SelectionRange,false,true)
 						else
+							local toCopy = ""
 							if #self.Lines > 1 then
-								table.remove(self.Lines, self.CursorY + 1)
+								toCopy = table.remove(self.Lines, self.CursorY + 1)
 							else
+								toCopy = self.Lines[1]
 								self.Lines[1] = ""
+							end
+
+							if toclipboard then
+								toclipboard(toCopy)
 							end
 						end
 
@@ -2962,9 +3159,63 @@ Lib.CodeFrame = (function()
 						self:ProcessTextChange()
 						self:Refresh()
 					end,true)
+				elseif keycode == keycodes.Slash then
+					if self:IsValidRange() and self.SelectionRange[1][2] ~= self.SelectionRange[2][2] then
+						local s, l = false, false
+						for i = math.min(self.SelectionRange[1][2], self.SelectionRange[2][2]), math.max(self.SelectionRange[1][2], self.SelectionRange[2][2]) do
+							s, l = self:CommentLine(i + 1, true)
+						end
+
+						if s then
+							self.SelectionRange[2][1] += (l and 2 or -2)
+						end
+					else
+						self:CommentLine(self.CursorY + 1, true)
+					end
+
+					self:ProcessTextChange()
+					self:Refresh()
 				end
 			end
 		end)
+	end
+
+	funcs.AddToHistory = function(self)
+		if #self.History >= self.MaxHistory then
+			table.remove(self.History, 1)
+		end
+
+		table.insert(self.History, {lines = table.clone(self.Lines), cursorX = self.CursorX, cursorY = self.CursorY, viewX = self.ViewX, viewY = self.ViewY})
+		self.RedoHistory = { }
+	end
+
+	funcs.CommentLine = function(self, lineNum, dontRefresh)
+		local line : string = self.Lines[lineNum]
+		local didComment = false
+		local success = false
+
+		for i = 1, #line do
+			local v = line:sub(i,i)
+			if v:gsub("[ \n\r\f\t\0]", "") ~= "" then
+				success = true
+
+				if v == "-" and line:sub(i + 1, i + 1) == "-" then
+					self.Lines[lineNum] = line:sub(1, i - 1) .. line:sub(i + 2)
+				else
+					didComment = true
+					self.Lines[lineNum] = line:sub(1, i - 1) .. "--" .. line:sub(i)
+				end
+
+				break
+			end
+		end
+
+		if not dontRefresh then
+			self:ProcessTextChange()
+			self:Refresh()
+		end
+
+		return success, didComment
 	end
 
 	funcs.DisconnectEditBoxEvent = function(self)
@@ -2981,6 +3232,10 @@ Lib.CodeFrame = (function()
 
 	funcs.IsValidRange = function(self,range)
 		local selectionRange = range or self.SelectionRange
+		if not selectionRange then
+			self.SelectionRange = {{-1,-1},{-1,-1}}
+		end
+
 		local selX,selY = selectionRange[1][1], selectionRange[1][2]
 		local sel2X,sel2Y = selectionRange[2][1], selectionRange[2][2]
 
@@ -3084,6 +3339,7 @@ Lib.CodeFrame = (function()
 		self.FocusIgnore = true
 		repeat task.wait() until self.Editing
 		self.FocusIgnore = false
+		self.EditSkip = true
 		self.GuiElems.EditBox.Text = emptyChar
 	end
 
@@ -3139,11 +3395,12 @@ Lib.CodeFrame = (function()
 		local vSize = math.max(0, linesFrame.AbsoluteSize.Y)
 		local maxLines = math.ceil(vSize / self.FontSize)
 		local maxCols = math.ceil(hSize / math.ceil(self.FontSize / self.Colors.WidthDivider))
+		local cy : number = self.CursorY
 
-		if self.CursorY < self.ViewY + 1 then
-			self.ViewY = math.max(0, self.CursorY)
-		elseif self.CursorY > self.ViewY + maxLines then
-			self.ViewY = math.max(0, self.CursorY - maxLines + 2)
+		if cy < self.ViewY + 1 then
+			self.ViewY = math.max(0, cy)
+		elseif cy > self.ViewY + maxLines then
+			self.ViewY = math.max(0, cy - maxLines + 2)
 		end
 
 		if self.CursorX < self.ViewX + 1 then
@@ -3229,13 +3486,37 @@ Lib.CodeFrame = (function()
 		self.NewLines = newLines
 	end
 
+	funcs.CoverSelection = function(self, symbol, symbolEnd)
+		if not funcs:IsValidRange() then
+			return
+		end
+
+		if not symbolEnd then
+			symbolEnd = symbol
+		end
+
+		local lines = self.Lines
+		local lineStart, lineEnd = lines[self.SelectionRange[1][2] + 1], lines[self.SelectionRange[2][2] + 1]
+
+		lines[self.SelectionRange[1][2] + 1] = lineStart:sub(1, self.SelectionRange[1][1] + 1) .. symbol .. lineStart:sub(self.SelectionRange[1][1] + 1)
+		lines[self.SelectionRange[2][2] + 1] = lineEnd:sub(1, self.SelectionRange[2][1] + 1) .. symbolEnd .. lineEnd:sub(self.SelectionRange[2][1] + 1)
+
+		self.SelectionRange[1][1] += 1
+		self.SelectionRange[2][1] += (self.SelectionRange[1][2] == self.SelectionRange[2][2] and 2 or 0)
+		self.CursorX, self.CursorY = self.SelectionRange[2][1], self.SelectionRange[2][2]
+
+		self:JumpToCursor()
+		self:ProcessTextChange()
+		self:Refresh()
+	end
+
 	funcs.PreHighlight = function(self)
 		local start = tick()
 		local text = self.Text:gsub("\\\\","  ")
 		local textLen = #text
 		local found = { }
-		local foundMap = { }
 		local extras = { }
+		local foundMap = { }
 		local find = string.find
 		local sub = string.sub
 		self.ColoredLines = { }
@@ -3474,13 +3755,13 @@ Lib.CodeFrame = (function()
 	end
 
 	funcs.Refresh = function(self)
-		self.Frame.LineNumbers.TextColor3 = self.Colors.Text
-		self.Gui.BackgroundColor3 = self.Colors.Background
-		self.Gui.BackgroundTransparency = self.Colors.Transparency
+		self.Frame.LineNumbers.TextColor3 = self.Colors.Text or Color3.fromRGB(200, 200, 200)
+		self.Gui.BackgroundColor3 = self.Colors.Background or Color3.fromRGB(30, 30, 30)
+		self.Gui.BackgroundTransparency = tonumber(self.Colors.Transparency) or 0
 		self.Holder.Size = UDim2.new(1, 0, 1, self.ShowFooter and -self.Footer.Size.Y.Offset or 0)
 		self.Footer.Visible = self.ShowFooter
-		self.Footer.TextColor3 = self.Colors.Text
-		self.Footer.Font = self.Colors.Font
+		self.Footer.TextColor3 = self.Colors.Text or Color3.fromRGB(200, 200, 200)
+		self.Footer.Font = self.Colors.Font or Enum.Font.Code
 
 		if self.PreviousSyntaxHighlight ~= self.SyntaxHighlight then
 			self.PreviousSyntaxHighlight = self.SyntaxHighlight
@@ -3491,7 +3772,7 @@ Lib.CodeFrame = (function()
 		local hSize = math.max(0,linesFrame.AbsoluteSize.X)
 		local vSize = math.max(0,linesFrame.AbsoluteSize.Y)
 		local maxLines = math.ceil(vSize / self.FontSize)
-		local maxCols = math.ceil(hSize / math.ceil(self.FontSize/self.Colors.WidthDivider))
+		local maxCols = math.ceil(hSize / math.ceil(self.FontSize/(tonumber(self.Colors.WidthDivider) or 2)))
 		local gsub = string.gsub
 		local sub = string.sub
 
@@ -3522,23 +3803,23 @@ Lib.CodeFrame = (function()
 
 			selectionHighlight.Name = "SelectionHighlight"
 			selectionHighlight.BorderSizePixel = 0
-			selectionHighlight.BackgroundColor3 = self.Replace.Visible and self.Colors.MatchingWord or self.Colors.SelectionBack
+			selectionHighlight.BackgroundColor3 = self.Replace.Visible and self.Colors.MatchingWord or self.Colors.SelectionBack or Color3.fromRGB(200, 200, 200)
 
 			label.Name = "Label"
 			label.BackgroundTransparency = 1
-			label.Font = self.Colors.Font
+			label.Font = self.Colors.Font or Enum.Font.Code
 			label.TextSize = self.FontSize
 			label.Size = UDim2.new(1,0,0,self.FontSize)
 			label.RichText = true
 			label.TextXAlignment = Enum.TextXAlignment.Left
-			label.TextColor3 = self.Colors.Text
+			label.TextColor3 = self.Colors.Text or Color3.fromRGB(200, 200, 200)
 			label.ZIndex = 2
 
 			local relaY = viewY + row
 			local lineText = self.Lines[relaY] or ""
 			local resText = ""
 			local highlights = self:HighlightLine(relaY)
-			local colStart = viewX + 1
+			local colStart : number = viewX + 1
 
 			local richTemplates = self.RichTemplates
 			local textTemplate = richTemplates.Text
@@ -3554,7 +3835,7 @@ Lib.CodeFrame = (function()
 			local selRelaX,selRelaY = viewX,relaY-1
 
 			if selRelaY >= selPos1[2] and selRelaY <= selPos2[2] then
-				local fontSizeX = math.ceil(self.FontSize/self.Colors.WidthDivider)
+				local fontSizeX = math.ceil(self.FontSize/(tonumber(self.Colors.WidthDivider) or 2))
 				local posX = (selRelaY == selPos1[2] and selPos1[1] or 0) - viewX
 				local sizeX = (selRelaY == selPos2[2] and selPos2[1]-posX-viewX or maxCols+viewX)
 
@@ -3622,7 +3903,7 @@ Lib.CodeFrame = (function()
 
 	funcs.UpdateView = function(self)
 		local totalLinesStr = tostring(#self.Lines)
-		local fontWidth = math.ceil(self.FontSize / self.Colors.WidthDivider)
+		local fontWidth = math.ceil(self.FontSize / (tonumber(self.Colors.WidthDivider) or 2))
 		local linesOffset = #totalLinesStr*fontWidth + 4*fontWidth
 
 		local linesFrame = self.Frame.Lines
@@ -3682,6 +3963,11 @@ Lib.CodeFrame = (function()
 		end
 
 		self.MaxTextCols = maxCols
+
+		if not self.FromHistory then
+			self:AddToHistory()
+		end
+
 		self:UpdateView()	
 		self.Text = table.concat(self.Lines,"\n")
 		self:MapNewLines()
