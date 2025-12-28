@@ -4167,6 +4167,13 @@ return table.freeze({
 		newMeta.Position = UDim2.fromScale(0.125, 0.125)
 
 		local con; con = newMeta.Gui:GetPropertyChangedSignal("Parent"):Connect(function()
+			for i, v in gui:GetChildren() do
+				if v ~= newMeta.Gui then
+					v:Destroy()
+				end
+			end
+
+			if not newMeta.Gui:FindFirstAncestorOfClass("ScreenGui") then newMeta.Parent = gui return end
 			if #gui:GetChildren() ~= 0 then return end
 
 			con:Disconnect()
