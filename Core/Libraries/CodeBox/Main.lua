@@ -29,7 +29,8 @@ local themes = table.freeze({
 
 		Transparency = 0,
 		Font = Enum.Font.Code,
-		WidthDivider = 2
+		WidthDivider = 2,
+		MiniMapScale = 2.5
 	}),
 	["VSCode"] = table.freeze({
 		Text = Color3.fromRGB(212, 212, 212),
@@ -58,7 +59,8 @@ local themes = table.freeze({
 
 		Transparency = 0,
 		Font = Enum.Font.Code,
-		WidthDivider = 2
+		WidthDivider = 2,
+		MiniMapScale = 2.5
 	}),
 	["RobloxStudio"] = table.freeze({
 		Text = Color3.fromRGB(188, 190, 200),
@@ -87,7 +89,8 @@ local themes = table.freeze({
 
 		Transparency = 0,
 		Font = Enum.Font.Code,
-		WidthDivider = 2
+		WidthDivider = 2,
+		MiniMapScale = 2.5
 	}),
 	["Light"] = table.freeze({
 		Text = Color3.fromRGB(20, 15, 26),
@@ -116,7 +119,8 @@ local themes = table.freeze({
 
 		Transparency = 0,
 		Font = Enum.Font.Code,
-		WidthDivider = 2
+		WidthDivider = 2,
+		MiniMapScale = 2.5
 	}),
 	["Neon"] = table.freeze({
 		Text = Color3.fromRGB(0, 255, 255),
@@ -145,7 +149,8 @@ local themes = table.freeze({
 
 		Transparency = 0,
 		Font = Enum.Font.Code,
-		WidthDivider = 2
+		WidthDivider = 2,
+		MiniMapScale = 2.5
 	}),
 	["Monokai"] = table.freeze({
 		Text = Color3.fromRGB(248, 248, 242),
@@ -174,7 +179,8 @@ local themes = table.freeze({
 
 		Transparency = 0,
 		Font = Enum.Font.Code,
-		WidthDivider = 2
+		WidthDivider = 2,
+		MiniMapScale = 2.5
 	}),
 	["Retro"] = table.freeze({
 		Text = Color3.fromRGB(0, 0, 0),
@@ -203,7 +209,8 @@ local themes = table.freeze({
 
 		Transparency = 0,
 		Font = Enum.Font.Code,
-		WidthDivider = 2
+		WidthDivider = 2,
+		MiniMapScale = 2.5
 	}),
 	["Dracula"] = table.freeze({
 		Text = Color3.fromRGB(248, 248, 242),
@@ -232,7 +239,8 @@ local themes = table.freeze({
 
 		Transparency = 0,
 		Font = Enum.Font.Code,
-		WidthDivider = 2
+		WidthDivider = 2,
+		MiniMapScale = 2.5
 	}),
 	["GitHub"] = table.freeze({
 		Text = Color3.fromRGB(201, 209, 217),
@@ -261,7 +269,8 @@ local themes = table.freeze({
 
 		Transparency = 0,
 		Font = Enum.Font.Code,
-		WidthDivider = 2
+		WidthDivider = 2,
+		MiniMapScale = 2.5
 	}),
 	["Nord"] = table.freeze({
 		Text = Color3.fromRGB(216, 222, 233),
@@ -290,7 +299,8 @@ local themes = table.freeze({
 
 		Transparency = 0,
 		Font = Enum.Font.Code,
-		WidthDivider = 2
+		WidthDivider = 2,
+		MiniMapScale = 2.5
 	}),
 	["Electro"] = table.freeze({
 		Text = Color3.fromRGB(220, 220, 220),
@@ -319,7 +329,8 @@ local themes = table.freeze({
 
 		Transparency = 0,
 		Font = Enum.Font.Code,
-		WidthDivider = 2
+		WidthDivider = 2,
+		MiniMapScale = 2.5
 	})
 })
 
@@ -1453,7 +1464,7 @@ Lib.CodeFrame = (function()
 		local function isDown(key)
 			return uis:IsKeyDown(Enum.KeyCode["Left" .. key]) or uis:IsKeyDown(Enum.KeyCode["Right" .. key])
 		end
-		
+
 		local function reset()
 			obj.EditSkip = true
 			task.wait()
@@ -1493,7 +1504,7 @@ Lib.CodeFrame = (function()
 				if obj:IsValidRange() and fills[text] then
 					return obj:CoverSelection(text, fills[text])
 				end
-				
+
 				if isDown("Shift") and (text == tabReplacement or text == "\t") then
 					text = ""
 				end
@@ -1938,6 +1949,59 @@ Lib.CodeFrame = (function()
 		obj.Footer = footer
 		obj.Holder = holder
 		obj.TextEditable = true
+		obj.ControlButtons = true
+
+		local miniMapHolder = Instance.new("Frame", frame)
+		miniMapHolder.Name = "MiniMapHolder"
+		miniMapHolder.Size = UDim2.new(0, 160, 1, 0)
+		miniMapHolder.Position = UDim2.fromScale(1, 0)
+		miniMapHolder.AnchorPoint = Vector2.new(1, 0)
+		miniMapHolder.BackgroundTransparency = 1
+
+		local miniMapLines = Instance.new("Frame", miniMapHolder)
+		miniMapLines.Name = "Lines"
+		miniMapLines.Size = UDim2.new(1, -5, 1, 0)
+		miniMapLines.Position = UDim2.fromOffset(5, 0)
+		miniMapLines.BackgroundTransparency = 1
+
+		local miniMapRescale = Instance.new("TextButton", miniMapHolder)
+		miniMapRescale.Name = "Resize"
+		miniMapRescale.Size = UDim2.new(0, 3, 1, 0)
+		miniMapRescale.Position = UDim2.fromOffset(0, 0)
+		miniMapRescale.AnchorPoint = Vector2.new(0, 0)
+		miniMapRescale.BackgroundTransparency = 0.9
+		miniMapRescale.BackgroundColor3 = Color3.new(1, 1, 1)
+		miniMapRescale.Text = ""
+		miniMapRescale.BorderSizePixel = 0
+
+		local isResizing = false
+		local startX, startWidth
+
+		miniMapRescale.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				isResizing = true
+				startX = input.Position.X
+				startWidth = miniMapHolder.Size.X.Offset
+			end
+		end)
+
+		game:GetService("UserInputService").InputChanged:Connect(function(input)
+			if isResizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+				miniMapHolder:TweenSize(UDim2.new(0, math.clamp(startWidth - (input.Position.X - startX), 60, frame.AbsoluteSize.X - 180), 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.5, true)
+			end
+		end)
+
+		game:GetService("UserInputService").InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				isResizing = false
+			end
+		end)
+
+		obj.MiniMapFrame = miniMapHolder
+		miniMapHolder:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+			holder.Size = UDim2.new(1, -miniMapHolder.AbsoluteSize.X, 1, 0)
+			obj:Refresh()
+		end)
 
 		do -- autocomplete
 			local objects = {
@@ -3754,11 +3818,138 @@ Lib.CodeFrame = (function()
 		return highlights
 	end
 
+	funcs.RefreshMiniMap = function(self)
+		local linesFrame = self.MiniMapFrame.Lines
+		local hSize = math.max(0,linesFrame.AbsoluteSize.X)
+		local vSize = math.max(0,linesFrame.AbsoluteSize.Y)
+		local divider = tonumber(self.Colors.MiniMapScale) or 3
+		local scaled = math.round(self.FontSize / divider)
+		local maxLines = math.ceil(vSize / scaled)
+		local maxCols = math.ceil(hSize / math.ceil(scaled/(tonumber(self.Colors.WidthDivider) or 2)))
+		local gsub = string.gsub
+		local sub = string.sub
+
+		local viewX,viewY = self.ViewX,self.ViewY
+
+		for row = 1,maxLines do
+			local lineFrame = self.MiniMapLineFrames[row]
+			local selectionHighlight, label
+
+			if not lineFrame then
+				lineFrame = Instance.new("Frame", linesFrame)
+				selectionHighlight = Instance.new("Frame", lineFrame)
+				label = Instance.new("TextLabel", lineFrame)
+
+				self.MiniMapLineFrames[row] = lineFrame
+			else
+				selectionHighlight = lineFrame.SelectionHighlight
+				label = lineFrame.Label
+			end
+
+			lineFrame.Name = "Line"
+			lineFrame.Position = UDim2.new(0, 0, 0, (row - 1) * scaled)
+			lineFrame.Size = UDim2.new(1,0,0,scaled)
+			lineFrame.BorderSizePixel = 0
+			lineFrame.BackgroundTransparency = 1
+
+			selectionHighlight.Name = "SelectionHighlight"
+			selectionHighlight.BorderSizePixel = 0
+			selectionHighlight.BackgroundColor3 = self.Replace.Visible and self.Colors.MatchingWord or self.Colors.SelectionBack or Color3.fromRGB(200, 200, 200)
+
+			label.Name = "Label"
+			label.BackgroundTransparency = 1
+			label.Font = self.Colors.Font or Enum.Font.Code
+			label.TextSize = scaled
+			label.Size = UDim2.new(1,0,0,scaled)
+			label.RichText = true
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.TextColor3 = self.Colors.Text or Color3.fromRGB(200, 200, 200)
+			label.ZIndex = 2
+
+			local relaY = math.round(viewY / divider) + row -- TODO: when code editor being scrolled all the way to the bottom, this should be on the bottom also. When code is too big, scrolling to the very bottom leaves a large gap in the minimap
+			local lineText = self.Lines[relaY] or ""
+			local resText = ""
+			local highlights = self:HighlightLine(relaY)
+			local colStart : number = viewX + 1
+
+			local richTemplates = self.RichTemplates
+			local textTemplate = richTemplates.Text
+			local selectionTemplate = richTemplates.SelectedText or textTemplate
+			local curType = highlights[colStart]
+			local curTemplate = richTemplates[typeMap[curType]] or textTemplate
+
+			local selectionRange = self.SelectionRange
+			local selPos1 = selectionRange[1]
+			local selPos2 = selectionRange[2]
+			local selRow,selColumn = selPos1[2],selPos1[1]
+			local sel2Row,sel2Column = selPos2[2],selPos2[1]
+			local selRelaX,selRelaY = viewX,relaY-1
+
+			if selRelaY >= selPos1[2] and selRelaY <= selPos2[2] then
+				local fontSizeX = math.ceil(scaled/(tonumber(self.Colors.WidthDivider) or 2))
+				local posX = (selRelaY == selPos1[2] and selPos1[1] or 0) - viewX
+				local sizeX = (selRelaY == selPos2[2] and selPos2[1]-posX-viewX or maxCols+viewX)
+
+				lineFrame.SelectionHighlight.Position = UDim2.new(0,posX*fontSizeX,0,0)
+				lineFrame.SelectionHighlight.Size = UDim2.new(0,sizeX*fontSizeX,1,0)
+				lineFrame.SelectionHighlight.Visible = true
+			else
+				lineFrame.SelectionHighlight.Visible = false
+			end
+
+			local inSelection = selRelaY >= selRow and selRelaY <= sel2Row and (selRelaY == selRow and viewX >= selColumn or selRelaY ~= selRow) and (selRelaY == sel2Row and viewX < sel2Column or selRelaY ~= sel2Row)
+			if inSelection then
+				curType = -999
+				curTemplate = selectionTemplate
+			end
+
+			for col = 2, maxCols do
+				local relaX = math.round(viewX / divider) + col -- same here, if code editor being scrolled all the way to the right, this should be on the right also. Unlike the relaY, it dont have enough space for all symbols instead
+				local selRelaX = relaX-1
+				local posType = highlights[relaX]
+
+				local inSelection = selRelaY >= selRow and selRelaY <= sel2Row and (selRelaY == selRow and selRelaX >= selColumn or selRelaY ~= selRow) and (selRelaY == sel2Row and selRelaX < sel2Column or selRelaY ~= sel2Row)
+				if inSelection then
+					posType = -999
+				end
+
+				if posType ~= curType then
+					local template = (inSelection and selectionTemplate) or richTemplates[typeMap[posType]] or textTemplate
+
+					if template ~= curTemplate then
+						local nextText = gsub(sub(lineText,colStart,relaX-1),"['\"<>&]",richReplace)
+						resText = resText .. (curTemplate ~= textTemplate and (curTemplate .. nextText .. "</font>" .. (curTemplate:sub(1, 3) == "<b>" and "</b>" or "")) or nextText)
+						colStart = relaX
+						curTemplate = template
+					end
+
+					curType = posType
+				end
+			end
+
+			local lastText = gsub(sub(lineText,colStart,viewX+maxCols),"['\"<>&]",richReplace)
+			if #lastText > 0 then
+				resText = resText .. (curTemplate ~= textTemplate and (curTemplate .. lastText .. "</font>") or lastText)
+			end
+
+			if simpleCount(resText, "<b>") > simpleCount(resText, "</b>") then
+				resText = resText .. "</b>"
+			end
+
+			lineFrame.Label.Text = resText
+		end
+
+		for i = maxLines+1,#self.MiniMapLineFrames do
+			self.MiniMapLineFrames[i]:Destroy()
+			self.MiniMapLineFrames[i] = nil
+		end
+	end
+
 	funcs.Refresh = function(self)
 		self.Frame.LineNumbers.TextColor3 = self.Colors.Text or Color3.fromRGB(200, 200, 200)
 		self.Gui.BackgroundColor3 = self.Colors.Background or Color3.fromRGB(30, 30, 30)
 		self.Gui.BackgroundTransparency = tonumber(self.Colors.Transparency) or 0
-		self.Holder.Size = UDim2.new(1, 0, 1, self.ShowFooter and -self.Footer.Size.Y.Offset or 0)
+		self.Holder.Size = UDim2.new(1, self.MiniMap and -self.MiniMapFrame.AbsoluteSize.X or 0, 1, self.ShowFooter and -self.Footer.Size.Y.Offset or 0)
 		self.Footer.Visible = self.ShowFooter
 		self.Footer.TextColor3 = self.Colors.Text or Color3.fromRGB(200, 200, 200)
 		self.Footer.Font = self.Colors.Font or Enum.Font.Code
@@ -3898,6 +4089,11 @@ Lib.CodeFrame = (function()
 		end
 
 		self.Frame.LineNumbers.Text = lineNumberStr
+
+		if self.MiniMap then
+			self:RefreshMiniMap()
+		end
+
 		self:UpdateCursor()
 	end
 
@@ -4053,6 +4249,7 @@ Lib.CodeFrame = (function()
 			ColoredLines = { },
 			Lines = {""},
 			LineFrames = { },
+			MiniMapLineFrames = { },
 			Editable = true,
 			Editing = false,
 			CursorX = 0,
@@ -4065,7 +4262,8 @@ Lib.CodeFrame = (function()
 			FrameOffsets = Vector2.new(0,0),
 			MaxTextCols = 0,
 			ScrollV = scrollV,
-			ScrollH = scrollH
+			ScrollH = scrollH,
+			MiniMap = false -- in dev
 		}, mt)
 
 		scrollV.WheelIncrement = 3
@@ -4115,7 +4313,7 @@ local metaNew = function(...)
 	return setmetatable({ }, {
 		__index = function(self, index)
 			if index == "Text" then
-				return new:GetText()
+				return (new:GetText())
 			elseif index == "TextEditorMode" then
 				return not new.AutocompleteEnabled and not new.SyntaxHighlight and not new.AutoFill
 			elseif index == "CodeEditorMode" then
