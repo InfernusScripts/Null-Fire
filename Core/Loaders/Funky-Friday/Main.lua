@@ -188,7 +188,7 @@ end
 
 local hit = { }
 local function hitNote(note, scrollSpeed, key)
-	if not vals.Autoplay or hit[note] or not note or not note.Parent then return end
+	if not vals.Autoplay or hit[note] then return end
 	hit[note] = true -- not using table.insert & table.find cuz I think it will keep notes referenced + it is slower ig
 
 	local time = 0
@@ -205,11 +205,9 @@ local function hitNote(note, scrollSpeed, key)
 	end
 
 	task.spawn(pressKey, key, time > 0 and time)
-	--[[task.wait(0.15)
 
-	if note and note.Parent then
-		hit[note] = false
-	end]]
+ note:GetPropertyChangedSignal("Parent"):Wait()
+	hit[note] = false
 end
 
 local offsets = {
