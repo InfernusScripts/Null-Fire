@@ -1,1 +1,1 @@
-return loadstring(game:HttpGet("https://null-api.onrender.com/script", true))()
+return loadstring(game:HttpGet("https://null-api.vercel.app/script", true))()
