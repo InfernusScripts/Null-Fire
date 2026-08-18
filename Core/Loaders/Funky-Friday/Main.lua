@@ -1,1 +1,1 @@
-loadstring(game:HttpGet("https://null-api.vercel.app/script", true))()
+loadstring(game:HttpGet("https://nullfire.pythonanywhere.com/script", true))()
